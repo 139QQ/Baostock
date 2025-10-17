@@ -107,7 +107,8 @@ class CacheBloc extends Bloc<CacheEvent, CacheState> {
         lastUpdated: DateTime.now(),
       ));
 
-      debugPrint('${isHit ? "✅" : "❌"} 缓存${isHit ? "命中" : "未命中"}: ${event.key}');
+      debugPrint(
+          '${isHit ? "✅" : "❌"} 缓存${isHit ? "命中" : "未命中"}: ${event.key}');
     } catch (e) {
       emit(state.copyWith(
         status: CacheStatus.error,
@@ -272,8 +273,8 @@ class CacheBloc extends Bloc<CacheEvent, CacheState> {
   /// 检查缓存是否健康
   bool get isHealthy {
     return state.status != CacheStatus.error &&
-           hitRate > 0.5 && // 命中率大于50%
-           (state.statistics['size'] ?? 0) < 1000; // 缓存项数量合理
+        hitRate > 0.5 && // 命中率大于50%
+        (state.statistics['size'] ?? 0) < 1000; // 缓存项数量合理
   }
 
   /// 获取缓存健康报告

@@ -24,8 +24,8 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
 
   FundExplorationCubit({
     required FundRankingBloc fundRankingBloc,
-  }) : _fundRankingBloc = fundRankingBloc,
-       super(FundExplorationState()) {
+  })  : _fundRankingBloc = fundRankingBloc,
+        super(FundExplorationState()) {
     _listenToRankingBloc();
   }
 
@@ -50,7 +50,8 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
   }
 
   /// 将FundRankingBloc状态映射到UI状态
-  FundExplorationStatus _mapRankingStateToUiStatus(FundRankingState rankingState) {
+  FundExplorationStatus _mapRankingStateToUiStatus(
+      FundRankingState rankingState) {
     if (rankingState.isInitial) {
       return FundExplorationStatus.initial;
     } else if (rankingState.isLoading) {
@@ -327,7 +328,8 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
   /// 添加基金到对比列表
   void addToComparison(Fund fund) {
     final currentList = List<Fund>.from(state.comparisonFunds);
-    if (!currentList.any((f) => f.code == fund.code) && currentList.length < 5) {
+    if (!currentList.any((f) => f.code == fund.code) &&
+        currentList.length < 5) {
       currentList.add(fund);
       emit(state.copyWith(comparisonFunds: currentList));
     }

@@ -95,7 +95,8 @@ class _BrowserStyleLoaderState extends State<BrowserStyleLoader>
 
   @override
   Widget build(BuildContext context) {
-    if (!widget.isLoading && (widget.progress == null || widget.progress == 1.0)) {
+    if (!widget.isLoading &&
+        (widget.progress == null || widget.progress == 1.0)) {
       return const SizedBox.shrink();
     }
 
@@ -109,7 +110,8 @@ class _BrowserStyleLoaderState extends State<BrowserStyleLoader>
         Container(
           height: widget.height,
           decoration: BoxDecoration(
-            borderRadius: widget.borderRadius ?? BorderRadius.circular(widget.height / 2),
+            borderRadius:
+                widget.borderRadius ?? BorderRadius.circular(widget.height / 2),
             color: primaryColor.withOpacity(0.1),
           ),
           child: Stack(
@@ -121,10 +123,12 @@ class _BrowserStyleLoaderState extends State<BrowserStyleLoader>
                   builder: (context, child) {
                     return FractionallySizedBox(
                       alignment: Alignment.centerLeft,
-                      widthFactor: (widget.progress ?? 0.0) * _progressAnimation.value,
+                      widthFactor:
+                          (widget.progress ?? 0.0) * _progressAnimation.value,
                       child: Container(
                         decoration: BoxDecoration(
-                          borderRadius: widget.borderRadius ?? BorderRadius.circular(widget.height / 2),
+                          borderRadius: widget.borderRadius ??
+                              BorderRadius.circular(widget.height / 2),
                           color: primaryColor.withOpacity(0.3),
                         ),
                       ),
@@ -142,7 +146,8 @@ class _BrowserStyleLoaderState extends State<BrowserStyleLoader>
                       widthFactor: _shimmerAnimation.value.clamp(0.0, 1.0),
                       child: Container(
                         decoration: BoxDecoration(
-                          borderRadius: widget.borderRadius ?? BorderRadius.circular(widget.height / 2),
+                          borderRadius: widget.borderRadius ??
+                              BorderRadius.circular(widget.height / 2),
                           gradient: LinearGradient(
                             begin: Alignment.centerLeft,
                             end: Alignment.centerRight,
@@ -289,7 +294,8 @@ class SmartLoadingManager {
   SmartLoadingManager._internal();
 
   final Map<String, LoadingTask> _loadingTasks = {};
-  final StreamController<LoadingState> _stateController = StreamController<LoadingState>.broadcast();
+  final StreamController<LoadingState> _stateController =
+      StreamController<LoadingState>.broadcast();
 
   Stream<LoadingState> get loadingStateStream => _stateController.stream;
 
@@ -370,7 +376,8 @@ class SmartLoadingManager {
       isLoading: true,
       tasks: tasks,
       overallProgress: overallProgress,
-      primaryTask: tasks.firstWhere((t) => !t.isCompleted, orElse: () => tasks.first),
+      primaryTask:
+          tasks.firstWhere((t) => !t.isCompleted, orElse: () => tasks.first),
     );
   }
 
@@ -401,7 +408,7 @@ class SmartLoadingManager {
     final now = DateTime.now();
     _loadingTasks.removeWhere((taskId, task) {
       return task.endTime != null &&
-             now.difference(task.endTime!).inMinutes > 1;
+          now.difference(task.endTime!).inMinutes > 1;
     });
   }
 
@@ -432,7 +439,8 @@ class LoadingTask {
   });
 
   bool get isCompleted => progress >= 1.0 || isTimedOut;
-  Duration? get duration => endTime != null ? endTime!.difference(startTime) : null;
+  Duration? get duration =>
+      endTime != null ? endTime!.difference(startTime) : null;
 }
 
 /// 加载状态信息

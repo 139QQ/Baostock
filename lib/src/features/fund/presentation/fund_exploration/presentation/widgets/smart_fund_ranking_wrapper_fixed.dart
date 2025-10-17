@@ -151,7 +151,8 @@ class _SmartFundRankingWrapperFixedState
               children: [
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   color: Colors.orange.shade100,
                   child: Row(
                     children: [
@@ -222,7 +223,6 @@ class _SmartFundRankingWrapperFixedState
         children: [
           const CircularProgressIndicator(strokeWidth: 2),
           const SizedBox(height: 24),
-
           Container(
             width: 200,
             height: 6,
@@ -242,7 +242,6 @@ class _SmartFundRankingWrapperFixedState
             ),
           ),
           const SizedBox(height: 12),
-
           Text(
             '$_loadingProgress%',
             style: const TextStyle(
@@ -252,7 +251,6 @@ class _SmartFundRankingWrapperFixedState
             ),
           ),
           const SizedBox(height: 8),
-
           Text(
             _loadingStatus,
             style: TextStyle(
@@ -262,7 +260,6 @@ class _SmartFundRankingWrapperFixedState
             ),
           ),
           const SizedBox(height: 8),
-
           Text(
             '基金排行数据较大，请耐心等待...',
             style: TextStyle(
@@ -271,9 +268,7 @@ class _SmartFundRankingWrapperFixedState
             ),
             textAlign: TextAlign.center,
           ),
-
           const SizedBox(height: 24),
-
           Text(
             '预计时间: 15-30秒',
             style: TextStyle(

@@ -189,7 +189,8 @@ class _OptimizedFundListViewState extends State<OptimizedFundListView>
     }
   }
 
-  FundRanking _convertToFundRanking(Map<String, dynamic> data, int rankingPosition, int totalCount) {
+  FundRanking _convertToFundRanking(
+      Map<String, dynamic> data, int rankingPosition, int totalCount) {
     return FundRanking(
       fundCode: data['基金代码']?.toString() ?? '',
       fundName: data['基金简称']?.toString() ?? '',
@@ -210,11 +211,14 @@ class _OptimizedFundListViewState extends State<OptimizedFundListView>
       returnYTD: _parsePercentage(data['今年来']),
       returnSinceInception: _parsePercentage(data['成立来']),
       date: data['日期']?.toString() ?? '',
-      fee: double.tryParse(data['手续费']?.toString().replaceAll('%', '') ?? '0') ?? 0.0,
+      fee:
+          double.tryParse(data['手续费']?.toString().replaceAll('%', '') ?? '0') ??
+              0.0,
     );
   }
 
-  List<FundRanking> _convertToFundRankings(List<Map<String, dynamic>> dataList) {
+  List<FundRanking> _convertToFundRankings(
+      List<Map<String, dynamic>> dataList) {
     return dataList.asMap().entries.map((entry) {
       final index = entry.key;
       final data = entry.value;
@@ -332,7 +336,8 @@ class _OptimizedFundListViewState extends State<OptimizedFundListView>
     super.build(context);
 
     if (_isLoading && _displayData.isEmpty) {
-      return widget.loadingWidget ?? const Center(child: CircularProgressIndicator());
+      return widget.loadingWidget ??
+          const Center(child: CircularProgressIndicator());
     }
 
     if (_hasError && _displayData.isEmpty) {
@@ -383,27 +388,43 @@ class _OptimizedFundCard extends StatelessWidget {
 
   Color _getFundTypeColor(String type) {
     switch (type) {
-      case '股票型': return const Color(0xFFEF4444);
-      case '债券型': return const Color(0xFF10B981);
-      case '混合型': return const Color(0xFFF59E0B);
-      case '货币型': return const Color(0xFF3B82F6);
-      default: return Colors.grey;
+      case '股票型':
+        return const Color(0xFFEF4444);
+      case '债券型':
+        return const Color(0xFF10B981);
+      case '混合型':
+        return const Color(0xFFF59E0B);
+      case '货币型':
+        return const Color(0xFF3B82F6);
+      default:
+        return Colors.grey;
     }
   }
 
   double _getReturnForPeriod() {
     switch (selectedPeriod) {
-      case '日增长率': return fund.dailyReturn;
-      case '近一周': return fund.return1W;
-      case '近一月': return fund.return1M;
-      case '近三月': return fund.return3M;
-      case '近六月': return fund.return6M;
-      case '近一年': return fund.return1Y;
-      case '近两年': return fund.return2Y;
-      case '近三年': return fund.return3Y;
-      case '今年来': return fund.returnYTD;
-      case '成立来': return fund.returnSinceInception;
-      default: return fund.return1Y;
+      case '日增长率':
+        return fund.dailyReturn;
+      case '近一周':
+        return fund.return1W;
+      case '近一月':
+        return fund.return1M;
+      case '近三月':
+        return fund.return3M;
+      case '近六月':
+        return fund.return6M;
+      case '近一年':
+        return fund.return1Y;
+      case '近两年':
+        return fund.return2Y;
+      case '近三年':
+        return fund.return3Y;
+      case '今年来':
+        return fund.returnYTD;
+      case '成立来':
+        return fund.returnSinceInception;
+      default:
+        return fund.return1Y;
     }
   }
 
@@ -471,7 +492,8 @@ class _OptimizedFundCard extends StatelessWidget {
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 1),
                         decoration: BoxDecoration(
                           color: Colors.grey.shade100,
                           borderRadius: BorderRadius.circular(3),
@@ -486,9 +508,11 @@ class _OptimizedFundCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 4, vertical: 1),
                         decoration: BoxDecoration(
-                          color: _getFundTypeColor(fund.fundType).withOpacity(0.1),
+                          color:
+                              _getFundTypeColor(fund.fundType).withOpacity(0.1),
                           borderRadius: BorderRadius.circular(3),
                         ),
                         child: Text(

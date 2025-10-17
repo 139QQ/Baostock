@@ -147,11 +147,11 @@ class _FundExplorationPageContentState
     });
 
     context.read<FundExplorationCubit>().applyFilters(
-      fundType: filter.fundTypes.isNotEmpty ? filter.fundTypes.first : null,
-      sortBy: filter.sortBy,
-      minReturn: filter.minReturn1Y,
-      maxReturn: filter.maxReturn1Y,
-    );
+          fundType: filter.fundTypes.isNotEmpty ? filter.fundTypes.first : null,
+          sortBy: filter.sortBy,
+          minReturn: filter.minReturn1Y,
+          maxReturn: filter.maxReturn1Y,
+        );
   }
 
   /// 切换对比模式

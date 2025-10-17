@@ -129,10 +129,10 @@ class FundConverter {
   static bool isFundRankingJson(Map<String, dynamic> json) {
     // 检查是否包含FundRanking特有的字段
     return json.containsKey('fundCode') ||
-           json.containsKey('fundName') ||
-           json.containsKey('rankingPosition') ||
-           json.containsKey('rankingType') ||
-           json.containsKey('rankingPeriod');
+        json.containsKey('fundName') ||
+        json.containsKey('rankingPosition') ||
+        json.containsKey('rankingType') ||
+        json.containsKey('rankingPeriod');
   }
 
   /// 智能转换：根据JSON格式自动选择转换方式
@@ -161,7 +161,8 @@ class FundConverter {
     if (rankings != null) {
       stats['rankingCount'] = rankings.length;
       stats['rankingTypeDistribution'] = _getRankingTypeDistribution(rankings);
-      stats['rankingPeriodDistribution'] = _getRankingPeriodDistribution(rankings);
+      stats['rankingPeriodDistribution'] =
+          _getRankingPeriodDistribution(rankings);
     }
 
     return stats;
@@ -186,25 +187,30 @@ class FundConverter {
   }
 
   /// 获取排行榜类型分布统计
-  static Map<String, int> _getRankingTypeDistribution(List<FundRanking> rankings) {
+  static Map<String, int> _getRankingTypeDistribution(
+      List<FundRanking> rankings) {
     final distribution = <String, int>{};
     for (final ranking in rankings) {
-      distribution[ranking.rankingType.name] = (distribution[ranking.rankingType.name] ?? 0) + 1;
+      distribution[ranking.rankingType.name] =
+          (distribution[ranking.rankingType.name] ?? 0) + 1;
     }
     return distribution;
   }
 
   /// 获取排行榜时间段分布统计
-  static Map<String, int> _getRankingPeriodDistribution(List<FundRanking> rankings) {
+  static Map<String, int> _getRankingPeriodDistribution(
+      List<FundRanking> rankings) {
     final distribution = <String, int>{};
     for (final ranking in rankings) {
-      distribution[ranking.rankingPeriod.name] = (distribution[ranking.rankingPeriod.name] ?? 0) + 1;
+      distribution[ranking.rankingPeriod.name] =
+          (distribution[ranking.rankingPeriod.name] ?? 0) + 1;
     }
     return distribution;
   }
 
   /// 数据验证：检查转换后的数据完整性
-  static Map<String, dynamic> validateConversion(Fund original, FundRanking converted) {
+  static Map<String, dynamic> validateConversion(
+      Fund original, FundRanking converted) {
     final validation = <String, dynamic>{
       'isValid': true,
       'errors': <String>[],
@@ -213,22 +219,26 @@ class FundConverter {
 
     // 检查关键字段是否匹配
     if (original.code != converted.fundCode) {
-      validation['errors'].add('基金代码不匹配: ${original.code} -> ${converted.fundCode}');
+      validation['errors']
+          .add('基金代码不匹配: ${original.code} -> ${converted.fundCode}');
       validation['isValid'] = false;
     }
 
     if (original.name != converted.fundName) {
-      validation['errors'].add('基金名称不匹配: ${original.name} -> ${converted.fundName}');
+      validation['errors']
+          .add('基金名称不匹配: ${original.name} -> ${converted.fundName}');
       validation['isValid'] = false;
     }
 
     // 检查数值字段的精度
     if ((original.unitNav - converted.unitNav).abs() > 0.0001) {
-      validation['warnings'].add('单位净值精度差异: ${original.unitNav} -> ${converted.unitNav}');
+      validation['warnings']
+          .add('单位净值精度差异: ${original.unitNav} -> ${converted.unitNav}');
     }
 
     if ((original.dailyReturn - converted.dailyReturn).abs() > 0.0001) {
-      validation['warnings'].add('日收益率精度差异: ${original.dailyReturn} -> ${converted.dailyReturn}');
+      validation['warnings']
+          .add('日收益率精度差异: ${original.dailyReturn} -> ${converted.dailyReturn}');
     }
 
     // 检查是否有数据丢失

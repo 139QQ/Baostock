@@ -16,19 +16,19 @@ import 'package:flutter/material.dart';
 
 /// 基础加载指示器类型枚举
 enum LoadingType {
-  circular,    // 圆形进度指示器
-  linear,      // 线性进度指示器
-  pulse,       // 脉冲动画
-  dots,        // 点状动画
-  skeleton,    // 骨架屏
+  circular, // 圆形进度指示器
+  linear, // 线性进度指示器
+  pulse, // 脉冲动画
+  dots, // 点状动画
+  skeleton, // 骨架屏
 }
 
 /// 加载指示器尺寸枚举
 enum LoadingSize {
-  small,       // 小尺寸 (24px)
-  medium,      // 中等尺寸 (48px)
-  large,       // 大尺寸 (72px)
-  extraLarge,  // 超大尺寸 (96px)
+  small, // 小尺寸 (24px)
+  medium, // 中等尺寸 (48px)
+  large, // 大尺寸 (72px)
+  extraLarge, // 超大尺寸 (96px)
 }
 
 /// 现代化加载指示器主类
@@ -567,7 +567,8 @@ class SkeletonLoadingIndicator extends StatefulWidget {
   });
 
   @override
-  State<SkeletonLoadingIndicator> createState() => _SkeletonLoadingIndicatorState();
+  State<SkeletonLoadingIndicator> createState() =>
+      _SkeletonLoadingIndicatorState();
 }
 
 class _SkeletonLoadingIndicatorState extends State<SkeletonLoadingIndicator>
@@ -1050,11 +1051,12 @@ class ConfigurableLoadingIndicator extends StatelessWidget {
         color: backgroundColor ?? Colors.white,
         borderRadius: borderRadius ?? BorderRadius.circular(12),
         boxShadow: [
-          shadow ?? BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
+          shadow ??
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
         ],
       ),
       child: child,

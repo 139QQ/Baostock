@@ -15,14 +15,15 @@ part 'fund_exploration_state_simplified.dart';
 /// - 页面导航状态
 /// - 临时状态（表单输入、滚动位置等）
 /// - 数据操作委托给FundRankingBloc
-class FundExplorationCubitSimplified extends Cubit<FundExplorationStateSimplified> {
+class FundExplorationCubitSimplified
+    extends Cubit<FundExplorationStateSimplified> {
   final FundRankingBloc _fundRankingBloc;
   StreamSubscription<FundRankingState>? _rankingBlocSubscription;
 
   FundExplorationCubitSimplified({
     required FundRankingBloc fundRankingBloc,
-  }) : _fundRankingBloc = fundRankingBloc,
-       super(const FundExplorationStateSimplified()) {
+  })  : _fundRankingBloc = fundRankingBloc,
+        super(const FundExplorationStateSimplified()) {
     _listenToRankingBloc();
   }
 
@@ -49,7 +50,8 @@ class FundExplorationCubitSimplified extends Cubit<FundExplorationStateSimplifie
   }
 
   /// 将FundRankingBloc状态映射到UI状态
-  FundExplorationStatus _mapRankingStateToUiStatus(FundRankingState rankingState) {
+  FundExplorationStatus _mapRankingStateToUiStatus(
+      FundRankingState rankingState) {
     if (rankingState.isInitial) {
       return FundExplorationStatus.initial;
     } else if (rankingState.isLoading) {
@@ -323,19 +325,19 @@ class FundExplorationCubitSimplified extends Cubit<FundExplorationStateSimplifie
 
 /// 基金探索视图枚举
 enum FundExplorationView {
-  ranking,    // 排行榜视图
-  hot,        // 热门基金视图
-  search,     // 搜索结果视图
-  filter,     // 筛选结果视图
-  favorite,   // 收藏视图
+  ranking, // 排行榜视图
+  hot, // 热门基金视图
+  search, // 搜索结果视图
+  filter, // 筛选结果视图
+  favorite, // 收藏视图
 }
 
 /// 基金探索状态枚举
 enum FundExplorationStatus {
-  initial,    // 初始状态
-  loading,    // 加载中
-  loaded,     // 加载完成
-  searching,  // 搜索中
-  filtering,  // 筛选中
-  error,      // 错误状态
+  initial, // 初始状态
+  loading, // 加载中
+  loaded, // 加载完成
+  searching, // 搜索中
+  filtering, // 筛选中
+  error, // 错误状态
 }

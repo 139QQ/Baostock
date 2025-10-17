@@ -2,36 +2,36 @@ part of 'cache_bloc.dart';
 
 /// 缓存状态枚举
 enum CacheStatus {
-  initial,       // 初始状态
-  loading,       // 加载中
-  initialized,   // 已初始化
-  dataStored,    // 数据已存储
+  initial, // 初始状态
+  loading, // 加载中
+  initialized, // 已初始化
+  dataStored, // 数据已存储
   dataRetrieved, // 数据已获取
-  dataRemoved,   // 数据已移除
-  cleared,       // 已清空
-  clearing,      // 清空中
-  expiredCleared,// 过期数据已清理
+  dataRemoved, // 数据已移除
+  cleared, // 已清空
+  clearing, // 清空中
+  expiredCleared, // 过期数据已清理
   statisticsReady, // 统计信息已准备
-  monitoring,    // 监控中
+  monitoring, // 监控中
   policyUpdated, // 策略已更新
-  error,         // 错误状态
+  error, // 错误状态
 }
 
 /// 缓存操作类型枚举
 enum CacheOperation {
-  store,     // 存储
-  retrieve,  // 获取
-  remove,    // 移除
-  clearAll,  // 清空所有
+  store, // 存储
+  retrieve, // 获取
+  remove, // 移除
+  clearAll, // 清空所有
   clearExpired, // 清理过期
 }
 
 /// 缓存策略枚举
 enum CachePolicy {
   aggressive, // 激进策略：大量缓存，长期保存
-  balanced,   // 平衡策略：适中的缓存大小和过期时间
+  balanced, // 平衡策略：适中的缓存大小和过期时间
   conservative, // 保守策略：最小缓存，快速过期
-  custom,     // 自定义策略
+  custom, // 自定义策略
 }
 
 /// 缓存状态类
@@ -138,7 +138,8 @@ class CacheState extends Equatable {
   bool get isError => status == CacheStatus.error;
 
   /// 是否为加载状态
-  bool get isLoading => status == CacheStatus.loading || status == CacheStatus.clearing;
+  bool get isLoading =>
+      status == CacheStatus.loading || status == CacheStatus.clearing;
 
   /// 是否已初始化
   bool get isInitialized => status == CacheStatus.initialized;

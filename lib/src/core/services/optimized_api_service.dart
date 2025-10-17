@@ -241,8 +241,8 @@ class OptimizedApiService {
 
         // 发送请求
         final response = await _httpClient.send(request).timeout(
-          config.timeout ?? const Duration(seconds: 30),
-        );
+              config.timeout ?? const Duration(seconds: 30),
+            );
 
         // 读取响应体
         final responseBody = await response.stream.bytesToString();
@@ -309,7 +309,6 @@ class OptimizedApiService {
       await for (final state in _cacheBloc.stream) {
         if (state.status == CacheStatus.dataRetrieved &&
             state.lastOperationKey == cacheKey) {
-
           final cachedData = state.lastOperationResult;
           if (cachedData != null) {
             try {
@@ -337,7 +336,8 @@ class OptimizedApiService {
   }
 
   /// 缓存数据
-  Future<void> _cacheData<T>(ApiRequestConfig config, ApiResult<T> result) async {
+  Future<void> _cacheData<T>(
+      ApiRequestConfig config, ApiResult<T> result) async {
     try {
       if (result.data != null) {
         final cacheKey = config.cacheKey ?? _generateCacheKey(config);
@@ -365,17 +365,20 @@ class OptimizedApiService {
   }
 
   /// 更新统计信息
-  void _updateStatistics(bool isSuccess, Duration responseTime, bool fromCache) {
+  void _updateStatistics(
+      bool isSuccess, Duration responseTime, bool fromCache) {
     _statistics['totalRequests'] = (_statistics['totalRequests'] ?? 0) + 1;
 
     if (isSuccess) {
-      _statistics['successfulRequests'] = (_statistics['successfulRequests'] ?? 0) + 1;
+      _statistics['successfulRequests'] =
+          (_statistics['successfulRequests'] ?? 0) + 1;
     } else {
       _statistics['failedRequests'] = (_statistics['failedRequests'] ?? 0) + 1;
     }
 
     // 更新平均响应时间
-    final totalTime = (_statistics['totalResponseTime'] ?? 0) + responseTime.inMilliseconds;
+    final totalTime =
+        (_statistics['totalResponseTime'] ?? 0) + responseTime.inMilliseconds;
     _statistics['totalResponseTime'] = totalTime;
     final totalRequests = _statistics['totalRequests'] as int;
     _statistics['averageResponseTime'] = totalTime / totalRequests;
@@ -390,7 +393,8 @@ class OptimizedApiService {
     final cacheHits = _statistics['cacheHits'] ?? 0;
     final cacheMisses = _statistics['cacheMisses'] ?? 0;
     final totalCacheRequests = cacheHits + cacheMisses;
-    _statistics['cacheHitRate'] = totalCacheRequests > 0 ? cacheHits / totalCacheRequests : 0.0;
+    _statistics['cacheHitRate'] =
+        totalCacheRequests > 0 ? cacheHits / totalCacheRequests : 0.0;
 
     // 发送统计更新
     _statisticsController.add(_getStatistics());
