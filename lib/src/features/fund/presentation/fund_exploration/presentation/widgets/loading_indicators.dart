@@ -1,47 +1,47 @@
 import 'package:flutter/material.dart';
 
-/// 现代化加载状态指示器组件�?
+/// 现代化加载状态指示器组件库
 ///
-/// 提供多种类型的加载指示器和状态反馈组件，包括�?
-/// - 基础圆形进度指示�?
-/// - 全屏加载指示�?
+/// 提供多种类型的加载指示器和状态反馈组件，包括：
+/// - 基础圆形进度指示器
+/// - 全屏加载指示器
 /// - 列表内加载指示器
-/// - 骨架屏加载效�?
+/// - 骨架屏加载效果
 /// - 错误和空状态指示器
-/// - 智能加载管理�?
+/// - 智能加载管理器
 /// - 自定义进度指示器
-/// - 脉冲动画加载�?
+/// - 脉冲动画加载器
 ///
 /// 所有组件都支持主题适配和自定义样式配置
 
-/// 基础加载指示器类型枚�?
+/// 基础加载指示器类型枚举
 enum LoadingType {
-  circular,    // 圆形进度指示�?
+  circular,    // 圆形进度指示器
   linear,      // 线性进度指示器
   pulse,       // 脉冲动画
   dots,        // 点状动画
-  skeleton,    // 骨架�?
+  skeleton,    // 骨架屏
 }
 
-/// 加载指示器尺寸枚�?
+/// 加载指示器尺寸枚举
 enum LoadingSize {
-  small,       // 小尺�?(24px)
+  small,       // 小尺寸 (24px)
   medium,      // 中等尺寸 (48px)
-  large,       // 大尺�?(72px)
+  large,       // 大尺寸 (72px)
   extraLarge,  // 超大尺寸 (96px)
 }
 
 /// 现代化加载指示器主类
 class ModernLoadingIndicators {
-  /// 全屏加载指示�?
+  /// 全屏加载指示器
   ///
   /// [message] 加载提示文本
-  /// [progress] 进度�?(0.0 - 1.0)
-  /// [showProgress] 是否显示进度�?
-  /// [type] 加载指示器类�?
-  /// [size] 加载指示器尺�?
+  /// [progress] 进度值 (0.0 - 1.0)
+  /// [showProgress] 是否显示进度条
+  /// [type] 加载指示器类型
+  /// [size] 加载指示器尺寸
   static Widget fullScreenLoading({
-    String message = '加载�?..',
+    String message = '加载中...',
     double progress = 0.0,
     bool showProgress = false,
     LoadingType type = LoadingType.circular,
@@ -54,7 +54,7 @@ class ModernLoadingIndicators {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // 主加载动�?
+            // 主加载动画
             _buildLoadingIndicator(
               type: type,
               size: size,
@@ -110,7 +110,7 @@ class ModernLoadingIndicators {
   ///
   /// [message] 加载提示文本
   /// [showSpinner] 是否显示旋转动画
-  /// [type] 加载指示器类�?
+  /// [type] 加载指示器类型
   static Widget listLoading({
     String message = '加载更多数据...',
     bool showSpinner = true,
@@ -146,10 +146,10 @@ class ModernLoadingIndicators {
     );
   }
 
-  /// 下拉刷新指示�?
+  /// 下拉刷新指示器
   ///
   /// [pullDistance] 拉动距离
-  /// [refreshTrigger] 触发刷新的距�?
+  /// [refreshTrigger] 触发刷新的距离
   /// [isRefreshing] 是否正在刷新
   static Widget pullToRefresh({
     double pullDistance = 0.0,
@@ -272,9 +272,9 @@ class ModernLoadingIndicators {
 
   /// 空状态指示器
   ///
-  /// [message] 空状态提示文�?
-  /// [subMessage] 副标题文�?
-  /// [icon] 自定义图�?
+  /// [message] 空状态提示文本
+  /// [subMessage] 副标题文本
+  /// [icon] 自定义图标
   /// [action] 操作按钮
   static Widget emptyState({
     String message = '暂无数据',
@@ -288,7 +288,7 @@ class ModernLoadingIndicators {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // 空状态图�?
+          // 空状态图标
           Container(
             width: 100,
             height: 100,
@@ -304,7 +304,7 @@ class ModernLoadingIndicators {
           ),
           const SizedBox(height: 20),
 
-          // 空状态文�?
+          // 空状态文本
           Text(
             message,
             style: TextStyle(
@@ -380,7 +380,7 @@ class ModernLoadingIndicators {
     }
   }
 
-  /// 获取加载指示器尺�?
+  /// 获取加载指示器尺寸
   static double _getLoadingSize(LoadingSize size) {
     switch (size) {
       case LoadingSize.small:
@@ -395,7 +395,7 @@ class ModernLoadingIndicators {
   }
 }
 
-/// 脉冲动画加载�?
+/// 脉冲动画加载器
 class PulseLoadingIndicator extends StatefulWidget {
   final double size;
   final Color color;
@@ -473,7 +473,7 @@ class _PulseLoadingIndicatorState extends State<PulseLoadingIndicator>
   }
 }
 
-/// 点状动画加载�?
+/// 点状动画加载器
 class DotsLoadingIndicator extends StatefulWidget {
   final double size;
   final Color color;
@@ -614,7 +614,7 @@ class _SkeletonLoadingIndicatorState extends State<SkeletonLoadingIndicator>
         builder: (context, child) {
           return Stack(
             children: [
-              // 背景�?
+              // 背景层
               Container(
                 width: widget.width,
                 height: widget.height,
@@ -623,7 +623,7 @@ class _SkeletonLoadingIndicatorState extends State<SkeletonLoadingIndicator>
                   color: Colors.grey.shade200,
                 ),
               ),
-              // 光效�?
+              // 光效层
               Positioned(
                 left: (_animation.value - 1) * widget.width,
                 top: 0,
@@ -652,7 +652,7 @@ class _SkeletonLoadingIndicatorState extends State<SkeletonLoadingIndicator>
   }
 }
 
-/// 基金卡片骨架�?
+/// 基金卡片骨架屏
 class FundCardSkeleton extends StatelessWidget {
   final bool showAvatar;
   final int lines;
@@ -733,7 +733,7 @@ class FundCardSkeleton extends StatelessWidget {
   }
 }
 
-/// 基金列表骨架�?
+/// 基金列表骨架屏
 class FundListSkeleton extends StatelessWidget {
   final int itemCount;
   final bool showAvatar;
@@ -760,7 +760,7 @@ class FundListSkeleton extends StatelessWidget {
   }
 }
 
-/// 智能加载管理�?
+/// 智能加载管理器
 class SmartLoadingManager extends StatefulWidget {
   final Widget child;
   final bool isLoading;
@@ -830,13 +830,13 @@ class _SmartLoadingManagerState extends State<SmartLoadingManager>
 
   @override
   Widget build(BuildContext context) {
-    // 加载状�?
+    // 加载状态
     if (widget.isLoading) {
       return widget.loadingWidget ??
           ModernLoadingIndicators.fullScreenLoading();
     }
 
-    // 错误状�?
+    // 错误状态
     if (widget.hasError) {
       return widget.errorWidget ??
           ModernLoadingIndicators.errorState(
@@ -845,7 +845,7 @@ class _SmartLoadingManagerState extends State<SmartLoadingManager>
           );
     }
 
-    // 空状�?
+    // 空状态
     if (widget.isEmpty) {
       return widget.emptyWidget ??
           ModernLoadingIndicators.emptyState(
@@ -1019,7 +1019,7 @@ class LoadingWithText extends StatelessWidget {
   }
 }
 
-/// 可配置的加载指示器容�?
+/// 可配置的加载指示器容器
 class ConfigurableLoadingIndicator extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;

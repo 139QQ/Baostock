@@ -18,7 +18,7 @@ class CacheBloc extends Bloc<CacheEvent, CacheState> {
 
   CacheBloc({HiveCacheManager? cacheManager})
       : _cacheManager = cacheManager ?? HiveCacheManager.instance,
-        super(const CacheState.initial()) {
+        super(CacheState.initial()) {
     on<InitializeCache>(_onInitializeCache);
     on<StoreCacheData>(_onStoreCacheData);
     on<GetCacheData>(_onGetCacheData);
@@ -35,7 +35,7 @@ class CacheBloc extends Bloc<CacheEvent, CacheState> {
     InitializeCache event,
     Emitter<CacheState> emit,
   ) async {
-    emit(const CacheState.loading());
+    emit(CacheState.loading());
 
     try {
       await _cacheManager.initialize();
@@ -93,7 +93,7 @@ class CacheBloc extends Bloc<CacheEvent, CacheState> {
     Emitter<CacheState> emit,
   ) async {
     try {
-      final value = _cacheManager.get(event.type);
+      final value = _cacheManager.get(event.key);
 
       final isHit = value != null;
 

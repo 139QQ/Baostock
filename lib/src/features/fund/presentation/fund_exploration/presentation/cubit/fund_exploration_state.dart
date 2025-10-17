@@ -36,6 +36,12 @@ class FundExplorationState extends Equatable {
   final int fundRankingsPageSize; // 基金排行每页大小
   final bool hasMoreFundRankings; // 是否还有更多基金排行数据
   final bool isFundRankingsRealData; // 基金排行是否为真实数据（而非模拟数据）
+  final int selectedTab; // 当前选中的标签页
+  final Set<String> expandedFunds; // 展开的基金列表
+  final String activeFilter; // 当前激活的筛选条件
+  final String activeSortBy; // 当前激活的排序条件
+  final double scrollPosition; // 滚动位置
+  final bool isRealData; // 是否为真实数据
 
   FundExplorationState({
     this.status = FundExplorationStatus.initial,
@@ -55,6 +61,12 @@ class FundExplorationState extends Equatable {
     this.fundRankingsPageSize = 1000, // 每页1000条，平衡性能和体验
     this.hasMoreFundRankings = true,
     this.isFundRankingsRealData = false, // 默认为false，表示初始为无数据状态
+    this.selectedTab = 0,
+    this.expandedFunds = const {},
+    this.activeFilter = '',
+    this.activeSortBy = '',
+    this.scrollPosition = 0.0,
+    this.isRealData = false,
   }) : currentFilter = currentFilter ?? FundFilter();
 
   /// 获取当前显示的数据列表
@@ -153,6 +165,12 @@ class FundExplorationState extends Equatable {
     int? fundRankingsPageSize,
     bool? hasMoreFundRankings,
     bool? isFundRankingsRealData,
+    int? selectedTab,
+    Set<String>? expandedFunds,
+    String? activeFilter,
+    String? activeSortBy,
+    double? scrollPosition,
+    bool? isRealData,
   }) {
     return FundExplorationState(
       status: status ?? this.status,
@@ -173,6 +191,12 @@ class FundExplorationState extends Equatable {
       hasMoreFundRankings: hasMoreFundRankings ?? this.hasMoreFundRankings,
       isFundRankingsRealData:
           isFundRankingsRealData ?? this.isFundRankingsRealData,
+      selectedTab: selectedTab ?? this.selectedTab,
+      expandedFunds: expandedFunds ?? this.expandedFunds,
+      activeFilter: activeFilter ?? this.activeFilter,
+      activeSortBy: activeSortBy ?? this.activeSortBy,
+      scrollPosition: scrollPosition ?? this.scrollPosition,
+      isRealData: isRealData ?? this.isRealData,
     );
   }
 
@@ -195,5 +219,11 @@ class FundExplorationState extends Equatable {
         fundRankingsPageSize,
         hasMoreFundRankings,
         isFundRankingsRealData,
+        selectedTab,
+        expandedFunds,
+        activeFilter,
+        activeSortBy,
+        scrollPosition,
+        isRealData,
       ];
 }

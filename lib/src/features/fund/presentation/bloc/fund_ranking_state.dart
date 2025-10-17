@@ -1,3 +1,8 @@
+import 'package:equatable/equatable.dart';
+import '../../domain/entities/fund_ranking.dart';
+import '../../domain/entities/ranking_statistics.dart';
+import '../../domain/entities/hot_ranking_type.dart';
+
 part of 'fund_ranking_bloc.dart';
 
 /// 基金排行榜状态基类（用于状态模式）
@@ -354,6 +359,15 @@ class FundRankingState extends Equatable {
 
   /// 是否为空状态
   bool get isEmpty => rankings.isEmpty && !isLoading;
+
+  /// 是否有错误
+  bool get hasError => isFailure;
+
+  /// 获取错误信息
+  String? get errorMessage => failureData?.error;
+
+  /// 是否有数据质量问题
+  bool get hasDataQualityIssues => false; // 可以根据需要实现
 
   /// 获取指定基金的历史状态
   FundRankingHistoryState? getHistoryState(

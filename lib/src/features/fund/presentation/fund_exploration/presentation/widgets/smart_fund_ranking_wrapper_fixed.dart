@@ -5,11 +5,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'fund_ranking_section_fixed.dart';
 import '../cubit/fund_exploration_cubit.dart';
 
-/// 智能基金排行组件包装�?
+/// 智能基金排行组件包装器
 ///
-/// 支持按需加载基金排行数据，优化用户体�?
+/// 支持按需加载基金排行数据，优化用户体验
 /// 避免集中式加载导致的频率限制问题
-/// 提供详细的加载进度和状态提�?
+/// 提供详细的加载进度和状态提示
 class SmartFundRankingWrapperFixed extends StatefulWidget {
   const SmartFundRankingWrapperFixed({super.key});
 
@@ -21,7 +21,7 @@ class SmartFundRankingWrapperFixed extends StatefulWidget {
 class _SmartFundRankingWrapperFixedState
     extends State<SmartFundRankingWrapperFixed> {
   bool _hasAttemptedLoad = false;
-  String _loadingStatus = '准备�?..';
+  String _loadingStatus = '准备中...';
   int _loadingProgress = 0;
   Timer? _retryTimer;
 
@@ -34,7 +34,7 @@ class _SmartFundRankingWrapperFixedState
       final state = cubit.state;
 
       if (state.fundRankings.isNotEmpty) {
-        debugPrint('�?SmartFundRankingWrapperFixed: 初始化时发现已有数据，直接显�?);
+        debugPrint('✓SmartFundRankingWrapperFixed: 初始化时发现有数据，直接显示');
         setState(() {
           _hasAttemptedLoad = true;
         });
@@ -57,7 +57,7 @@ class _SmartFundRankingWrapperFixedState
 
           setState(() {
             _hasAttemptedLoad = true;
-            _loadingStatus = '正在连接服务�?..';
+            _loadingStatus = '正在连接服务器...';
             _loadingProgress = 10;
           });
 
@@ -70,12 +70,12 @@ class _SmartFundRankingWrapperFixedState
 
   void _simulateLoadingProgress() {
     final steps = [
-      '正在连接服务�?..',
+      '正在连接服务器...',
       '正在请求数据...',
       '正在接收数据...',
       '正在解析数据...',
       '正在整理排行...',
-      '数据加载完成�?,
+      '数据加载完成！',
     ];
 
     final progressValues = [10, 30, 60, 80, 95, 100];
@@ -115,7 +115,7 @@ class _SmartFundRankingWrapperFixedState
       final state = cubit.state;
 
       if (state.fundRankings.isNotEmpty && !state.isFundRankingsRealData) {
-        debugPrint('🔄 SmartFundRankingWrapperFixed: 定时重试机制触发，尝试加载真实数�?);
+        debugPrint('🔄 SmartFundRankingWrapperFixed: 定时重试机制触发，尝试加载真实数据');
         _loadRealData();
       }
     });
@@ -235,8 +235,8 @@ class _SmartFundRankingWrapperFixedState
               child: LinearProgressIndicator(
                 value: _loadingProgress / 100,
                 backgroundColor: Colors.transparent,
-                valueColor: AlwaysStoppedAnimation Color>(
-                  const Color(0xFF1E40AF),
+                valueColor: const AlwaysStoppedAnimation<Color>(
+                  Color(0xFF1E40AF),
                 ),
               ),
             ),
@@ -275,7 +275,7 @@ class _SmartFundRankingWrapperFixedState
           const SizedBox(height: 24),
 
           Text(
-            '预计时间: 15-30�?,
+            '预计时间: 15-30秒',
             style: TextStyle(
               fontSize: 11,
               color: Colors.grey.shade400,
@@ -358,7 +358,7 @@ class _SmartFundRankingWrapperFixedState
           ),
           const SizedBox(height: 8),
           Text(
-            '请稍后重�?,
+            '请稍后重试',
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey.shade500,
@@ -397,7 +397,7 @@ class _SmartFundRankingWrapperFixedState
           ),
           const SizedBox(height: 16),
           Text(
-            '基金排行数据加载�?..',
+            '基金排行数据加载中..',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w500,
@@ -406,7 +406,7 @@ class _SmartFundRankingWrapperFixedState
           ),
           const SizedBox(height: 8),
           const Text(
-            '请稍候，正在获取最新排行数�?,
+            '请稍候，正在获取最新排行数据',
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey,

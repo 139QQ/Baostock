@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 import '../../domain/models/fund.dart';
 import '../../../../../../core/utils/batch_data_loader.dart';
 
-/// 优化的基金列表视�?- 使用ListView.builder实现懒加�?
+/// 优化的基金列表视图 - 使用ListView.builder实现懒加载
 ///
-/// 特点�?
-/// - 只渲染可见区域的Widget，大幅减少内存占�?
-/// - 支持无限滚动和分批加�?
+/// 特点：
+/// - 只渲染可见区域的Widget，大幅减少内存占用
+/// - 支持无限滚动和分批加载
 /// - 自动预加载和缓存管理
 /// - 滚动性能优化
-/// - 内存管理和数据释�?
+/// - 内存管理和数据释放
 class OptimizedFundListView extends StatefulWidget {
   final BatchDataLoader<Map<String, dynamic>> dataLoader;
   final String selectedPeriod;
@@ -27,7 +27,7 @@ class OptimizedFundListView extends StatefulWidget {
   const OptimizedFundListView({
     super.key,
     required this.dataLoader,
-    this.selectedPeriod = '�?�?,
+    this.selectedPeriod = '近一年',
     this.onFundTap,
     this.onFundFavorite,
     this.onFundDetails,
@@ -192,25 +192,25 @@ class _OptimizedFundListViewState extends State<OptimizedFundListView>
   FundRanking _convertToFundRanking(Map<String, dynamic> data, int rankingPosition, int totalCount) {
     return FundRanking(
       fundCode: data['基金代码']?.toString() ?? '',
-      fundName: data['基金简�?]?.toString() ?? '',
+      fundName: data['基金简称']?.toString() ?? '',
       fundType: data['基金类型']?.toString() ?? '',
       company: data['基金公司']?.toString() ?? '',
       rankingPosition: rankingPosition,
       totalCount: totalCount,
-      unitNav: double.tryParse(data['单位净�?]?.toString() ?? '0') ?? 0.0,
-      accumulatedNav: double.tryParse(data['累计净�?]?.toString() ?? '0') ?? 0.0,
+      unitNav: double.tryParse(data['单位净值']?.toString() ?? '0') ?? 0.0,
+      accumulatedNav: double.tryParse(data['累计净值']?.toString() ?? '0') ?? 0.0,
       dailyReturn: _parsePercentage(data['日增长率']),
-      return1W: _parsePercentage(data['�?�?]),
-      return1M: _parsePercentage(data['�?�?]),
-      return3M: _parsePercentage(data['�?�?]),
-      return6M: _parsePercentage(data['�?�?]),
-      return1Y: _parsePercentage(data['�?�?]),
-      return2Y: _parsePercentage(data['�?�?]),
-      return3Y: _parsePercentage(data['�?�?]),
-      returnYTD: _parsePercentage(data['今年�?]),
-      returnSinceInception: _parsePercentage(data['成立�?]),
+      return1W: _parsePercentage(data['近一周']),
+      return1M: _parsePercentage(data['近一月']),
+      return3M: _parsePercentage(data['近三月']),
+      return6M: _parsePercentage(data['近六月']),
+      return1Y: _parsePercentage(data['近一年']),
+      return2Y: _parsePercentage(data['近两年']),
+      return3Y: _parsePercentage(data['近三年']),
+      returnYTD: _parsePercentage(data['今年来']),
+      returnSinceInception: _parsePercentage(data['成立来']),
       date: data['日期']?.toString() ?? '',
-      fee: double.tryParse(data['手续�?]?.toString().replaceAll('%', '') ?? '0') ?? 0.0,
+      fee: double.tryParse(data['手续费']?.toString().replaceAll('%', '') ?? '0') ?? 0.0,
     );
   }
 
@@ -231,24 +231,24 @@ class _OptimizedFundListViewState extends State<OptimizedFundListView>
   Widget _buildItem(BuildContext context, int index) {
     _visibleIndices.add(index);
 
-    // 尝试从缓存获�?
+    // 尝试从缓存获取
     if (_itemCache.containsKey(index)) {
       return _buildFundCard(_itemCache[index]!, index + 1);
     }
 
-    // 创建新的数据�?
+    // 创建新的数据项
     if (index < _displayData.length) {
       final fund = _displayData[index];
       _itemCache[index] = fund;
       return _buildFundCard(fund, index + 1);
     }
 
-    // 加载指示�?
+    // 加载指示器
     if (index == _displayData.length && _isLoading) {
       return _buildLoadingIndicator();
     }
 
-    return SizedBox shrink();
+    return const SizedBox.shrink();
   }
 
   Widget _buildFundCard(FundRanking fund, int ranking) {
@@ -276,7 +276,7 @@ class _OptimizedFundListViewState extends State<OptimizedFundListView>
             child: CircularProgressIndicator(strokeWidth: 2),
           ),
           SizedBox(width: 12),
-          Text('加载�?..', style: TextStyle(color: Colors.grey)),
+          Text('加载中...', style: TextStyle(color: Colors.grey)),
         ],
       ),
     );
@@ -355,7 +355,7 @@ class _OptimizedFundListViewState extends State<OptimizedFundListView>
   }
 }
 
-/// 优化的基金卡�?- 简化版本，减少Widget嵌套层级
+/// 优化的基金卡片 - 简化版本，减少Widget嵌套层级
 class _OptimizedFundCard extends StatelessWidget {
   final FundRanking fund;
   final int ranking;
@@ -383,10 +383,10 @@ class _OptimizedFundCard extends StatelessWidget {
 
   Color _getFundTypeColor(String type) {
     switch (type) {
-      case '股票�?: return const Color(0xFFEF4444);
-      case '债券�?: return const Color(0xFF10B981);
-      case '混合�?: return const Color(0xFFF59E0B);
-      case '货币�?: return const Color(0xFF3B82F6);
+      case '股票型': return const Color(0xFFEF4444);
+      case '债券型': return const Color(0xFF10B981);
+      case '混合型': return const Color(0xFFF59E0B);
+      case '货币型': return const Color(0xFF3B82F6);
       default: return Colors.grey;
     }
   }
@@ -394,15 +394,15 @@ class _OptimizedFundCard extends StatelessWidget {
   double _getReturnForPeriod() {
     switch (selectedPeriod) {
       case '日增长率': return fund.dailyReturn;
-      case '�?�?: return fund.return1W;
-      case '�?�?: return fund.return1M;
-      case '�?�?: return fund.return3M;
-      case '�?�?: return fund.return6M;
-      case '�?�?: return fund.return1Y;
-      case '�?�?: return fund.return2Y;
-      case '�?�?: return fund.return3Y;
-      case '今年�?: return fund.returnYTD;
-      case '成立�?: return fund.returnSinceInception;
+      case '近一周': return fund.return1W;
+      case '近一月': return fund.return1M;
+      case '近三月': return fund.return3M;
+      case '近六月': return fund.return6M;
+      case '近一年': return fund.return1Y;
+      case '近两年': return fund.return2Y;
+      case '近三年': return fund.return3Y;
+      case '今年来': return fund.returnYTD;
+      case '成立来': return fund.returnSinceInception;
       default: return fund.return1Y;
     }
   }
@@ -505,7 +505,7 @@ class _OptimizedFundCard extends StatelessWidget {
               ),
             ),
 
-            // 收益�?
+            // 收益率
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../cubit/fund_ranking_cubit.dart';
+import '../../../bloc/fund_ranking_bloc.dart';
 import 'fund_ranking_section_fixed.dart';
 
 /// 简化版基金排行包装器

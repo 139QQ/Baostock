@@ -15,6 +15,9 @@ import '../../domain/models/fund.dart';
 import '../../domain/models/fund_filter.dart';
 import '../cubit/fund_exploration_cubit.dart';
 import '../cubit/fund_ranking_cubit.dart';
+import '../../../bloc/fund_ranking_bloc.dart';
+import '../../../../domain/usecases/get_fund_rankings.dart';
+import '../../../../domain/repositories/fund_repository.dart';
 
 /// 窗口大小变化观察者
 class _WindowSizeObserver extends WidgetsBindingObserver {
@@ -53,7 +56,10 @@ class FundExplorationPage extends StatelessWidget {
             } catch (e) {
               // 如果获取失败，创建新的实例
               return FundExplorationCubit(
-                fundService: FundService(),
+                fundRankingBloc: FundRankingBloc(
+                  getFundRankings: GetIt.instance.get<GetFundRankings>(),
+                  repository: GetIt.instance.get<FundRepository>(),
+                ),
               );
             }
           },
@@ -140,7 +146,12 @@ class _FundExplorationPageContentState
       _showFilterPanel = false;
     });
 
-    context.read<FundExplorationCubit>().applyFilters(filter);
+    context.read<FundExplorationCubit>().applyFilters(
+      fundType: filter.fundTypes.isNotEmpty ? filter.fundTypes.first : null,
+      sortBy: filter.sortBy,
+      minReturn: filter.minReturn1Y,
+      maxReturn: filter.maxReturn1Y,
+    );
   }
 
   /// 切换对比模式

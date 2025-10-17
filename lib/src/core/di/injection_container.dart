@@ -71,9 +71,9 @@ Future<void> initDependencies() async {
         searchUseCase: sl(),
       ));
 
-  // 基金探索Cubit（使用已在HiveInjectionContainer中注册的FundService）
+  // 基金探索Cubit
   sl.registerFactory(() => FundExplorationCubit(
-        fundService: sl(),
+        fundRankingBloc: sl(),
       ));
 
   // ===== 认证相关依赖 =====

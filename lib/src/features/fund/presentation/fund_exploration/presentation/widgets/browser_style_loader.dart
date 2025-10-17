@@ -105,7 +105,7 @@ class _BrowserStyleLoaderState extends State<BrowserStyleLoader>
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // 加载进度�?
+        // 加载进度条
         Container(
           height: widget.height,
           decoration: BoxDecoration(
@@ -192,9 +192,9 @@ class _BrowserStyleLoaderState extends State<BrowserStyleLoader>
   }
 }
 
-/// 顶部状态栏加载指示�?
+/// 顶部状态栏加载指示器
 ///
-/// 在应用顶部显示加载状态，类似浏览器顶部的加载进度�?
+/// 在应用顶部显示加载状态，类似浏览器顶部的加载进度条
 class TopBarLoadingIndicator extends StatefulWidget {
   final bool isLoading;
   final String? loadingText;
@@ -282,7 +282,7 @@ class _TopBarLoadingIndicatorState extends State<TopBarLoadingIndicator>
 
 /// 智能加载状态管理器
 ///
-/// 全局管理应用的加载状态，提供智能的加载控�?
+/// 全局管理应用的加载状态，提供智能的加载控制
 class SmartLoadingManager {
   static final SmartLoadingManager _instance = SmartLoadingManager._internal();
   factory SmartLoadingManager() => _instance;
@@ -293,7 +293,7 @@ class SmartLoadingManager {
 
   Stream<LoadingState> get loadingStateStream => _stateController.stream;
 
-  /// 开始一个加载任�?
+  /// 开始一个加载任务
   String startLoading({
     required String taskName,
     String? description,
@@ -311,7 +311,7 @@ class SmartLoadingManager {
     _loadingTasks[taskId] = task;
     _notifyStateChange();
 
-    // 设置超时定时�?
+    // 设置超时定时器
     Timer(task.timeout, () {
       if (_loadingTasks.containsKey(taskId)) {
         _timeoutTask(taskId);
@@ -338,7 +338,7 @@ class SmartLoadingManager {
       task.endTime = DateTime.now();
       _notifyStateChange();
 
-      // 延迟移除任务，以便用户看到完成状�?
+      // 延迟移除任务，以便用户看到完成状态
       Timer(const Duration(milliseconds: 500), () {
         _loadingTasks.remove(taskId);
         _notifyStateChange();
@@ -355,7 +355,7 @@ class SmartLoadingManager {
     }
   }
 
-  /// 获取当前加载状�?
+  /// 获取当前加载状态
   LoadingState getCurrentState() {
     if (_loadingTasks.isEmpty) {
       return LoadingState(isLoading: false, tasks: []);
@@ -435,7 +435,7 @@ class LoadingTask {
   Duration? get duration => endTime != null ? endTime!.difference(startTime) : null;
 }
 
-/// 加载状态信�?
+/// 加载状态信息
 class LoadingState {
   final bool isLoading;
   final List<LoadingTask> tasks;
@@ -453,13 +453,13 @@ class LoadingState {
     if (!isLoading) return '';
     if (primaryTask?.description != null) return primaryTask!.description!;
     if (tasks.isNotEmpty) return tasks.first.name;
-    return '加载�?..';
+    return '加载中...';
   }
 }
 
-/// 智能加载包装�?
+/// 智能加载包装器
 ///
-/// 自动管理加载状态的Widget包装�?
+/// 自动管理加载状态的Widget包装器
 class SmartLoadingWrapper extends StatefulWidget {
   final Widget child;
   final String taskName;

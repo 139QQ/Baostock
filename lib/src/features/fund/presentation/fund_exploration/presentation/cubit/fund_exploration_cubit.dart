@@ -1,12 +1,15 @@
+import 'dart:async';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../cubit/fund_exploration_state.dart';
 import '../../../bloc/fund_ranking_bloc.dart';
-import '../../../domain/entities/ranking_criteria.dart';
+import '../../../../domain/entities/fund.dart';
+import '../../../../domain/entities/fund_ranking.dart';
+import '../../../../domain/usecases/get_fund_rankings.dart';
+import '../../../domain/models/fund_filter.dart';
 
-part 'fund_exploration_state_simplified.dart';
+part 'fund_exploration_state.dart';
 
 /// 基金探索页面状态管理（简化版）
 ///
@@ -15,14 +18,14 @@ part 'fund_exploration_state_simplified.dart';
 /// - 页面导航状态
 /// - 临时状态（表单输入、滚动位置等）
 /// - 数据操作委托给FundRankingBloc
-class FundExplorationCubit extends Cubit<FundExplorationStateSimplified> {
+class FundExplorationCubit extends Cubit<FundExplorationState> {
   final FundRankingBloc _fundRankingBloc;
   StreamSubscription<FundRankingState>? _rankingBlocSubscription;
 
   FundExplorationCubit({
     required FundRankingBloc fundRankingBloc,
   }) : _fundRankingBloc = fundRankingBloc,
-       super(const FundExplorationStateSimplified()) {
+       super(FundExplorationState()) {
     _listenToRankingBloc();
   }
 
@@ -40,8 +43,6 @@ class FundExplorationCubit extends Cubit<FundExplorationStateSimplified> {
         errorMessage: errorMessage,
         // 同步排行榜数据
         fundRankings: rankingState.rankings,
-        // 同步加载状态
-        isLoading: rankingState.isLoading,
         // 同步是否为真实数据
         isRealData: _checkIfRealData(rankingState),
       ));
@@ -135,6 +136,11 @@ class FundExplorationCubit extends Cubit<FundExplorationStateSimplified> {
     }
   }
 
+  /// 搜索基金
+  void searchFunds(String query) {
+    updateSearchQuery(query);
+  }
+
   /// 应用筛选条件
   void applyFilter({
     String? fundType,
@@ -156,6 +162,36 @@ class FundExplorationCubit extends Cubit<FundExplorationStateSimplified> {
     emit(state.copyWith(
       activeFilter: fundType,
       activeSortBy: sortBy ?? 'return1Y',
+    ));
+  }
+
+  /// 更新排序方式
+  void updateSortBy(String sortBy) {
+    applyFilter(sortBy: sortBy);
+  }
+
+  /// 应用筛选条件（别名，与applyFilter相同）
+  void applyFilters({
+    String? fundType,
+    String? sortBy,
+    String? sortOrder,
+    double? minReturn,
+    double? maxReturn,
+  }) {
+    applyFilter(
+      fundType: fundType,
+      sortBy: sortBy,
+      sortOrder: sortOrder,
+      minReturn: minReturn,
+      maxReturn: maxReturn,
+    );
+  }
+
+  /// 加载热门基金
+  void loadHotFunds() {
+    _fundRankingBloc.add(LoadHotRankings(
+      type: HotRankingType.topGainers,
+      pageSize: 50,
     ));
   }
 
@@ -196,7 +232,7 @@ class FundExplorationCubit extends Cubit<FundExplorationStateSimplified> {
 
   /// 重置所有状态
   void reset() {
-    emit(const FundExplorationStateSimplified());
+    emit(FundExplorationState());
   }
 
   /// 获取当前筛选摘要
@@ -254,26 +290,12 @@ class FundExplorationCubit extends Cubit<FundExplorationStateSimplified> {
     switch (sortBy) {
       case 'return1D':
         return RankingSortBy.dailyReturn;
-      case 'return1W':
-        return RankingSortBy.return1W;
-      case 'return1M':
-        return RankingSortBy.return1M;
-      case 'return3M':
-        return RankingSortBy.return3M;
-      case 'return6M':
-        return RankingSortBy.return6M;
       case 'return1Y':
-        return RankingSortBy.return1Y;
-      case 'return3Y':
-        return RankingSortBy.return3Y;
-      case 'returnYTD':
-        return RankingSortBy.returnYTD;
-      case 'returnSinceInception':
-        return RankingSortBy.returnSinceInception;
+        return RankingSortBy.returnRate;
       case 'fundName':
-        return RankingSortBy.fundName;
+        return RankingSortBy.returnRate; // 使用默认值
       case 'fundCode':
-        return RankingSortBy.fundCode;
+        return RankingSortBy.returnRate; // 使用默认值
       default:
         return RankingSortBy.returnRate;
     }
@@ -295,6 +317,32 @@ class FundExplorationCubit extends Cubit<FundExplorationStateSimplified> {
             .every((code) => code >= 100000 && (code - 100000) % 11 == 0);
 
     return !isMockData;
+  }
+
+  /// 清除对比列表
+  void clearComparison() {
+    emit(state.copyWith(comparisonFunds: const []));
+  }
+
+  /// 添加基金到对比列表
+  void addToComparison(Fund fund) {
+    final currentList = List<Fund>.from(state.comparisonFunds);
+    if (!currentList.any((f) => f.code == fund.code) && currentList.length < 5) {
+      currentList.add(fund);
+      emit(state.copyWith(comparisonFunds: currentList));
+    }
+  }
+
+  /// 从对比列表中移除基金
+  void removeFromComparison(String fundCode) {
+    final currentList = List<Fund>.from(state.comparisonFunds);
+    currentList.removeWhere((f) => f.code == fundCode);
+    emit(state.copyWith(comparisonFunds: currentList));
+  }
+
+  /// 检查基金是否在对比列表中
+  bool isInComparison(String fundCode) {
+    return state.comparisonFunds.any((f) => f.code == fundCode);
   }
 
   /// 获取页面统计信息
@@ -319,23 +367,4 @@ class FundExplorationCubit extends Cubit<FundExplorationStateSimplified> {
     _rankingBlocSubscription?.cancel();
     return super.close();
   }
-}
-
-/// 基金探索视图枚举
-enum FundExplorationView {
-  ranking,    // 排行榜视图
-  hot,        // 热门基金视图
-  search,     // 搜索结果视图
-  filter,     // 筛选结果视图
-  favorite,   // 收藏视图
-}
-
-/// 基金探索状态枚举
-enum FundExplorationStatus {
-  initial,    // 初始状态
-  loading,    // 加载中
-  loaded,     // 加载完成
-  searching,  // 搜索中
-  filtering,  // 筛选中
-  error,      // 错误状态
 }
