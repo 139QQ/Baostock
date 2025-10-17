@@ -1,0 +1,29 @@
+schema: 1
+story: '1.2'
+gate: CONCERNS
+test_design:
+  scenarios_total: 18
+  by_level:
+    unit: 12
+    integration: 4
+    e2e: 2
+  by_priority:
+    p0: 8
+    p1: 7
+    p2: 3
+  coverage_gaps: []
+  key_scenarios:
+    - '1.2-UNIT-002: Debug mode behavior validation'
+    - '1.2-UNIT-007: Production environment log suppression'
+    - '1.2-INT-004: File-based logging functionality'
+    - '1.2-E2E-001: Production environment validation'
+  risk_mitigation_tests:
+    - PERF-001: 'Performance testing through unit and integration tests'
+    - SEC-001: 'Security validation via structured format tests'
+    - DATA-001: 'Data integrity through file logging tests'
+    - OPS-001: 'Configuration management validation'
+  execution_order:
+    - 'Phase 1: Core functionality (P0 unit tests)'
+    - 'Phase 2: Integration validation (P0 integration tests)'
+    - 'Phase 3: End-to-end validation (P1 tests)'
+    - 'Phase 4: Advanced features (P2 tests)'

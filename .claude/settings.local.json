@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(flutter run:*)",
+      "Bash(flutter analyze:*)",
+      "Bash(flutter test:*)",
+      "Bash(find:*)",
+      "Bash(findstr:*)",
+      "Read(//d/**)",
+      "Bash(dir:*)",
+      "Bash(flutter build:*)",
+      "Bash(flutter clean:*)",
+      "Bash(flutter pub get:*)",
+      "Bash(dart run:*)",
+      "Bash(for:*)",
+      "Bash(do echo:*)",
+      "Bash(done)",
+      "Bash(cd:*)",
+      "Bash(dart:*)",
+      "Bash(flutter packages pub run build_runner build:*)",
+      "Bash(powershell:*)",
+      "Bash(del:*)",
+      "Bash(flutter doctor:*)",
+      "Bash(move:*)",
+      "Bash(copy:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

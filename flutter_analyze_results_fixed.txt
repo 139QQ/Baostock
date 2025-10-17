@@ -1,0 +1,458 @@
+Analyzing Baostock...                                           
+
+   info - Don't invoke 'print' in production code - check_imports.dart:5:3 - avoid_print
+   info - Don't invoke 'print' in production code - check_imports.dart:8:3 - avoid_print
+   info - Don't invoke 'print' in production code - check_imports.dart:17:3 - avoid_print
+   info - Don't invoke 'print' in production code - check_imports.dart:46:15 - avoid_print
+   info - Don't invoke 'print' in production code - check_imports.dart:53:7 - avoid_print
+   info - Don't invoke 'print' in production code - check_imports.dart:58:5 - avoid_print
+   info - Don't invoke 'print' in production code - check_imports.dart:60:5 - avoid_print
+   info - Don't invoke 'print' in production code - check_imports.dart:68:3 - avoid_print
+   info - Don't invoke 'print' in production code - check_imports.dart:83:7 - avoid_print
+   info - Don't invoke 'print' in production code - check_imports.dart:85:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\src\core\utils\logger.dart:23:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\src\core\utils\logger.dart:32:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\src\core\utils\logger.dart:41:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\src\core\utils\logger.dart:50:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\src\core\utils\logger.dart:53:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\src\core\utils\logger.dart:78:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\src\core\utils\logger.dart:81:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\src\core\utils\logger.dart:85:9 - avoid_print
+   info - Don't invoke 'print' in production code - lib\src\core\utils\logger.dart:95:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\src\core\utils\logger.dart:105:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\src\core\utils\logger.dart:116:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\src\core\utils\logger.dart:127:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\src\core\utils\logger.dart:173:5 - avoid_print
+   info - Don't invoke 'print' in production code - lib\src\core\utils\logger.dart:175:7 - avoid_print
+   info - Don't invoke 'print' in production code - lib\src\core\utils\logger.dart:178:7 - avoid_print
+   info - The private field _sortBy could be 'final' - lib\src\features\fund_exploration\presentation\pages\fund_exploration_page.dart:40:10 - prefer_final_fields
+warning - The value of the field '_sortBy' isn't used - lib\src\features\fund_exploration\presentation\pages\fund_exploration_page.dart:40:10 - unused_field
+   info - The private field _sortAscending could be 'final' - lib\src\features\fund_exploration\presentation\pages\fund_exploration_page.dart:41:8 - prefer_final_fields
+warning - The value of the field '_sortAscending' isn't used - lib\src\features\fund_exploration\presentation\pages\fund_exploration_page.dart:41:8 - unused_field
+   info - The declaration '_generateMockRankings' isn't referenced - lib\src\features\fund_exploration\presentation\widgets\fund_ranking_section.dart:243:21 - unused_element
+   info - The declaration '_buildSkeletonLoader' isn't referenced - lib\src\features\fund_exploration\presentation\widgets\fund_ranking_section.dart:959:10 - unused_element
+   info - The declaration '_generateMockRankings' isn't referenced - lib\src\features\fund_exploration\presentation\widgets\fund_ranking_section_fixed.dart:168:21 - unused_element
+   info - The declaration '_hasRankingsChanged' isn't referenced - lib\src\features\fund_exploration\presentation\widgets\fund_ranking_section_fixed.dart:480:8 - unused_element
+   info - The declaration '_refreshData' isn't referenced - lib\src\features\home\presentation\widgets\enhanced_market_overview_v2.dart:50:16 - unused_element
+   info - The declaration '_generateMiniTrendData' isn't referenced - lib\src\features\home\presentation\widgets\enhanced_market_overview_v2.dart:404:16 - unused_element
+   info - The declaration '_getMinTrendValue' isn't referenced - lib\src\features\home\presentation\widgets\enhanced_market_overview_v2.dart:422:10 - unused_element
+   info - The declaration '_getMaxTrendValue' isn't referenced - lib\src\features\home\presentation\widgets\enhanced_market_overview_v2.dart:428:10 - unused_element
+   info - The declaration '_generateMiniTrendData' isn't referenced - lib\src\features\home\presentation\widgets\enhanced_market_real.dart:571:16 - unused_element
+   info - The declaration '_getMinTrendValue' isn't referenced - lib\src\features\home\presentation\widgets\enhanced_market_real.dart:598:10 - unused_element
+   info - The declaration '_getMaxTrendValue' isn't referenced - lib\src\features\home\presentation\widgets\enhanced_market_real.dart:604:10 - unused_element
+warning - The value of the field '_mainIndexChart' isn't used - lib\src\features\home\presentation\widgets\enhanced_market_real_fixed.dart:19:20 - unused_field
+   info - The declaration '_generateTrendSpots' isn't referenced - lib\src\features\home\presentation\widgets\enhanced_market_real_fixed.dart:391:16 - unused_element
+warning - Dead code - lib\src\features\home\presentation\widgets\market_today_overview.dart:248:23 - dead_code
+warning - Dead code - lib\src\features\home\presentation\widgets\market_today_overview.dart:253:25 - dead_code
+warning - Dead code - lib\src\features\home\presentation\widgets\market_today_overview.dart:255:38 - dead_code
+warning - Dead code - lib\src\features\home\presentation\widgets\market_today_overview.dart:260:27 - dead_code
+warning - Dead code - lib\src\features\home\presentation\widgets\market_today_overview.dart:262:45 - dead_code
+warning - Dead code - lib\src\features\home\presentation\widgets\market_today_overview.dart:263:51 - dead_code
+warning - Dead code - lib\src\features\home\presentation\widgets\market_today_overview.dart:268:21 - dead_code
+warning - The value of the field '_stockHistoryData' isn't used - lib\src\features\home\presentation\widgets\today_market_overview.dart:17:36 - unused_field
+   info - The declaration '_isValidStockData' isn't referenced - lib\src\features\home\presentation\widgets\today_market_overview.dart:256:8 - unused_element
+   info - The declaration '_getStockType' isn't referenced - lib\src\features\home\presentation\widgets\today_market_overview.dart:261:10 - unused_element
+   info - The declaration '_calculateLimitUpPrice' isn't referenced - lib\src\features\home\presentation\widgets\today_market_overview.dart:266:10 - unused_element
+   info - The declaration '_calculateLimitDownPrice' isn't referenced - lib\src\features\home\presentation\widgets\today_market_overview.dart:271:10 - unused_element
+warning - Dead code - lib\src\features\home\presentation\widgets\today_market_overview.dart:449:21 - dead_code
+warning - Dead code - lib\src\features\home\presentation\widgets\today_market_overview.dart:457:25 - dead_code
+warning - Dead code - lib\src\features\home\presentation\widgets\today_market_overview.dart:462:23 - dead_code
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:7:3 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:8:3 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:9:3 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:21:5 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:24:3 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:29:3 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:37:5 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:38:5 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:39:5 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:43:5 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:46:3 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:51:3 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:62:5 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:63:5 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:64:5 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:68:5 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:72:5 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:75:3 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:80:3 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:92:5 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:95:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:97:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:104:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:106:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:112:5 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:115:3 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:142:3 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:151:5 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:152:5 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:153:5 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:157:5 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:174:3 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:184:3 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:186:5 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:189:3 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:194:3 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:209:5 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:211:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:214:5 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:219:5 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:225:3 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:233:3 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:235:5 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:238:3 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:243:3 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:244:3 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:245:3 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:246:3 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:247:3 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:248:3 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:249:3 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:254:3 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:255:3 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:256:3 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:257:3 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:258:3 - avoid_print
+   info - Don't invoke 'print' in production code - test\database_connection_console_test.dart:259:3 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_api_test.dart:19:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_api_test.dart:21:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_api_test.dart:35:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_api_test.dart:37:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_api_test.dart:46:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_api_test.dart:48:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_api_test.dart:58:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_api_test.dart:60:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_basic_test.dart:20:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_basic_test.dart:27:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_basic_test.dart:33:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_basic_test.dart:38:13 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_basic_test.dart:46:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_basic_test.dart:48:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_basic_test.dart:55:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_basic_test.dart:62:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_basic_test.dart:66:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_basic_test.dart:70:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_basic_test.dart:78:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_basic_test.dart:84:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_basic_test.dart:87:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_basic_test.dart:89:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_basic_test.dart:96:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_basic_test.dart:100:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_basic_test.dart:107:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_basic_test.dart:117:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_basic_test.dart:121:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_basic_test.dart:123:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_enhanced_test.dart:25:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_enhanced_test.dart:30:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_enhanced_test.dart:42:13 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_enhanced_test.dart:45:13 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_enhanced_test.dart:57:11 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_enhanced_test.dart:75:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_enhanced_test.dart:80:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_enhanced_test.dart:87:11 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_enhanced_test.dart:101:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_enhanced_test.dart:115:11 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_enhanced_test.dart:117:11 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_enhanced_test.dart:133:13 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_enhanced_test.dart:137:15 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_enhanced_test.dart:145:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_enhanced_test.dart:158:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_enhanced_test.dart:162:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_enhanced_test.dart:183:9 - avoid_print
+warning - The value of the local variable 'initialStats' isn't used - test\fund_service_enhanced_test.dart:190:15 - unused_local_variable
+   info - Don't invoke 'print' in production code - test\fund_service_enhanced_test.dart:198:11 - avoid_print
+   info - Don't invoke 'print' in production code - test\fund_service_enhanced_test.dart:205:9 - avoid_print
+   info - Don't invoke 'print' in production code - test_api_response_time.dart:11:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_api_response_time.dart:12:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_api_response_time.dart:13:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_api_response_time.dart:20:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_api_response_time.dart:39:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_api_response_time.dart:40:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_api_response_time.dart:41:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_api_response_time.dart:46:9 - avoid_print
+   info - Don't invoke 'print' in production code - test_api_response_time.dart:50:11 - avoid_print
+   info - Don't invoke 'print' in production code - test_api_response_time.dart:54:9 - avoid_print
+   info - Don't invoke 'print' in production code - test_api_response_time.dart:58:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_api_response_time.dart:59:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_api_response_time.dart:62:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_api_response_time.dart:71:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_api_response_time.dart:72:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_api_response_time.dart:80:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_api_response_time.dart:81:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_api_response_time.dart:82:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_api_response_time.dart:88:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_api_response_time.dart:91:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_api_response_time.dart:94:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_api_response_time.dart:95:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_data_structure.dart:8:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_data_structure.dart:14:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_data_structure.dart:44:9 - avoid_print
+   info - Don't invoke 'print' in production code - test_data_structure.dart:51:9 - avoid_print
+   info - Don't invoke 'print' in production code - test_data_structure.dart:65:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_data_structure.dart:74:9 - avoid_print
+   info - Don't invoke 'print' in production code - test_data_structure.dart:75:9 - avoid_print
+   info - Don't invoke 'print' in production code - test_data_structure.dart:80:11 - avoid_print
+   info - Don't invoke 'print' in production code - test_data_structure.dart:82:13 - avoid_print
+   info - Don't invoke 'print' in production code - test_data_structure.dart:88:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_data_structure_fixed.dart:7:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_data_structure_fixed.dart:13:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_data_structure_fixed.dart:22:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_data_structure_fixed.dart:23:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_data_structure_fixed.dart:29:9 - avoid_print
+   info - Don't invoke 'print' in production code - test_data_structure_fixed.dart:30:9 - avoid_print
+   info - Don't invoke 'print' in production code - test_data_structure_fixed.dart:34:9 - avoid_print
+   info - Don't invoke 'print' in production code - test_data_structure_fixed.dart:41:13 - avoid_print
+   info - Don't invoke 'print' in production code - test_data_structure_fixed.dart:43:13 - avoid_print
+   info - Don't invoke 'print' in production code - test_data_structure_fixed.dart:49:9 - avoid_print
+   info - Don't invoke 'print' in production code - test_data_structure_fixed.dart:50:9 - avoid_print
+   info - Don't invoke 'print' in production code - test_data_structure_fixed.dart:54:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_data_structure_fixed.dart:56:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_fund_real_data.dart:7:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_fund_real_data.dart:11:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_fund_real_data.dart:18:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_fund_real_data.dart:19:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_fund_real_data.dart:25:9 - avoid_print
+   info - Don't invoke 'print' in production code - test_fund_real_data.dart:28:9 - avoid_print
+   info - Don't invoke 'print' in production code - test_fund_real_data.dart:34:13 - avoid_print
+   info - Don't invoke 'print' in production code - test_fund_real_data.dart:35:13 - avoid_print
+   info - Don't invoke 'print' in production code - test_fund_real_data.dart:36:13 - avoid_print
+   info - Don't invoke 'print' in production code - test_fund_real_data.dart:37:13 - avoid_print
+   info - Don't invoke 'print' in production code - test_fund_real_data.dart:38:13 - avoid_print
+   info - Don't invoke 'print' in production code - test_fund_real_data.dart:39:13 - avoid_print
+   info - Don't invoke 'print' in production code - test_fund_real_data.dart:40:13 - avoid_print
+   info - Don't invoke 'print' in production code - test_fund_real_data.dart:42:13 - avoid_print
+   info - Don't invoke 'print' in production code - test_fund_real_data.dart:43:13 - avoid_print
+   info - Don't invoke 'print' in production code - test_fund_real_data.dart:48:9 - avoid_print
+   info - Don't invoke 'print' in production code - test_fund_real_data.dart:55:13 - avoid_print
+   info - Don't invoke 'print' in production code - test_fund_real_data.dart:57:13 - avoid_print
+   info - Don't invoke 'print' in production code - test_fund_real_data.dart:61:9 - avoid_print
+   info - Don't invoke 'print' in production code - test_fund_real_data.dart:64:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_fund_real_data.dart:67:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_fund_real_data.dart:70:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_real_api.dart:6:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_real_api.dart:12:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_real_api.dart:16:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_real_api.dart:22:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_real_api.dart:23:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_real_api.dart:24:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_real_api.dart:28:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_real_api.dart:31:9 - avoid_print
+   info - Don't invoke 'print' in production code - test_real_api.dart:33:11 - avoid_print
+   info - Don't invoke 'print' in production code - test_real_api.dart:34:11 - avoid_print
+   info - Don't invoke 'print' in production code - test_real_api.dart:35:11 - avoid_print
+   info - Don't invoke 'print' in production code - test_real_api.dart:36:11 - avoid_print
+   info - Don't invoke 'print' in production code - test_real_api.dart:39:9 - avoid_print
+   info - Don't invoke 'print' in production code - test_real_api.dart:42:11 - avoid_print
+   info - Don't invoke 'print' in production code - test_real_api.dart:46:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_real_api.dart:47:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_real_api.dart:51:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_real_api.dart:54:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_real_api.dart:61:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_real_api.dart:62:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_real_api.dart:63:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_real_api.dart:67:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_real_api.dart:70:9 - avoid_print
+   info - Don't invoke 'print' in production code - test_real_api.dart:72:11 - avoid_print
+   info - Don't invoke 'print' in production code - test_real_api.dart:73:11 - avoid_print
+   info - Don't invoke 'print' in production code - test_real_api.dart:74:11 - avoid_print
+   info - Don't invoke 'print' in production code - test_real_api.dart:78:7 - avoid_print
+   info - Don't invoke 'print' in production code - test_real_api.dart:81:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_real_api.dart:83:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_service.dart:5:3 - avoid_print
+   info - Don't invoke 'print' in production code - test_service.dart:11:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_service.dart:13:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_service.dart:16:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_service.dart:26:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_service.dart:27:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_service.dart:28:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_service.dart:31:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_service.dart:41:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_service.dart:42:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_service.dart:43:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_service.dart:46:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_service.dart:48:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_service.dart:51:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_service.dart:53:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_service.dart:55:5 - avoid_print
+   info - Don't invoke 'print' in production code - test_service.dart:57:5 - avoid_print
+warning - The value of the field '_debugPrintPattern' isn't used - tools\code_fixer.dart:25:23 - unused_field
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:39:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:40:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:53:7 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:54:7 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:66:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:67:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:68:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:69:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:70:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:71:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:100:7 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:113:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:119:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:120:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:127:9 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:135:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:170:9 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:179:9 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:182:7 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:196:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:233:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:257:11 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:270:5 - avoid_print
+   info - Type could be non-nullable - tools\code_fixer.dart:302:22 - unnecessary_nullable_for_final_variable_declarations
+  error - A value of type 'RegExp' can't be assigned to a variable of type 'RegExpMatch?' - tools\code_fixer.dart:302:37 - invalid_assignment
+   info - Invalid regular expression syntax - tools\code_fixer.dart:302:44 - valid_regexps
+  error - Expected to find ')' - tools\code_fixer.dart:302:61 - expected_token
+  error - Expected to find ';' - tools\code_fixer.dart:302:63 - expected_token
+  error - Expected to find ';' - tools\code_fixer.dart:302:64 - expected_token
+  error - Unterminated string literal - tools\code_fixer.dart:302:94 - unterminated_string_literal
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:362:7 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:380:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:385:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:386:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:387:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:388:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:389:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:390:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:391:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:392:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:393:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:394:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:395:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:440:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:445:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:446:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:447:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:448:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:449:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:450:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:451:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:454:7 - avoid_print
+   info - Don't invoke 'print' in production code - tools\code_fixer.dart:502:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_encoding_issues.dart:5:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_encoding_issues.dart:20:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_encoding_issues.dart:27:7 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_encoding_issues.dart:31:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_encoding_issues.dart:41:7 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_encoding_issues.dart:43:7 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_encoding_issues.dart:46:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:8:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:9:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:20:7 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:24:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:28:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:29:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:45:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:46:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:50:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:87:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:97:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:107:7 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:110:5 - avoid_print
+warning - The value of the local variable 'match' isn't used - tools\fix_print_statements.dart:177:16 - unused_local_variable
+warning - The value of the local variable 'match' isn't used - tools\fix_print_statements.dart:189:16 - unused_local_variable
+warning - The value of the local variable 'printContent' isn't used - tools\fix_print_statements.dart:298:9 - unused_local_variable
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:399:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:400:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:401:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:402:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:403:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:404:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:405:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:406:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:407:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:408:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:413:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:414:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:415:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:416:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:417:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:418:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:419:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:420:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:421:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:422:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:423:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:424:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:425:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:426:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:427:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:428:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:429:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:430:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:440:3 - avoid_print
+   info - The declaration '_parseArguments' isn't referenced - tools\fix_print_statements.dart:470:22 - unused_element
+   info - The declaration '_printExtendedHelp' isn't referenced - tools\fix_print_statements.dart:496:6 - unused_element
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:497:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:557:7 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:631:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:632:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:633:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:634:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:635:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:636:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:637:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:638:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:640:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:641:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:642:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:643:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:644:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:645:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:646:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:647:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:648:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:649:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:653:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:654:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:655:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:656:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:657:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:658:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:659:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:660:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:661:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:662:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:663:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:664:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:676:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:677:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:688:7 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:692:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:696:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:697:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:713:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:714:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:718:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:727:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:728:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:729:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_print_statements.dart:730:3 - avoid_print
+warning - Unused import: 'package:path/path.dart' - tools\fix_string_syntax_errors.dart:2:8 - unused_import
+   info - Don't invoke 'print' in production code - tools\fix_string_syntax_errors.dart:7:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_string_syntax_errors.dart:8:3 - avoid_print
+  error - A value of type 'Map<String, dynamic>' can't be assigned to a variable of type 'Map<String, int>' - tools\fix_string_syntax_errors.dart:24:37 - invalid_assignment
+  error - Local variable '_fixFile' can't be referenced before it is declared - tools\fix_string_syntax_errors.dart:24:43 - referenced_before_declaration
+   info - Don't invoke 'print' in production code - tools\fix_string_syntax_errors.dart:32:7 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_string_syntax_errors.dart:34:7 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_string_syntax_errors.dart:38:5 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_string_syntax_errors.dart:43:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_string_syntax_errors.dart:44:3 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_string_syntax_errors.dart:45:3 - avoid_print
+   info - The local variable '_fixFile' starts with an underscore - tools\fix_string_syntax_errors.dart:48:30 - no_leading_underscores_for_local_identifiers
+warning - The value of the local variable 'originalContent' isn't used - tools\fix_string_syntax_errors.dart:55:10 - unused_local_variable
+  error - Local variable '_fixUnterminatedStrings' can't be referenced before it is declared - tools\fix_string_syntax_errors.dart:60:15 - referenced_before_declaration
+  error - Local variable '_fixStringInterpolation' can't be referenced before it is declared - tools\fix_string_syntax_errors.dart:61:15 - referenced_before_declaration
+  error - Local variable '_fixMissingQuotes' can't be referenced before it is declared - tools\fix_string_syntax_errors.dart:62:15 - referenced_before_declaration
+   info - The local variable '_fixUnterminatedStrings' starts with an underscore - tools\fix_string_syntax_errors.dart:72:5 - no_leading_underscores_for_local_identifiers
+   info - Use interpolation to compose strings and values - tools\fix_string_syntax_errors.dart:80:23 - prefer_interpolation_to_compose_strings
+   info - The local variable '_fixStringInterpolation' starts with an underscore - tools\fix_string_syntax_errors.dart:88:5 - no_leading_underscores_for_local_identifiers
+   info - The local variable '_fixMissingQuotes' starts with an underscore - tools\fix_string_syntax_errors.dart:106:5 - no_leading_underscores_for_local_identifiers
+   info - Use interpolation to compose strings and values - tools\fix_string_syntax_errors.dart:116:25 - prefer_interpolation_to_compose_strings
+   info - The declaration '_manualFixKnownIssues' isn't referenced - tools\fix_string_syntax_errors.dart:126:14 - unused_element
+   info - The local variable '_manualFixKnownIssues' starts with an underscore - tools\fix_string_syntax_errors.dart:126:14 - no_leading_underscores_for_local_identifiers
+   info - Don't invoke 'print' in production code - tools\fix_string_syntax_errors.dart:155:9 - avoid_print
+   info - Don't invoke 'print' in production code - tools\fix_string_syntax_errors.dart:158:7 - avoid_print
+  error - Expected to find '}' - tools\fix_string_syntax_errors.dart:161:2 - expected_token
+
+454 issues found. (ran in 1.7s)

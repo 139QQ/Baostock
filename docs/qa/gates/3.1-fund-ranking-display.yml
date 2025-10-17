@@ -1,0 +1,22 @@
+# QA Gate Decision for Story 3.1
+
+schema: 1
+story: '3.1'
+gate: CONCERNS
+status_reason: '基金排行榜功能基本可用，但存在UI布局溢出和数据加载问题。'
+reviewer: 'Quinn'
+updated: '2025-10-15T10:40:00Z'
+top_issues:
+  - id: 'UI-001'
+    severity: high
+    finding: 'fund_exploration_page.dart存在Column底部溢出17像素的布局问题'
+    suggested_action: '调整Column布局结构，使用Expanded或Flexible组件解决溢出问题'
+  - id: 'PERF-002'
+    severity: medium
+    finding: '基金数据加载时间较长，用户需要等待较长时间'
+    suggested_action: '优化数据加载策略，实现分页加载或预加载机制'
+  - id: 'UI-002'
+    severity: low
+    finding: '基金卡片在不同屏幕尺寸下的响应式表现需要改进'
+    suggested_action: '完善响应式布局设计，确保在不同设备上都有良好表现'
+waiver: { active: false }

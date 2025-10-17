@@ -1,0 +1,26 @@
+schema: 1
+story: 'test.quality-gate'
+gate: WATCH
+status_reason: '主要依赖注入问题已修复，测试可以成功运行。剩余问题为SearchBloc的定时器清理，属于测试环境配置问题，不影响实际功能。'
+reviewer: 'James'
+updated: '2025-10-15T20:30:00Z'
+top_issues:
+  - id: 'TEST-009'
+    severity: low
+    finding: 'SearchBloc定时器清理问题 - 测试结束时仍有未清理的5秒超时定时器'
+    suggested_action: '在测试中添加适当的timer清理或使用更短的超时时间'
+  - id: 'TEST-007'
+    severity: low
+    finding: '依赖注入配置问题 - 已修复'
+    suggested_action: '已完成 - 在测试中正确配置了Provider依赖'
+  - id: 'TEST-008'
+    severity: low
+    finding: '测试架构不匹配 - 已修复'
+    suggested_action: '已完成 - 更新了测试代码以匹配实际的UseCase方法签名'
+resolved_issues:
+  - id: 'TEST-007'
+    resolution: '在依赖注入容器中注册了FundSearchUseCase和SearchBloc，并在测试中正确配置了Provider依赖'
+  - id: 'TEST-008'
+    resolution: '修复了测试中的方法调用，将execute()改为search()，修复了类型不匹配问题'
+waiver:
+  active: false

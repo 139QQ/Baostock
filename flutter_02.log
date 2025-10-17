@@ -1,0 +1,90 @@
+Flutter crash report.
+Please report a bug at https://github.com/flutter/flutter/issues.
+
+## command
+
+flutter analyze --no-fatal-infos
+
+## exception
+
+_Exception: Exception: analysis server exited with code 255 and output:
+[stderr] #9      FileState.refresh (package:analyzer/src/dart/analysis/file_state.dart:526:27)
+[stderr] #10     FileSystemState._newFile (package:analyzer/src/dart/analysis/file_state.dart:1457:10)
+[stderr] #11     FileSystemState.getFileForPath2 (package:analyzer/src/dart/analysis/file_state.dart:1287:14)
+[stderr] #12     FileSystemState.getFileForPath (package:analyzer/src/dart/analysis/file_state.dart:1271:12)
+[stderr] #13     AnalysisDriver._discoverLibraries (package:analyzer/src/dart/analysis/driver.dart:1641:16)
+[stderr] #14     AnalysisDriver.performWork (package:analyzer/src/dart/analysis/driver.dart:1046:5)
+[stderr] #15     AnalysisDriverScheduler._run (package:analyzer/src/dart/analysis/driver.dart:2249:24)
+[stderr] <asynchronous suspension>
+[stderr] 
+[stderr] 
+[stderr] #0      FileState.parse (package:analyzer/src/dart/analysis/file_state.dart:490:7)
+[stderr] #1      FileState._getUnlinkedUnit (package:analyzer/src/dart/analysis/file_state.dart:671:16)
+[stderr] #2      FileState.refresh (package:analyzer/src/dart/analysis/file_state.dart:526:27)
+[stderr] #3      FileSystemState._newFile (package:analyzer/src/dart/analysis/file_state.dart:1457:10)
+[stderr] #4      FileSystemState.getFileForPath2 (package:analyzer/src/dart/analysis/file_state.dart:1287:14)
+[stderr] #5      FileSystemState.getFileForPath (package:analyzer/src/dart/analysis/file_state.dart:1271:12)
+[stderr] #6      AnalysisDriver._discoverLibraries (package:analyzer/src/dart/analysis/driver.dart:1641:16)
+[stderr] #7      AnalysisDriver.performWork (package:analyzer/src/dart/analysis/driver.dart:1046:5)
+[stderr] #8      AnalysisDriverScheduler._run (package:analyzer/src/dart/analysis/driver.dart:2249:24)
+[stderr] <asynchronous suspension>
+
+```
+```
+
+## flutter doctor
+
+```
+[✓] Flutter (Channel stable, 3.13.0, on Microsoft Windows [版本 10.0.22621.4317], locale zh-CN)
+    • Flutter version 3.13.0 on channel stable at C:\Users\Administrator\AppData\Local\Flutter\flutter
+    • Upstream repository https://github.com/flutter/flutter.git
+    • Framework revision efbf63d9c6 (2 years, 2 months ago), 2023-08-15 21:05:06 -0500
+    • Engine revision 1ac611c64e
+    • Dart version 3.1.0
+    • DevTools version 2.25.0
+    • Pub download mirror https://mirrors.tuna.tsinghua.edu.cn/dart-pub/
+
+[✓] Windows Version (Installed version of Windows is version 10 or higher)
+
+[✓] Android toolchain - develop for Android devices (Android SDK version 34.0.0)
+    • Android SDK at D:\AndroidSDK
+    • Platform android-34, build-tools 34.0.0
+    • ANDROID_HOME = D:\AndroidSDK
+    • Java binary at: C:\Program Files\Android\Android Studio\jbr\bin\java
+    • Java version OpenJDK Runtime Environment (build 17.0.6+0-b2043.56-10027231)
+    • All Android licenses accepted.
+
+[✓] Chrome - develop for the web
+    • Chrome at C:\Program Files\Google\Chrome\Application\chrome.exe
+
+[✓] Visual Studio - develop Windows apps (Visual Studio Community 2022 17.14.13 (August 2025))
+    • Visual Studio at E:\visual studio
+    • Visual Studio Community 2022 version 17.14.36414.22
+    • Windows 10 SDK version 10.0.26100.0
+
+[✓] Android Studio (version 2022.3)
+    • Android Studio at C:\Program Files\Android\Android Studio
+    • Flutter plugin can be installed from:
+      🔨 https://plugins.jetbrains.com/plugin/9212-flutter
+    • Dart plugin can be installed from:
+      🔨 https://plugins.jetbrains.com/plugin/6351-dart
+    • Java version OpenJDK Runtime Environment (build 17.0.6+0-b2043.56-10027231)
+
+[✓] IntelliJ IDEA Ultimate Edition (version 2025.1)
+    • IntelliJ at D:\Ide\IntelliJ IDEA 2022.3\IntelliJ IDEA 2023.2.2
+    • Flutter plugin can be installed from:
+      🔨 https://plugins.jetbrains.com/plugin/9212-flutter
+    • Dart plugin can be installed from:
+      🔨 https://plugins.jetbrains.com/plugin/6351-dart
+
+[✓] Connected device (3 available)
+    • Windows (desktop) • windows • windows-x64    • Microsoft Windows [版本 10.0.22621.4317]
+    • Chrome (web)      • chrome  • web-javascript • Google Chrome 140.0.7339.127
+    • Edge (web)        • edge    • web-javascript • Microsoft Edge 141.0.3537.71
+
+[!] Network resources
+    ✗ A network error occurred while checking "https://maven.google.com/": 信号灯超时时间已到
+
+
+! Doctor found issues in 1 category.
+```
