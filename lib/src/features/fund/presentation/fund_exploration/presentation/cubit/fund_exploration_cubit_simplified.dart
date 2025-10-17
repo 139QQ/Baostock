@@ -15,11 +15,11 @@ part 'fund_exploration_state_simplified.dart';
 /// - 页面导航状态
 /// - 临时状态（表单输入、滚动位置等）
 /// - 数据操作委托给FundRankingBloc
-class FundExplorationCubit extends Cubit<FundExplorationStateSimplified> {
+class FundExplorationCubitSimplified extends Cubit<FundExplorationStateSimplified> {
   final FundRankingBloc _fundRankingBloc;
   StreamSubscription<FundRankingState>? _rankingBlocSubscription;
 
-  FundExplorationCubit({
+  FundExplorationCubitSimplified({
     required FundRankingBloc fundRankingBloc,
   }) : _fundRankingBloc = fundRankingBloc,
        super(const FundExplorationStateSimplified()) {

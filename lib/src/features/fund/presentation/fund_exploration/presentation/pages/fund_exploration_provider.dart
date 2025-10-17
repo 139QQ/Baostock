@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'fund_exploration_page.dart';
 import '../cubit/fund_exploration_cubit.dart';
+import '../../../bloc/fund_ranking_bloc.dart';
 
 /// 基金探索页面提供者
 ///
@@ -13,7 +14,10 @@ class FundExplorationProvider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => FundExplorationCubit(),
+      create: (context) {
+        final fundRankingBloc = context.read<FundRankingBloc>();
+        return FundExplorationCubit(fundRankingBloc: fundRankingBloc);
+      },
       child: const FundExplorationPage(),
     );
   }
