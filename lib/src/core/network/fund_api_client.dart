@@ -131,32 +131,31 @@ class FundApiClient {
     }
   }
 
-  /// 获取基金排行 - 使用Dio以更好地处理错误
+  /// 获取基金排行 - 使用http包进行真正的UTF-8解码
   Future<List<dynamic>> getFundRankings({String symbol = '全部'}) async {
-    // 初始化Dio（只初始化一次）
-    if (_dio.interceptors.isEmpty) {
-      _initializeDio();
-    }
+    AppLogger.business('开始获取基金排行榜', 'API');
+    AppLogger.debug('请求参数: symbol=$symbol', 'API');
 
     try {
-      final response = await _dio.get(
-        '/api/public/fund_open_fund_rank_em',
-        queryParameters: {'symbol': symbol},
-        options: Options(
-          headers: {
-            'Accept': 'application/json; charset=utf-8',
-            'Content-Type': 'application/json; charset=utf-8',
-          },
-          responseType: ResponseType.plain,
-        ),
-      );
+      // 构建正确的API端点
+      final uri = Uri.parse('$baseUrl/api/public/fund_open_fund_rank_em')
+          .replace(queryParameters: {'symbol': symbol});
+
+      final response = await http.get(
+        uri,
+        headers: {
+          'Accept': 'application/json; charset=utf-8',
+          'Content-Type': 'application/json; charset=utf-8',
+        },
+      ).timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 200) {
-        // 手动处理UTF-8编码解析
-        final String responseData = response.data.toString();
-        AppLogger.debug('响应数据长度: ${responseData.length}字符', 'API');
+        AppLogger.debug('响应数据长度: ${response.bodyBytes.length}字节', 'API');
 
-        // 强制使用UTF-8解码
+        // 强制用UTF-8解码原始字节数据，解决中文乱码问题
+        final String responseData = utf8.decode(response.bodyBytes);
+        AppLogger.debug('UTF-8解码完成，数据长度: ${responseData.length}字符', 'API');
+
         final List<dynamic> decodedData = json.decode(responseData);
         AppLogger.business('数据解码成功: ${decodedData.length}条', 'API');
 
@@ -167,14 +166,8 @@ class FundApiClient {
       } else {
         throw Exception('获取基金排行失败: ${response.statusCode}');
       }
-    } on DioException catch (e) {
-      AppLogger.error('Fund API Dio错误', e.toString(), e.stackTrace);
-      if (e.response?.statusCode == 500) {
-        AppLogger.warn('处理500错误，返回空数据');
-        return [];
-      }
-      throw Exception('获取基金排行错误: ${e.message}');
     } catch (e) {
+      AppLogger.error('Fund API 错误', e.toString());
       throw Exception('获取基金排行错误: $e');
     }
   }
