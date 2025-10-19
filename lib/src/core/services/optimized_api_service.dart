@@ -4,7 +4,6 @@ import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 
-import '../di/injection_container.dart';
 import '../presentation/bloc/cache_bloc.dart';
 
 /// API调用结果

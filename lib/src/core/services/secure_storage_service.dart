@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:crypto/crypto.dart';
+// import 'package:crypto/crypto.dart'; // 暂时注释，需要添加crypto依赖
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../features/auth/domain/entities/user_session.dart';
 
@@ -241,11 +241,11 @@ class SecureStorageService {
   }
 
   /// 生成键的哈希值
-  static String _generateKeyHash(String key) {
-    final bytes = utf8.encode(key);
-    final digest = sha256.convert(bytes);
-    return digest.toString();
-  }
+  // static String _generateKeyHash(String key) {
+  //   final bytes = utf8.encode(key);
+  //   final digest = sha256.convert(bytes);
+  //   return digest.toString();
+  // }
 
   /// 验证存储完整性
   static Future<bool> verifyStorageIntegrity() async {
