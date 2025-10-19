@@ -150,7 +150,7 @@ class SecureStorageService {
   static Future<void> saveSecureValue(String key, String value) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final secureKey = 'secure_${_generateKeyHash(key)}';
+      final secureKey = 'secure_${key.hashCode}';
       final encryptedValue = _encrypt(value);
       await prefs.setString(secureKey, encryptedValue);
     } catch (e) {
@@ -162,7 +162,7 @@ class SecureStorageService {
   static Future<String?> getSecureValue(String key) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final secureKey = 'secure_${_generateKeyHash(key)}';
+      final secureKey = 'secure_${key.hashCode}';
       final encryptedValue = prefs.getString(secureKey);
 
       if (encryptedValue == null) return null;
@@ -177,7 +177,7 @@ class SecureStorageService {
   static Future<void> removeSecureValue(String key) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final secureKey = 'secure_${_generateKeyHash(key)}';
+      final secureKey = 'secure_${key.hashCode}';
       await prefs.remove(secureKey);
     } catch (e) {
       throw Exception('删除安全值失败: $e');
