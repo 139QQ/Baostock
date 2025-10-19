@@ -9,7 +9,6 @@ import 'package:fl_chart/fl_chart.dart';
 
 import 'base_chart_widget.dart';
 import 'models/chart_data.dart';
-import 'chart_theme_manager.dart';
 import 'chart_config_manager.dart';
 
 /// 折线图组件
@@ -64,7 +63,7 @@ class _LineChartWidgetState extends BaseChartWidgetState<LineChartWidget> {
   @override
   void initState() {
     super.initState();
-    _configManager = ChartDIContainer.get<IChartConfigManager>();
+    _configManager = ChartConfigManager.instance;
   }
 
   @override
@@ -130,7 +129,6 @@ class _LineChartWidgetState extends BaseChartWidgetState<LineChartWidget> {
 
     return LineChart(
       lineChartData,
-      duration: widget.animationDuration,
     );
   }
 
@@ -377,7 +375,7 @@ class LineChartStyle {
 
   /// 创建简约样式
   static LineChartStyle minimal() {
-    return LineChartStyle(
+    return const LineChartStyle(
       showGradient: false,
       showDots: true,
       isCurved: false,
@@ -385,13 +383,13 @@ class LineChartStyle {
       dotRadius: 2.5,
       showArea: false,
       areaOpacity: 0.0,
-      animationDuration: const Duration(milliseconds: 500),
+      animationDuration: Duration(milliseconds: 500),
     );
   }
 
   /// 创建演示样式
   static LineChartStyle presentation() {
-    return LineChartStyle(
+    return const LineChartStyle(
       showGradient: true,
       showDots: true,
       isCurved: true,
@@ -399,7 +397,7 @@ class LineChartStyle {
       dotRadius: 4.0,
       showArea: true,
       areaOpacity: 0.4,
-      animationDuration: const Duration(milliseconds: 1200),
+      animationDuration: Duration(milliseconds: 1200),
     );
   }
 }

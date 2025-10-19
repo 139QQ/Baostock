@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:core';
+import 'dart:io';
+import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'package:dio/dio.dart';
 import '../utils/logger.dart';
@@ -131,45 +133,126 @@ class FundApiClient {
     }
   }
 
-  /// 获取基金排行 - 使用http包进行真正的UTF-8解码
-  Future<List<dynamic>> getFundRankings({String symbol = '全部'}) async {
-    AppLogger.business('开始获取基金排行榜', 'API');
+  /// 获取基金排行 - 使用http包进行真正的UTF-8解码，增强错误处理和重试机制
+  Future<List<dynamic>> getFundRankings(
+      {String symbol = '全部', bool forceRefresh = false}) async {
+    AppLogger.business('开始获取基金排行榜${forceRefresh ? '(强制刷新)' : ''}', 'API');
     AppLogger.debug('请求参数: symbol=$symbol', 'API');
 
-    try {
-      // 构建正确的API端点
-      final uri = Uri.parse('$baseUrl/api/public/fund_open_fund_rank_em')
-          .replace(queryParameters: {'symbol': symbol});
+    // 使用智能重试机制获取数据
+    return await _getFundRankingsWithRetry(symbol,
+        maxRetries: 3, forceRefresh: forceRefresh);
+  }
 
-      final response = await http.get(
-        uri,
-        headers: {
+  /// 带智能重试机制的基金排行榜获取
+  Future<List<dynamic>> _getFundRankingsWithRetry(String symbol,
+      {int maxRetries = 3, bool forceRefresh = false}) async {
+    int retryCount = 0;
+    dynamic lastException;
+
+    while (retryCount <= maxRetries) {
+      try {
+        AppLogger.business(
+            '获取基金排行榜 (尝试 ${retryCount + 1}/${maxRetries + 1}): symbol=$symbol',
+            'API');
+
+        // 构建正确的API端点 - 使用Uri自动处理编码，避免双重编码
+        final uri = Uri.parse('$baseUrl/api/public/fund_open_fund_rank_em')
+            .replace(queryParameters: {'symbol': symbol});
+
+        // 添加CORS相关请求头和强制刷新标识
+        final headers = {
           'Accept': 'application/json; charset=utf-8',
           'Content-Type': 'application/json; charset=utf-8',
-        },
-      ).timeout(const Duration(seconds: 60));
+          'Origin': 'http://localhost:5000', // 前端域名，根据实际环境配置
+          'Access-Control-Request-Method': 'GET',
+          'Access-Control-Request-Headers': 'Content-Type,Accept',
+          'User-Agent':
+              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        };
 
-      if (response.statusCode == 200) {
-        AppLogger.debug('响应数据长度: ${response.bodyBytes.length}字节', 'API');
+        // 如果是强制刷新，添加缓存控制头
+        if (forceRefresh) {
+          headers['Cache-Control'] = 'no-cache';
+          headers['Pragma'] = 'no-cache';
+        }
 
-        // 强制用UTF-8解码原始字节数据，解决中文乱码问题
-        final String responseData = utf8.decode(response.bodyBytes);
-        AppLogger.debug('UTF-8解码完成，数据长度: ${responseData.length}字符', 'API');
+        final response = await http
+            .get(
+              uri,
+              headers: headers,
+            )
+            .timeout(const Duration(seconds: 60)); // 60秒超时配置
 
-        final List<dynamic> decodedData = json.decode(responseData);
-        AppLogger.business('数据解码成功: ${decodedData.length}条', 'API');
+        AppLogger.debug('响应状态码: ${response.statusCode}', 'API');
+        AppLogger.debug('响应头: ${response.headers}', 'API');
 
-        return decodedData;
-      } else if (response.statusCode == 500) {
-        AppLogger.warn('服务器返回500错误，返回空数据');
-        return [];
-      } else {
-        throw Exception('获取基金排行失败: ${response.statusCode}');
+        if (response.statusCode == 200) {
+          AppLogger.debug('响应数据长度: ${response.bodyBytes.length}字节', 'API');
+
+          // 检查响应内容类型
+          final contentType = response.headers['content-type'] ?? '';
+          if (contentType.isNotEmpty &&
+              !contentType.toLowerCase().contains('json')) {
+            AppLogger.warn('服务器返回非JSON内容: $contentType', 'API');
+          }
+
+          // 强制用UTF-8解码原始字节数据，解决中文乱码问题
+          final String responseData = utf8.decode(response.bodyBytes);
+          AppLogger.debug('UTF-8解码完成，数据长度: ${responseData.length}字符', 'API');
+
+          // 检查返回的数据是否为空
+          if (responseData.trim().isEmpty) {
+            AppLogger.warn('服务器返回空数据', 'API');
+            return [];
+          }
+
+          final List<dynamic> decodedData = json.decode(responseData);
+          AppLogger.business('数据解码成功: ${decodedData.length}条', 'API');
+
+          return decodedData;
+        } else if (response.statusCode == 500) {
+          AppLogger.warn('服务器返回500错误，返回空数据');
+          return [];
+        } else if (response.statusCode == 400) {
+          final String responseData = utf8.decode(response.bodyBytes);
+          AppLogger.error('请求参数错误 (400): $responseData', 'API');
+          throw ArgumentError('请求参数错误: $responseData');
+        } else if (response.statusCode == 403) {
+          AppLogger.error('访问被拒绝 (403)，可能是CORS或权限问题', 'API');
+          throw Exception('访问被拒绝，请检查CORS配置或联系管理员');
+        } else if (response.statusCode == 404) {
+          AppLogger.error('API端点不存在 (404)', 'API');
+          throw Exception('请求的API端点不存在');
+        } else {
+          final String responseData = response.body.isNotEmpty
+              ? utf8.decode(response.bodyBytes)
+              : '无响应内容';
+          AppLogger.error(
+              'HTTP错误 ${response.statusCode}: $responseData', 'API');
+          throw HttpException('HTTP ${response.statusCode}: $responseData',
+              statusCode: response.statusCode, response: responseData);
+        }
+      } catch (e) {
+        lastException = e;
+        retryCount++;
+
+        // 记录详细错误信息
+        AppLogger.warn('排行榜获取失败 (尝试 $retryCount): ${e.toString()}');
+
+        // 如果还有重试机会，等待后重试
+        if (retryCount <= maxRetries) {
+          // 指数退避等待时间：1秒、2秒、4秒
+          final waitTime = Duration(seconds: (1 << (retryCount - 1)));
+          AppLogger.business('等待 ${waitTime.inSeconds}秒后重试', 'API');
+          await Future.delayed(waitTime);
+        }
       }
-    } catch (e) {
-      AppLogger.error('Fund API 错误', e.toString());
-      throw Exception('获取基金排行错误: $e');
     }
+
+    // 所有重试都失败了
+    AppLogger.error('排行榜获取失败，已达最大重试次数', lastException.toString());
+    throw lastException ?? Exception('获取基金排行榜失败');
   }
 
   /// 获取基金实时行情
@@ -384,6 +467,19 @@ class RetryInterceptor extends Interceptor {
         return false;
     }
   }
+}
+
+/// 自定义HTTP异常类
+class HttpException implements Exception {
+  final String message;
+  final int? statusCode;
+  final String? response;
+
+  HttpException(this.message, {this.statusCode, this.response});
+
+  @override
+  String toString() =>
+      'HttpException: $message${statusCode != null ? ' (Status: $statusCode)' : ''}';
 }
 
 /// 带重试机制的HTTP请求方法

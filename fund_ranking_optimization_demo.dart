@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 
 import 'lib/src/features/fund/domain/entities/fund_ranking.dart';
-import 'lib/src/features/fund/presentation/widgets/optimized_fund_ranking_card.dart';
 import 'lib/src/features/fund/presentation/widgets/optimized_fund_ranking_list.dart';
 import 'lib/src/features/fund/presentation/fund_exploration/domain/data/services/high_performance_fund_service.dart';
-import 'lib/src/features/fund/presentation/fund_exploration/domain/data/models/fund_dto.dart';
 
 /// 基金排行优化功能演示应用
 ///
@@ -36,7 +33,6 @@ class _FundRankingOptimizationDemoState
 
   // 模拟数据
   List<FundRanking> _mockRankings = [];
-  List<FundRankingDto> _mockDtos = [];
   final FundRankingListController _listController = FundRankingListController();
 
   @override
@@ -83,36 +79,13 @@ class _FundRankingOptimizationDemoState
         return3Y: (index % 30) * 3.5,
         returnYTD: (index % 25) * 2.2,
         returnSinceInception: (index % 35) * 5.5,
-        date: now.toIso8601String().substring(0, 10),
-        fee: 1.5,
+        rankingDate: now,
+        rankingType: RankingType.overall,
+        rankingPeriod: RankingPeriod.oneYear,
       );
     });
 
-    _mockDtos = _mockRankings
-        .map((ranking) => FundRankingDto(
-              fundCode: ranking.fundCode,
-              fundName: ranking.fundName,
-              fundType: ranking.fundType,
-              company: ranking.company,
-              rankingPosition: ranking.rankingPosition,
-              totalCount: ranking.totalCount,
-              unitNav: ranking.unitNav,
-              accumulatedNav: ranking.accumulatedNav,
-              dailyReturn: ranking.dailyReturn,
-              return1W: ranking.return1W,
-              return1M: ranking.return1M,
-              return3M: ranking.return3M,
-              return6M: ranking.return6M,
-              return1Y: ranking.return1Y,
-              return2Y: ranking.return2Y,
-              return3Y: ranking.return3Y,
-              returnYTD: ranking.returnYTD,
-              returnSinceInception: ranking.returnSinceInception,
-              date: ranking.date,
-              fee: ranking.fee,
-            ))
-        .toList();
-
+    
     // 设置到列表控制器
     _listController.setInitialData(_mockRankings);
   }
@@ -166,8 +139,9 @@ class _FundRankingOptimizationDemoState
         return3Y: (originalIndex % 30) * 3.5,
         returnYTD: (originalIndex % 25) * 2.2,
         returnSinceInception: (originalIndex % 35) * 5.5,
-        date: DateTime.now().toIso8601String().substring(0, 10),
-        fee: 1.5,
+        rankingDate: DateTime.now(),
+        rankingType: RankingType.overall,
+        rankingPeriod: RankingPeriod.oneYear,
       );
     });
 
@@ -699,7 +673,7 @@ class _FundRankingCardState extends State<FundRankingCard>
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.monitoring, color: Colors.blue[600], size: 24),
+                      Icon(Icons.insights, color: Colors.blue[600], size: 24),
                       const SizedBox(width: 8),
                       Text(
                         '实时性能统计',
@@ -822,7 +796,7 @@ class _FundRankingCardState extends State<FundRankingCard>
         _buildStatItem('总请求数', '${_performanceStats['requests'] ?? 0}',
             Icons.request_page),
         _buildStatItem('请求缓存命中',
-            '${_performanceStats['cacheHits']?['request'] ?? 0}', Icons.cache),
+            '${_performanceStats['cacheHits']?['request'] ?? 0}', Icons.storage),
         _buildStatItem(
             '响应缓存命中',
             '${_performanceStats['cacheHits']?['response'] ?? 0}',
@@ -920,7 +894,7 @@ class _FundRankingCardState extends State<FundRankingCard>
               color: color,
               borderRadius: BorderRadius.circular(6),
             ),
-            child: Icon(
+            child: const Icon(
               Icons.storage,
               color: Colors.white,
               size: 20,
@@ -935,7 +909,7 @@ class _FundRankingCardState extends State<FundRankingCard>
                   title,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: color.shade800,
+                    color: color.withOpacity(0.8),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -1068,8 +1042,8 @@ class _FundRankingCardState extends State<FundRankingCard>
                   '近1月收益率', '${fund.return1M.toStringAsFixed(2)}%'),
               _buildDetailItem(
                   '近1年收益率', '${fund.return1Y.toStringAsFixed(2)}%'),
-              _buildDetailItem('更新日期', fund.date),
-              _buildDetailItem('手续费', '${fund.fee.toStringAsFixed(2)}%'),
+              _buildDetailItem('更新日期', fund.rankingDate.toIso8601String().substring(0, 10)),
+              _buildDetailItem('排名', '#${fund.rankingPosition}'),
             ],
           ),
         ),

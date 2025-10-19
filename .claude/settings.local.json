@@ -23,7 +23,8 @@
       "Bash(flutter doctor:*)",
       "Bash(move:*)",
       "Bash(copy:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []

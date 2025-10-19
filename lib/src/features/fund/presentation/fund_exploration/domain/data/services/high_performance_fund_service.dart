@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:dio/dio.dart';
@@ -41,8 +40,6 @@ class HighPerformanceFundService {
     _initialize();
   }
 
-  late Dio _dio;
-
   // 请求缓存 - 避免重复请求
   final Map<String, _RequestInfo> _requestCache = {};
 
@@ -54,7 +51,6 @@ class HighPerformanceFundService {
 
   // 连接池
   final List<Dio> _connectionPool = [];
-  int _currentConnectionIndex = 0;
 
   // 统计信息
   final _PerformanceStats _stats = _PerformanceStats();
@@ -78,7 +74,6 @@ class HighPerformanceFundService {
     } catch (e) {
       debugPrint('❌ HighPerformanceFundService 初始化失败: $e');
       // 降级到基本配置
-      _dio = Dio();
       _isInitialized = true;
     }
   }
@@ -119,7 +114,6 @@ class HighPerformanceFundService {
       _connectionPool.add(dio);
     }
 
-    _dio = _connectionPool[0];
     debugPrint('✅ 连接池初始化完成，大小: $poolSize');
   }
 
@@ -163,7 +157,7 @@ class HighPerformanceFundService {
     final requestCompleter = Completer<List<dynamic>>();
     final requestInfo = _RequestInfo(
       key: cacheKey,
-      future: requestCompleter.future,
+      completer: requestCompleter,
       priority: priority,
       timestamp: DateTime.now(),
     );
@@ -278,14 +272,6 @@ class HighPerformanceFundService {
         request.enableCache,
       );
     }
-  }
-
-  /// 获取下一个连接
-  Dio _getNextConnection() {
-    final dio = _connectionPool[_currentConnectionIndex];
-    _currentConnectionIndex =
-        (_currentConnectionIndex + 1) % _connectionPool.length;
-    return dio;
   }
 
   /// 清理过期缓存和完成的请求
@@ -431,21 +417,20 @@ class HighPerformanceFundService {
 /// 请求信息
 class _RequestInfo {
   final String key;
-  final Future<List<dynamic>> future;
+  final Completer<List<dynamic>> completer;
   final RequestPriority priority;
   final DateTime timestamp;
 
   _RequestInfo({
     required this.key,
-    required this.future,
+    required this.completer,
     required this.priority,
     required this.timestamp,
   });
 
-  bool get isCompleted => !future
-      .timeout(const Duration(seconds: 0))
-      .catchError((_) => null)
-      .isCompleted;
+  Future<List<dynamic>> get future => completer.future;
+
+  bool get isCompleted => completer.isCompleted;
 }
 
 /// 缓存项
@@ -496,11 +481,18 @@ class PriorityQueue<T> {
     return _items.removeAt(0);
   }
 
+  void clear() {
+    _items.clear();
+  }
+
   bool get isEmpty => _items.isEmpty;
   int get length => _items.length;
 
   int _comparePriority(a, b) {
-    // 这里需要根据具体的优先级比较逻辑来实现
+    // 假设a和b都是_QueuedRequest类型
+    if (a is _QueuedRequest && b is _QueuedRequest) {
+      return b.priority.value.compareTo(a.priority.value); // 高优先级在前
+    }
     return 0;
   }
 }

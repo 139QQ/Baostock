@@ -1,13 +1,12 @@
 import 'dart:async';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../bloc/fund_ranking_bloc.dart';
-import '../../../../domain/entities/fund.dart';
 import '../../../../domain/entities/fund_ranking.dart';
 import '../../../../domain/usecases/get_fund_rankings.dart';
 import '../../../domain/models/fund_filter.dart';
+import '../../domain/models/fund.dart' as exploration_fund;
 
 part 'fund_exploration_state.dart';
 
@@ -240,12 +239,12 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
   String getFilterSummary() {
     final parts = <String>[];
 
-    if (state.activeFilter != null) {
+    if (state.activeFilter.isNotEmpty) {
       parts.add('类型: ${state.activeFilter}');
     }
 
-    if (state.activeSortBy != null) {
-      final sortText = _getSortText(state.activeSortBy!);
+    if (state.activeSortBy.isNotEmpty) {
+      final sortText = _getSortText(state.activeSortBy);
       parts.add('排序: $sortText');
     }
 
@@ -326,8 +325,8 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
   }
 
   /// 添加基金到对比列表
-  void addToComparison(Fund fund) {
-    final currentList = List<Fund>.from(state.comparisonFunds);
+  void addToComparison(exploration_fund.Fund fund) {
+    final currentList = List<exploration_fund.Fund>.from(state.comparisonFunds);
     if (!currentList.any((f) => f.code == fund.code) &&
         currentList.length < 5) {
       currentList.add(fund);
@@ -337,7 +336,7 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
 
   /// 从对比列表中移除基金
   void removeFromComparison(String fundCode) {
-    final currentList = List<Fund>.from(state.comparisonFunds);
+    final currentList = List<exploration_fund.Fund>.from(state.comparisonFunds);
     currentList.removeWhere((f) => f.code == fundCode);
     emit(state.copyWith(comparisonFunds: currentList));
   }

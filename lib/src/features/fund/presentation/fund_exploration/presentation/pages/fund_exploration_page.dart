@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
-import '../../domain/data/services/fund_service.dart';
 
 import '../widgets/fund_search_bar.dart';
 import '../widgets/fund_filter_panel.dart';
@@ -11,7 +10,7 @@ import '../widgets/market_dynamics_section.dart';
 import '../widgets/fund_comparison_tool.dart';
 import '../widgets/investment_calculator.dart';
 import '../widgets/fund_card.dart';
-import '../../domain/models/fund.dart';
+import '../../domain/models/fund.dart' as exploration_fund;
 import '../../domain/models/fund_filter.dart';
 import '../cubit/fund_exploration_cubit.dart';
 import '../cubit/fund_ranking_cubit.dart';
@@ -736,7 +735,8 @@ class _FundExplorationPageContentState
                             Text(
                               '${fund.return1Y.toStringAsFixed(2)}%',
                               style: TextStyle(
-                                color: Fund.getReturnColor(fund.return1Y),
+                                color: exploration_fund.Fund.getReturnColor(
+                                    fund.return1Y),
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -745,7 +745,7 @@ class _FundExplorationPageContentState
                               onPressed: () {
                                 context
                                     .read<FundExplorationCubit>()
-                                    .removeFromComparison(fund);
+                                    .removeFromComparison(fund.code);
                               },
                             ),
                           ],
@@ -787,7 +787,8 @@ class _FundExplorationPageContentState
   }
 
   /// 构建基金网格
-  Widget _buildFundGrid(List<Fund> funds, FundExplorationState state) {
+  Widget _buildFundGrid(
+      List<exploration_fund.Fund> funds, FundExplorationState state) {
     return GridView.builder(
       padding: const EdgeInsets.all(16),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -807,7 +808,9 @@ class _FundExplorationPageContentState
             if (selected) {
               context.read<FundExplorationCubit>().addToComparison(fund);
             } else {
-              context.read<FundExplorationCubit>().removeFromComparison(fund);
+              context
+                  .read<FundExplorationCubit>()
+                  .removeFromComparison(fund.code);
             }
           },
           onTap: () {

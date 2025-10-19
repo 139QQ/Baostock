@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../bloc/fund_ranking_bloc.dart';
 import '../../../../domain/entities/fund_ranking.dart';
-import '../../../../../core/di/unified_injection_container.dart';
+import '../../../../../../core/di/injection_container.dart' as di;
 
 /// 基金排行Cubit适配器
 ///
@@ -10,11 +10,9 @@ import '../../../../../core/di/unified_injection_container.dart';
 /// 主要用于向后兼容和简化状态管理
 class FundRankingCubit extends Cubit<FundRankingState> {
   late final FundRankingBloc _fundRankingBloc;
-  final UnifiedInjectionContainer _container = UnifiedInjectionContainer();
-
   FundRankingCubit() : super(FundRankingState.initial()) {
     // 使用依赖注入容器获取FundRankingBloc实例
-    _fundRankingBloc = _container.get<FundRankingBloc>();
+    _fundRankingBloc = di.sl<FundRankingBloc>();
 
     // 监听Bloc状态变化
     _fundRankingBloc.stream.listen((newState) {

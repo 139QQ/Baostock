@@ -21,12 +21,12 @@ enum FundExplorationView {
 class FundExplorationState extends Equatable {
   final FundExplorationStatus status;
   final FundExplorationView activeView;
-  final List<Fund> funds;
-  final List<Fund> hotFunds;
+  final List<exploration_fund.Fund> funds;
+  final List<exploration_fund.Fund> hotFunds;
   final List<FundRanking> fundRankings;
-  final List<Fund> searchResults;
-  final List<Fund> filteredFunds;
-  final List<Fund> comparisonFunds;
+  final List<exploration_fund.Fund> searchResults;
+  final List<exploration_fund.Fund> filteredFunds;
+  final List<exploration_fund.Fund> comparisonFunds;
   final FundFilter currentFilter;
   final String searchQuery;
   final String sortBy;
@@ -88,7 +88,7 @@ class FundExplorationState extends Equatable {
   }
 
   /// 获取当前显示的基金列表
-  List<Fund> get displayFunds {
+  List<exploration_fund.Fund> get displayFunds {
     switch (activeView) {
       case FundExplorationView.all:
         return funds;
@@ -150,12 +150,12 @@ class FundExplorationState extends Equatable {
   FundExplorationState copyWith({
     FundExplorationStatus? status,
     FundExplorationView? activeView,
-    List<Fund>? funds,
-    List<Fund>? hotFunds,
+    List<exploration_fund.Fund>? funds,
+    List<exploration_fund.Fund>? hotFunds,
     List<FundRanking>? fundRankings,
-    List<Fund>? searchResults,
-    List<Fund>? filteredFunds,
-    List<Fund>? comparisonFunds,
+    List<exploration_fund.Fund>? searchResults,
+    List<exploration_fund.Fund>? filteredFunds,
+    List<exploration_fund.Fund>? comparisonFunds,
     FundFilter? currentFilter,
     String? searchQuery,
     String? sortBy,

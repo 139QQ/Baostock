@@ -4,7 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../cache/hive_cache_manager.dart';
-import '../../di/hive_injection_container.dart';
 
 part 'cache_event.dart';
 part 'cache_state.dart';

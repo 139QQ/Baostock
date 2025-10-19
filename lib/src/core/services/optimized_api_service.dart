@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 
-import '../di/unified_injection_container.dart';
+import '../di/injection_container.dart';
 import '../presentation/bloc/cache_bloc.dart';
-import '../../features/fund/domain/entities/fund_ranking.dart';
 
 /// API调用结果
 class ApiResult<T> {
@@ -156,8 +156,8 @@ class OptimizedApiService {
   OptimizedApiService({
     http.Client? httpClient,
     CacheBloc? cacheBloc,
-  })  : _httpClient = httpClient ?? UnifiedInjectionContainer.httpClient,
-        _cacheBloc = cacheBloc ?? UnifiedInjectionContainer.cacheBloc,
+  })  : _httpClient = httpClient ?? GetIt.instance<http.Client>(),
+        _cacheBloc = cacheBloc ?? GetIt.instance<CacheBloc>(),
         _statistics = <String, dynamic>{},
         _statisticsController = StreamController<ApiStatistics>.broadcast();
 
@@ -397,7 +397,7 @@ class OptimizedApiService {
         totalCacheRequests > 0 ? cacheHits / totalCacheRequests : 0.0;
 
     // 发送统计更新
-    _statisticsController.add(_getStatistics());
+    _statisticsController.add(_getStatistics);
   }
 
   /// 获取统计信息

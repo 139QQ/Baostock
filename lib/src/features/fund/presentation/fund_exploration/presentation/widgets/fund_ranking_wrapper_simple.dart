@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../cubit/fund_ranking_cubit.dart';
 import '../../../bloc/fund_ranking_bloc.dart';
-import 'fund_ranking_section_fixed.dart';
+import '../../../../domain/entities/fund_ranking.dart';
 
 /// 简化版基金排行包装器
 ///
@@ -76,6 +76,7 @@ class _FundRankingWrapperSimpleState extends State<FundRankingWrapperSimple>
       if (mounted && e.toString().contains('ProviderNotFoundException')) {
         await Future.delayed(const Duration(milliseconds: 10));
         try {
+          if (!mounted) return;
           _cubit = context.read<FundRankingCubit>();
           if (mounted && _cubit != null) {
             _cubit!.initialize();
@@ -250,38 +251,121 @@ class _FundRankingWrapperSimpleState extends State<FundRankingWrapperSimple>
   /// 构建内容区域（带状态）
   Widget _buildContentWithState(BuildContext context, FundRankingState state) {
     // 初始状态 - 未初始化，显示点击加载按钮
-    if (!_hasInitialized && !_isInitializing && state.rankings.isEmpty) {
+    if (!_hasInitialized && !_isInitializing && state.isInitial) {
       return _buildInitialWidget();
     }
 
-    if (state.isLoading && state.rankings.isEmpty) {
+    if (state.isLoading && state.isInitial) {
       // 纯加载状态
       return _buildLoadingWidget();
-    } else if (state.hasError && state.rankings.isEmpty) {
+    } else if (state.isFailure) {
       // 错误状态且无数据
       return _buildErrorWidget(context, state);
-    } else if (state.isEmpty) {
-      // 空状态
-      return _buildEmptyWidget(context);
+    } else if (state.isSuccess) {
+      // 有数据状态
+      final successData = state.successData;
+      if (successData != null && successData.rankings.isNotEmpty) {
+        return _buildDataDisplay(context, successData.rankings);
+      } else {
+        return _buildEmptyWidget(context);
+      }
     } else {
-      // 有数据状态（即使正在加载或有警告也显示数据）
-      return Column(
-        children: [
-          // 数据质量警告横幅
-          if (state.hasDataQualityIssues) _buildDataQualityWarning(context),
-
-          // 主要内容
-          FundRankingSectionFixed(
-            fundRankings: state.rankings,
-            isLoading: state.isLoading,
-            errorMessage: state.errorMessage,
-          ),
-
-          // 底部操作按钮
-          if (state.hasError) _buildBottomErrorActions(context, state),
-        ],
-      );
+      // 空状态或其他状态
+      return _buildEmptyWidget(context);
     }
+  }
+
+  /// 构建数据显示
+  Widget _buildDataDisplay(BuildContext context, List<FundRanking> rankings) {
+    // 显示简单数据统计信息
+    final displayRankings = rankings.take(5); // 只显示前5条
+
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.list_alt, color: Colors.blue),
+                const SizedBox(width: 8),
+                Text(
+                  '基金排行榜数据',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const Spacer(),
+                Text(
+                  '共 ${rankings.length} 条',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            ...displayRankings.map((ranking) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    children: [
+                      Text(
+                        '${ranking.rankingPosition}.',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              ranking.fundName,
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w500),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              ranking.fundCode,
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            '${ranking.return1Y.toStringAsFixed(2)}%',
+                            style: TextStyle(
+                              color: ranking.return1Y >= 0
+                                  ? Colors.green
+                                  : Colors.red,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            '近1年',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                )),
+            const SizedBox(height: 12),
+            Center(
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  // 触发刷新
+                  _cubit?.refreshRankings();
+                },
+                icon: const Icon(Icons.refresh),
+                label: const Text('刷新数据'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   /// 构建初始状态（等待用户点击）
@@ -353,8 +437,8 @@ class _FundRankingWrapperSimpleState extends State<FundRankingWrapperSimple>
                   height: 50,
                   child: CircularProgressIndicator(
                     strokeWidth: 3,
-                    valueColor: const AlwaysStoppedAnimation<Color>(
-                        const Color(0xFFF59E0B)),
+                    valueColor:
+                        const AlwaysStoppedAnimation<Color>(Color(0xFFF59E0B)),
                     backgroundColor: const Color(0xFFF59E0B).withOpacity(0.2),
                   ),
                 ),
@@ -421,6 +505,7 @@ class _FundRankingWrapperSimpleState extends State<FundRankingWrapperSimple>
 
   /// 构建错误状态
   Widget _buildErrorWidget(BuildContext context, FundRankingState state) {
+    final failureData = state.failureData;
     return Container(
       height: 200, // 减少高度
       alignment: Alignment.center,
@@ -444,7 +529,7 @@ class _FundRankingWrapperSimpleState extends State<FundRankingWrapperSimple>
           ),
           const SizedBox(height: 6),
           Text(
-            state.errorMessage ?? '未知错误',
+            failureData?.error ?? '未知错误',
             style: const TextStyle(
               fontSize: 12, // 减小字体
               color: Colors.grey,
@@ -495,65 +580,6 @@ class _FundRankingWrapperSimpleState extends State<FundRankingWrapperSimple>
             style: TextStyle(
               fontSize: 12, // 减小字体
               color: Color(0xFF9CA3AF),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 构建数据质量警告横幅
-  Widget _buildDataQualityWarning(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Colors.orange.shade50,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.orange.shade200),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.warning_amber, color: Colors.orange.shade700, size: 20),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              '部分基金数据不完整，但仍可查看排行信息',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.orange.shade700,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 构建底部错误操作按钮
-  Widget _buildBottomErrorActions(
-      BuildContext context, FundRankingState state) {
-    return Container(
-      padding: const EdgeInsets.only(top: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          TextButton.icon(
-            onPressed: () {
-              context.read<FundRankingCubit>().clearError();
-            },
-            icon: const Icon(Icons.close, size: 16),
-            label: const Text('忽略错误'),
-          ),
-          const SizedBox(width: 16),
-          ElevatedButton.icon(
-            onPressed: _reloadData,
-            icon: const Icon(Icons.refresh, size: 16),
-            label: const Text('重试'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red.shade400,
-              foregroundColor: Colors.white,
             ),
           ),
         ],

@@ -794,24 +794,48 @@ class FundRepositoryImpl implements FundRepository {
     bool forceRefresh = false,
   }) async {
     try {
+      AppLogger.business(
+          '开始获取基金排行榜 (forceRefresh: $forceRefresh)', 'Repository');
+      AppLogger.debug('排行榜条件: ${criteria.toString()}', 'Repository');
+
       // 如果启用缓存且不强制刷新，先尝试从缓存获取
       if (enableCache && !forceRefresh) {
         try {
           final cachedRankings =
               await localDataSource.getCachedRankings(criteria);
           if (cachedRankings != null && cachedRankings.rankings.isNotEmpty) {
+            AppLogger.business(
+                '从缓存获取排行榜数据: ${cachedRankings.rankings.length}条', 'Repository');
             return cachedRankings;
           }
-        } catch (_) {
-          // 缓存获取失败，继续获取数据
+        } catch (e) {
+          AppLogger.warn('缓存获取失败，继续获取数据: $e');
         }
       }
 
-      // 获取所有基金数据
-      final allFunds = await getFundList();
+      // 构建API请求参数
+      String symbol = '全部'; // 默认获取全部
 
-      // 根据条件生成排行榜数据
-      List<FundRanking> rankings = _generateRankings(allFunds, criteria);
+      // 根据筛选条件设置symbol参数
+      if (criteria.fundType != null && criteria.fundType!.isNotEmpty) {
+        symbol = criteria.fundType!;
+      } else if (criteria.company != null && criteria.company!.isNotEmpty) {
+        symbol = criteria.company!;
+      }
+
+      // 从远程数据源获取排行榜数据，强制刷新时绕过缓存
+      List<Fund> rankingsData =
+          await _getFundRankingsWithRetry(symbol, forceRefresh: forceRefresh);
+
+      // 转换为FundRanking实体
+      List<FundRanking> rankings = rankingsData
+          .map((fund) => _convertFundToRanking(fund, criteria))
+          .where((ranking) => ranking != null)
+          .cast<FundRanking>()
+          .toList();
+
+      // 根据排序条件进行排序
+      rankings = _sortRankings(rankings, criteria.sortBy);
 
       // 应用分页
       final startIndex = (criteria.page - 1) * criteria.pageSize;
@@ -834,26 +858,51 @@ class FundRepositoryImpl implements FundRepository {
         hasPreviousPage: hasPreviousPage,
       );
 
-      // 缓存结果
+      // 缓存结果（仅在成功且有数据时）
       if (enableCache && result.rankings.isNotEmpty) {
         await localDataSource.cacheRankings(criteria, result);
+        AppLogger.business('缓存排行榜数据: ${result.rankings.length}条', 'Repository');
       }
 
+      AppLogger.business(
+          '获取排行榜成功: 总计$totalCount条，当前页${result.rankings.length}条',
+          'Repository');
       return result;
     } catch (e) {
+      AppLogger.error('获取基金排行榜失败', e.toString());
+
       // 如果获取失败，尝试使用缓存的排行榜数据
       if (enableCache) {
         try {
           final cachedRankings =
               await localDataSource.getCachedRankings(criteria);
           if (cachedRankings != null && cachedRankings.rankings.isNotEmpty) {
+            AppLogger.business(
+                '使用缓存数据作为备选: ${cachedRankings.rankings.length}条', 'Repository');
             return cachedRankings;
           }
         } catch (_) {
-          // 缓存也失败，抛出原始错误
+          AppLogger.warn('缓存数据也获取失败');
         }
       }
-      throw Exception('获取基金排行榜失败: $e');
+
+      // 提供详细的错误信息
+      String errorMessage = e.toString();
+      if (errorMessage.contains('timeout') || errorMessage.contains('超时')) {
+        throw Exception('请求超时，请检查网络连接后重试');
+      } else if (errorMessage.contains('connection') ||
+          errorMessage.contains('network')) {
+        throw Exception('网络连接失败，请检查网络设置');
+      } else if (errorMessage.contains('500')) {
+        throw Exception('服务器暂时不可用，请稍后重试');
+      } else if (errorMessage.contains('403')) {
+        throw Exception('访问被拒绝，请检查CORS配置');
+      } else if (errorMessage.contains('400') ||
+          errorMessage.contains('参数错误')) {
+        throw Exception('请求参数错误，请检查输入条件');
+      } else {
+        throw Exception('获取基金排行榜失败: $errorMessage');
+      }
     }
   }
 
@@ -1361,6 +1410,124 @@ class FundRepositoryImpl implements FundRepository {
     }
 
     return totalRisk / rankings.length;
+  }
+
+  /// 带智能重试机制的基金排行榜获取
+  Future<List<Fund>> _getFundRankingsWithRetry(String symbol,
+      {bool forceRefresh = false}) async {
+    try {
+      AppLogger.business(
+          '获取基金排行榜数据 (symbol: $symbol, forceRefresh: $forceRefresh)',
+          'Repository');
+
+      // 直接调用远程数据源获取排行榜数据，传递forceRefresh参数
+      final rankingsData = await remoteDataSource.getFundRankings(symbol,
+          forceRefresh: forceRefresh);
+
+      AppLogger.business('排行榜数据获取成功: ${rankingsData.length}条', 'Repository');
+      return rankingsData;
+    } catch (e) {
+      AppLogger.error('获取排行榜数据失败', e.toString());
+      rethrow;
+    }
+  }
+
+  /// 将Fund实体转换为FundRanking实体
+  FundRanking? _convertFundToRanking(Fund fund, RankingCriteria criteria) {
+    try {
+      return FundRanking(
+        fundCode: fund.code,
+        fundName: fund.name,
+        fundType: fund.type,
+        company: fund.company,
+        rankingPosition: 0, // 将在排序后设置
+        totalCount: 0, // 将在排序后设置
+        unitNav: fund.unitNav,
+        accumulatedNav: fund.accumulatedNav,
+        dailyReturn: fund.dailyReturn,
+        return1W: fund.return1W,
+        return1M: fund.return1M,
+        return3M: fund.return3M,
+        return6M: fund.return6M,
+        return1Y: fund.return1Y,
+        return2Y: fund.return2Y,
+        return3Y: fund.return3Y,
+        returnYTD: fund.returnYTD,
+        returnSinceInception: fund.returnSinceInception,
+        rankingDate: DateTime.now(),
+        previousPosition: null, // 可以后续实现
+        positionChange: null, // 可以后续实现
+        rankingType: criteria.rankingType,
+        rankingPeriod: criteria.rankingPeriod,
+      );
+    } catch (e) {
+      AppLogger.error('转换基金数据为排行榜失败: ${fund.code}', e.toString());
+      return null;
+    }
+  }
+
+  /// 根据排序条件对排行榜进行排序
+  List<FundRanking> _sortRankings(
+      List<FundRanking> rankings, RankingSortBy sortBy) {
+    switch (sortBy) {
+      case RankingSortBy.returnRate:
+        rankings.sort((a, b) =>
+            _getRankingReturnValueByPeriod(b, b.rankingPeriod)
+                .compareTo(_getRankingReturnValueByPeriod(a, a.rankingPeriod)));
+        break;
+      case RankingSortBy.unitNav:
+        rankings.sort((a, b) => b.unitNav.compareTo(a.unitNav));
+        break;
+      case RankingSortBy.accumulatedNav:
+        rankings.sort((a, b) => b.accumulatedNav.compareTo(a.accumulatedNav));
+        break;
+      case RankingSortBy.dailyReturn:
+        rankings.sort((a, b) => b.dailyReturn.compareTo(a.dailyReturn));
+        break;
+      case RankingSortBy.rankingPosition:
+        // 按排名排序，保持原顺序或按收益率排序
+        rankings.sort((a, b) =>
+            _getRankingReturnValueByPeriod(b, b.rankingPeriod)
+                .compareTo(_getRankingReturnValueByPeriod(a, a.rankingPeriod)));
+        break;
+    }
+
+    // 设置排名位置
+    for (int i = 0; i < rankings.length; i++) {
+      rankings[i] = rankings[i].copyWith(
+        rankingPosition: i + 1,
+        totalCount: rankings.length,
+      );
+    }
+
+    return rankings;
+  }
+
+  /// 根据排行榜实体获取收益率
+  double _getRankingReturnValueByPeriod(
+      FundRanking ranking, RankingPeriod period) {
+    switch (period) {
+      case RankingPeriod.daily:
+        return ranking.dailyReturn;
+      case RankingPeriod.oneWeek:
+        return ranking.return1W;
+      case RankingPeriod.oneMonth:
+        return ranking.return1M;
+      case RankingPeriod.threeMonths:
+        return ranking.return3M;
+      case RankingPeriod.sixMonths:
+        return ranking.return6M;
+      case RankingPeriod.oneYear:
+        return ranking.return1Y;
+      case RankingPeriod.twoYears:
+        return ranking.return2Y;
+      case RankingPeriod.threeYears:
+        return ranking.return3Y;
+      case RankingPeriod.ytd:
+        return ranking.returnYTD;
+      case RankingPeriod.sinceInception:
+        return ranking.returnSinceInception;
+    }
   }
 }
 

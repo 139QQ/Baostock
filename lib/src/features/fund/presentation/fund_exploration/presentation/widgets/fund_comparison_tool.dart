@@ -219,7 +219,9 @@ class _FundComparisonToolState extends State<FundComparisonTool> {
             child: IconButton(
               icon: const Icon(Icons.close, size: 16),
               onPressed: () {
-                context.read<FundExplorationCubit>().removeFromComparison(fund);
+                context
+                    .read<FundExplorationCubit>()
+                    .removeFromComparison(fund.code);
               },
               color: Colors.grey,
             ),

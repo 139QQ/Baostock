@@ -1,11 +1,14 @@
 import '../../../../core/network/fund_api_client.dart';
+import 'dart:io';
+import 'dart:async';
 import '../../presentation/fund_exploration/domain/models/fund.dart'
     as exploration_fund;
 import '../../domain/entities/fund.dart';
 
 abstract class FundRemoteDataSource {
   Future<List<Fund>> getFundList();
-  Future<List<Fund>> getFundRankings(String symbol);
+  Future<List<Fund>> getFundRankings(String symbol,
+      {bool forceRefresh = false});
 }
 
 class FundRemoteDataSourceImpl implements FundRemoteDataSource {
@@ -27,15 +30,34 @@ class FundRemoteDataSourceImpl implements FundRemoteDataSource {
   }
 
   @override
-  Future<List<Fund>> getFundRankings(String symbol) async {
+  Future<List<Fund>> getFundRankings(String symbol,
+      {bool forceRefresh = false}) async {
     try {
-      final response = await apiClient.getFundRankings(symbol: symbol);
+      final response = await apiClient.getFundRankings(
+          symbol: symbol, forceRefresh: forceRefresh);
       return response
           .map((json) =>
               _convertToFundEntity(exploration_fund.Fund.fromJson(json)))
           .toList();
     } catch (e) {
-      throw Exception('获取基金排名失败: $e');
+      // 根据错误类型提供更详细的错误信息
+      if (e is ArgumentError) {
+        throw Exception('请求参数错误: ${e.message}');
+      } else if (e is SocketException) {
+        throw Exception('网络连接失败，请检查网络设置');
+      } else if (e is TimeoutException) {
+        throw Exception('请求超时，请检查网络连接后重试');
+      } else if (e is HttpException) {
+        if (e.statusCode == 403) {
+          throw Exception('访问被拒绝，可能是CORS配置问题');
+        } else if (e.statusCode == 404) {
+          throw Exception('API接口不存在');
+        } else {
+          throw Exception('服务器错误 (${e.statusCode}): ${e.message}');
+        }
+      } else {
+        throw Exception('获取基金排名失败: $e');
+      }
     }
   }
 

@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/scheduler.dart';
 
 import '../../domain/entities/fund_ranking.dart';
 import '../fund_exploration/domain/data/services/high_performance_fund_service.dart';
 import '../widgets/optimized_fund_ranking_list.dart';
+
+// 导入RequestPriority枚举
+import '../fund_exploration/domain/data/services/high_performance_fund_service.dart'
+    as service;
+import '../fund_exploration/domain/data/models/fund_dto.dart';
+import '../fund_exploration/domain/models/fund.dart' as exploration_models;
 
 /// 优化版基金排行榜页面
 ///
@@ -48,7 +54,9 @@ class _OptimizedFundRankingPageState extends State<OptimizedFundRankingPage>
   /// 初始化数据
   Future<void> _initializeData() async {
     // 预热缓存
-    unawaited(_fundService.warmupCache());
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      _fundService.warmupCache();
+    });
 
     // 加载初始数据
     await _loadInitialData();
@@ -64,12 +72,12 @@ class _OptimizedFundRankingPageState extends State<OptimizedFundRankingPage>
     try {
       final rankings = await _fundService.getFundRankings(
         symbol: _selectedSymbol,
-        priority: HighPerformanceFundService.RequestPriority.high,
+        priority: service.RequestPriority.high,
         enableCache: true,
         pageSize: 20,
       );
 
-      final fundRankings = rankings.map((dto) => dto.toDomainModel()).toList();
+      final fundRankings = _convertRankingsList(rankings);
       _listController.setInitialData(fundRankings);
     } catch (e) {
       setState(() {
@@ -91,12 +99,12 @@ class _OptimizedFundRankingPageState extends State<OptimizedFundRankingPage>
     try {
       final rankings = await _fundService.getFundRankings(
         symbol: _selectedSymbol,
-        priority: HighPerformanceFundService.RequestPriority.normal,
+        priority: service.RequestPriority.normal,
         enableCache: true,
         pageSize: 20,
       );
 
-      final fundRankings = rankings.map((dto) => dto.toDomainModel()).toList();
+      final fundRankings = _convertRankingsList(rankings);
       _listController.addMoreData(fundRankings);
     } catch (e) {
       setState(() {
@@ -114,12 +122,12 @@ class _OptimizedFundRankingPageState extends State<OptimizedFundRankingPage>
     try {
       final rankings = await _fundService.getFundRankings(
         symbol: _selectedSymbol,
-        priority: HighPerformanceFundService.RequestPriority.critical,
+        priority: service.RequestPriority.critical,
         enableCache: false, // 强制刷新
         pageSize: 20,
       );
 
-      final fundRankings = rankings.map((dto) => dto.toDomainModel()).toList();
+      final fundRankings = _convertRankingsList(rankings);
       _listController.setInitialData(fundRankings);
     } catch (e) {
       setState(() {
@@ -287,6 +295,42 @@ class _OptimizedFundRankingPageState extends State<OptimizedFundRankingPage>
         },
       ),
     );
+  }
+
+  /// 转换探索模型FundRanking为实体模型FundRanking
+  FundRanking _convertToEntityModel(
+      exploration_models.FundRanking explorationRanking) {
+    return FundRanking(
+      fundCode: explorationRanking.fundCode,
+      fundName: explorationRanking.fundName,
+      fundType: explorationRanking.fundType,
+      company: explorationRanking.company,
+      rankingPosition: explorationRanking.rankingPosition,
+      totalCount: explorationRanking.totalCount,
+      unitNav: explorationRanking.unitNav,
+      accumulatedNav: explorationRanking.accumulatedNav,
+      dailyReturn: explorationRanking.dailyReturn,
+      return1W: explorationRanking.return1W,
+      return1M: explorationRanking.return1M,
+      return3M: explorationRanking.return3M,
+      return6M: explorationRanking.return6M,
+      return1Y: explorationRanking.return1Y,
+      return2Y: explorationRanking.return2Y,
+      return3Y: explorationRanking.return3Y,
+      returnYTD: explorationRanking.returnYTD,
+      returnSinceInception: 0.0, // 使用默认值
+      rankingDate: DateTime.now(),
+      rankingPeriod: RankingPeriod.oneYear,
+      rankingType: RankingType.overall,
+    );
+  }
+
+  /// 转换基金排行榜列表
+  List<FundRanking> _convertRankingsList(List<FundRankingDto> dtoList) {
+    return dtoList.map((dto) {
+      final explorationRanking = dto.toDomainModel();
+      return _convertToEntityModel(explorationRanking);
+    }).toList();
   }
 }
 

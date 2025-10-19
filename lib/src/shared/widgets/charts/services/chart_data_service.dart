@@ -6,11 +6,10 @@ library chart_data_service;
 
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-import '../../models/chart_data.dart';
+import '../models/chart_data.dart';
 import '../../../../core/network/fund_api_client.dart';
 
 /// 图表数据服务类
