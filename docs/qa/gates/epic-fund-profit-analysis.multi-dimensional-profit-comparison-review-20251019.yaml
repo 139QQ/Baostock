@@ -1,0 +1,69 @@
+schema: 1
+story: epic-fund-profit-analysis.multi-dimensional-profit-comparison
+story_title: 多维度收益对比功能
+gate: CONCERNS
+status_reason: 功能完整但存在文件组织和性能配置问题需要优化
+reviewer: Quinn (Test Architect)
+updated: 2025-10-19T10:30:00Z
+
+waiver: { active: false }
+
+top_issues:
+  - id: "PERF-001"
+    severity: medium
+    finding: "API超时配置过长，可能影响用户体验"
+    suggested_action: "逐步优化API超时配置，从120秒减少到更合理的时间"
+    suggested_owner: "dev"
+    refs: ["lib/src/core/network/fund_api_client.dart:11-15"]
+  - id: "ORG-001"
+    severity: medium
+    finding: "文件组织结构不规范，测试文件散落在根目录"
+    suggested_action: "将lib根目录下的测试文件移至test目录"
+    suggested_owner: "dev"
+    refs: ["lib/fund_comparison_*.dart"]
+  - id: "CODE-001"
+    severity: low
+    finding: "代码中存在大量avoid_print警告，需要清理"
+    suggested_action: "移除调试用的print语句或改为使用logger"
+    suggested_owner: "dev"
+    refs: ["多个文件"]
+
+quality_score: 70
+expires: "2025-11-02T10:30:00Z"
+
+evidence:
+  tests_reviewed: 8
+  risks_identified: 4
+  trace:
+    ac_covered: [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    ac_gaps: []
+
+nfr_validation:
+  security:
+    status: PASS
+    notes: "输入验证已实现，包括基金代码格式检查、重复检查、特殊字符过滤"
+  performance:
+    status: CONCERNS
+    notes: "API超时配置过长(45-120秒)，与3秒SLA要求不符"
+  reliability:
+    status: PASS
+    notes: "重试机制完善，错误处理良好，系统稳定性高"
+  maintainability:
+    status: CONCERNS
+    notes: "测试覆盖良好但文件组织结构需要优化"
+
+recommendations:
+  immediate:
+    - action: "文件结构重组"
+      refs: ["lib/fund_comparison_*.dart"]
+      suggested_owner: "dev"
+    - action: "API性能优化"
+      refs: ["lib/src/core/network/fund_api_client.dart"]
+      suggested_owner: "dev"
+  future:
+    - action: "代码清理优化"
+      refs: ["所有包含avoid_print的文件"]
+      suggested_owner: "dev"
+    - action: "考虑添加性能监控"
+      refs: ["src/core/network/"]
+      suggested_owner: "dev"

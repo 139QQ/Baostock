@@ -43,9 +43,11 @@ class FundApiService {
 
       client.close();
 
-      print('API响应状态码: ${response.statusCode}');
-      print(
-          'API响应内容: ${response.body.substring(0, math.min(200, response.body.length))}...');
+      AppLogger.info('API响应状态码', {'statusCode': response.statusCode});
+      AppLogger.debug('API响应内容预览', {
+        'content':
+            response.body.substring(0, math.min(200, response.body.length))
+      });
 
       if (response.statusCode == 200) {
         // 确保响应体使用UTF-8编码
@@ -53,20 +55,21 @@ class FundApiService {
         try {
           responseBody = utf8.decode(response.body.codeUnits);
         } catch (e) {
-          print('UTF-8解码失败，使用原始响应体: $e');
+          AppLogger.warn('UTF-8解码失败，使用原始响应体', {'error': e.toString()});
           responseBody = response.body;
         }
 
         final dynamic responseData = jsonDecode(responseBody);
-        print('成功解析响应数据，类型: ${responseData.runtimeType}');
+        AppLogger.debug(
+            '成功解析响应数据', {'type': responseData.runtimeType.toString()});
         return _parseFundRankingData(responseData);
       } else {
-        print('GET请求失败，状态码: ${response.statusCode}，尝试POST请求');
+        AppLogger.info('GET请求失败，尝试POST请求', {'statusCode': response.statusCode});
         // 如果GET失败，尝试POST请求
         return await _tryPostRequest(symbol);
       }
     } catch (e) {
-      print('网络请求异常: $e');
+      AppLogger.error('网络请求异常', {'error': e.toString()});
       throw Exception('获取基金数据失败: $e');
     }
   }

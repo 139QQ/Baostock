@@ -59,13 +59,15 @@ class _FundRankingWrapperAPIState extends State<FundRankingWrapperAPI>
   /// 手动重新加载数据
   Future<void> _reloadData() async {
     debugPrint('🔄 FundRankingWrapperAPI: 用户手动重新加载数据');
-    debugPrint('📊 FundRankingWrapperAPI: 当前Cubit状态 - ${_cubit != null ? "存在" : "为空"}');
+    debugPrint(
+        '📊 FundRankingWrapperAPI: 当前Cubit状态 - ${_cubit != null ? "存在" : "为空"}');
 
     // 确保获取最新的Cubit实例
     if (_cubit == null || _cubit!.isClosed) {
       debugPrint('🔄 FundRankingWrapperAPI: Cubit为空或已关闭，重新获取');
       _cubit = GlobalCubitManager.instance.getFundRankingCubit();
-      debugPrint('📊 FundRankingWrapperAPI: 重新获取的Cubit状态 - ${GlobalCubitManager.instance.getFundRankingStatusInfo()}');
+      debugPrint(
+          '📊 FundRankingWrapperAPI: 重新获取的Cubit状态 - ${GlobalCubitManager.instance.getFundRankingStatusInfo()}');
     }
 
     if (_cubit != null && !_cubit!.isClosed) {
@@ -95,11 +97,11 @@ class _FundRankingWrapperAPIState extends State<FundRankingWrapperAPI>
     // 直接使用应用顶层的BlocProvider，确保状态持久化
     _cubit = context.read<SimpleFundRankingCubit>();
     debugPrint('🔄 FundRankingWrapperAPI: 使用应用顶层BlocProvider实例');
-    debugPrint('📊 FundRankingWrapperAPI: Cubit状态 - ${GlobalCubitManager.instance.getFundRankingStatusInfo()}');
+    debugPrint(
+        '📊 FundRankingWrapperAPI: Cubit状态 - ${GlobalCubitManager.instance.getFundRankingStatusInfo()}');
 
     return BlocBuilder<SimpleFundRankingCubit, FundRankingState>(
       builder: (context, state) {
-
         return Card(
           elevation: 2,
           shape: RoundedRectangleBorder(
@@ -137,7 +139,8 @@ class _FundRankingWrapperAPIState extends State<FundRankingWrapperAPI>
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.leaderboard, color: Colors.white, size: 18),
+                      const Icon(Icons.leaderboard,
+                          color: Colors.white, size: 18),
                       const SizedBox(width: 6),
                       const Expanded(
                         child: Text(
@@ -230,7 +233,8 @@ class _FundRankingWrapperAPIState extends State<FundRankingWrapperAPI>
     );
   }
 
-  Widget _buildInfoCard(String title, String value, IconData icon, Color color) {
+  Widget _buildInfoCard(
+      String title, String value, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -292,7 +296,8 @@ class _FundRankingWrapperAPIState extends State<FundRankingWrapperAPI>
                 child: CircularProgressIndicator(
                   strokeWidth: 3,
                   valueColor: AlwaysStoppedAnimation<Color>(
-                    Colors.blue.withOpacity(0.7 + (_loadingAnimation.value * 0.3)),
+                    Colors.blue
+                        .withOpacity(0.7 + (_loadingAnimation.value * 0.3)),
                   ),
                 ),
               );
@@ -403,12 +408,35 @@ class _FundRankingWrapperAPIState extends State<FundRankingWrapperAPI>
           ),
           child: Row(
             children: [
-              const SizedBox(width: 30, child: Text('排名', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10))),
+              const SizedBox(
+                  width: 30,
+                  child: Text('排名',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 10))),
               const SizedBox(width: 8),
-              const Expanded(flex: 3, child: Text('基金名称', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10))),
-              const SizedBox(width: 50, child: Text('单位净值', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10), textAlign: TextAlign.right)),
-              const SizedBox(width: 50, child: Text('日收益', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10), textAlign: TextAlign.right)),
-              const SizedBox(width: 50, child: Text('近1年', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10), textAlign: TextAlign.right)),
+              const Expanded(
+                  flex: 3,
+                  child: Text('基金名称',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 10))),
+              const SizedBox(
+                  width: 50,
+                  child: Text('单位净值',
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
+                      textAlign: TextAlign.right)),
+              const SizedBox(
+                  width: 50,
+                  child: Text('日收益',
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
+                      textAlign: TextAlign.right)),
+              const SizedBox(
+                  width: 50,
+                  child: Text('近1年',
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
+                      textAlign: TextAlign.right)),
             ],
           ),
         ),
@@ -435,7 +463,8 @@ class _FundRankingWrapperAPIState extends State<FundRankingWrapperAPI>
 
   Widget _buildFundCard(FundRanking fund, int rank) {
     Color dailyReturnColor = fund.dailyReturn >= 0 ? Colors.green : Colors.red;
-    Color yearlyReturnColor = fund.oneYearReturn >= 0 ? Colors.blue : Colors.red;
+    Color yearlyReturnColor =
+        fund.oneYearReturn >= 0 ? Colors.blue : Colors.red;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 1),
@@ -519,7 +548,8 @@ class _FundRankingWrapperAPIState extends State<FundRankingWrapperAPI>
               SizedBox(
                 width: 50,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
                   decoration: BoxDecoration(
                     color: dailyReturnColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(2),

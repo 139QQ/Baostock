@@ -14,6 +14,15 @@ import '../../features/fund/presentation/bloc/fund_bloc.dart';
 import '../../features/fund/presentation/bloc/fund_ranking_bloc.dart';
 import '../../features/fund/presentation/bloc/search_bloc.dart';
 import '../../features/fund/presentation/fund_exploration/presentation/cubit/fund_exploration_cubit.dart';
+import '../../features/fund/presentation/fund_exploration/presentation/cubit/fund_ranking_cubit.dart';
+// 基金对比相关导入
+import '../../features/fund/data/services/fund_comparison_service.dart';
+import '../../features/fund/domain/repositories/fund_comparison_repository.dart';
+import '../../features/fund/data/repositories/fund_comparison_repository_impl.dart';
+import '../../features/fund/presentation/cubit/fund_comparison_cubit.dart';
+import '../../features/fund/presentation/cubit/comparison_cache_cubit.dart';
+import '../../features/fund/data/datasources/fund_local_data_source.dart';
+import '../../features/fund/data/datasources/fund_remote_data_source.dart';
 // 认证相关导入
 import '../../features/auth/data/datasources/auth_api.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
@@ -75,6 +84,30 @@ Future<void> initDependencies() async {
   sl.registerFactory(() => FundExplorationCubit(
         fundRankingBloc: sl(),
       ));
+
+  // 基金排行Cubit
+  sl.registerLazySingleton(() => FundRankingCubit());
+
+  // ===== 基金对比相关依赖 =====
+
+  // 基金对比服务
+  sl.registerLazySingleton(() => FundComparisonService());
+
+  // 基金对比仓库
+  sl.registerLazySingleton<FundComparisonRepository>(
+      () => FundComparisonRepositoryImpl(
+            repository: sl(),
+            comparisonService: sl(),
+            cacheManager: sl(),
+          ));
+
+  // 基金对比Cubit
+  sl.registerFactory(() => FundComparisonCubit(
+        repository: sl(),
+      ));
+
+  // 基金对比缓存管理器
+  sl.registerLazySingleton(() => ComparisonCacheCubit());
 
   // ===== 认证相关依赖 =====
 

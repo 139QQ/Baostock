@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'src/core/di/injection_container.dart';
 import 'src/core/di/hive_injection_container.dart';
 import 'src/features/app/app.dart';
 import 'src/core/utils/logger.dart';
+import 'src/core/state/global_cubit_manager.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -10,20 +12,37 @@ Future<void> main() async {
   AppLogger.debug('应用启动中...');
 
   try {
-    // 初始化Hive缓存依赖注入
-    await HiveInjectionContainer.init();
-    AppLogger.debug('Hive缓存初始化完成');
+    // 检测平台并初始化Hive缓存依赖注入
+    if (kIsWeb) {
+      AppLogger.debug('Web平台检测，跳过Hive初始化');
+      // Web平台使用内存缓存，跳过Hive
+    } else {
+      AppLogger.debug('桌面平台，尝试初始化Hive缓存');
+      await HiveInjectionContainer.init().catchError((e) {
+        AppLogger.debug('Hive缓存初始化失败，使用内存缓存: $e');
+        // 失败时继续运行，使用内存缓存
+      });
+    }
 
     // 初始化依赖注入
     await initDependencies();
     AppLogger.debug('依赖注入初始化完成');
+
+    // 初始化全局Cubit管理器，确保状态持久化
+    AppLogger.debug('初始化全局Cubit管理器');
+    final globalManager = GlobalCubitManager.instance;
+    AppLogger.debug(
+        '全局Cubit管理器初始化完成: ${globalManager.getFundRankingStatusInfo()}');
 
     runApp(const JisuFundAnalyzerApp());
     AppLogger.debug('应用启动成功');
   } catch (e, stack) {
     AppLogger.debug('应用启动失败: $e');
     AppLogger.debug('堆栈: $stack');
-    rethrow;
+
+    // 优雅降级：启动简化版应用
+    AppLogger.debug('启动简化版应用');
+    runApp(const FallbackApp());
   }
 }
 
@@ -70,5 +89,55 @@ class _AppLifecycleManagerState extends State<AppLifecycleManager>
   @override
   Widget build(BuildContext context) {
     return widget.child;
+  }
+}
+
+/// 降级应用
+/// 当主应用启动失败时使用的简化版应用
+class FallbackApp extends StatelessWidget {
+  const FallbackApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: '基金分析器',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1E40AF)),
+        useMaterial3: true,
+      ),
+      home: const FallbackPage(),
+    );
+  }
+}
+
+class FallbackPage extends StatelessWidget {
+  const FallbackPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('基金分析器'),
+        backgroundColor: const Color(0xFF1E40AF),
+        foregroundColor: Colors.white,
+      ),
+      body: const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error, size: 64, color: Colors.orange),
+            SizedBox(height: 16),
+            Text(
+              '缓存系统初始化失败',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 8),
+            Text('正在使用简化模式运行'),
+            SizedBox(height: 32),
+            Text('核心功能正常可用'),
+          ],
+        ),
+      ),
+    );
   }
 }

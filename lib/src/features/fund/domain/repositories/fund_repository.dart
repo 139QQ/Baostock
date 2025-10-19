@@ -47,6 +47,19 @@ abstract class FundRepository {
   /// 获取热门排行榜类型
   Future<List<HotRankingType>> getHotRankingTypes();
 
+  /// 获取多只基金的排行榜数据用于对比
+  Future<List<FundRanking>> getFundsForComparison(
+    List<String> fundCodes,
+    List<RankingPeriod> periods,
+  );
+
+  /// 批量获取基金历史数据
+  Future<Map<String, Map<RankingPeriod, FundRanking>>>
+      getBatchFundHistoricalData(
+    List<String> fundCodes,
+    List<RankingPeriod> periods,
+  );
+
   /// 获取基金类型列表
   Future<List<String>> getFundTypes();
 

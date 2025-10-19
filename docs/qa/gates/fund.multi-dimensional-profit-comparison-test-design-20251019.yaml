@@ -1,0 +1,25 @@
+# Test Design Gate for fund.multi-dimensional-profit-comparison
+# Generated: 2025-10-19
+
+test_design:
+  scenarios_total: 28
+  by_level:
+    unit: 16
+    integration: 8
+    e2e: 4
+  by_priority:
+    p0: 12
+    p1: 10
+    p2: 6
+  coverage_gaps: []
+  performance_targets:
+    data_loading: "< 3 seconds"
+    ui_rendering: "< 500ms"
+    memory_growth: "< 50MB"
+  test_coverage_target: ">= 80%"
+  critical_path_coverage: "Complete"
+
+# Test Investment: ~40 hours development + ~10 hours maintenance
+# Risk Coverage: High - All critical risks addressed
+# Performance Focus: 3-second SLA validation with dedicated performance tests
+# Quality Gates: P0 tests 100%, P1 tests 90%+, P2 tests 70%+ if executed

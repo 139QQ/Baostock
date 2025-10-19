@@ -50,7 +50,8 @@ class FundExplorationPage extends StatelessWidget {
   Widget build(BuildContext context) {
     // 使用全局Cubit管理器获取实例，确保状态在页面切换时保持不变
     debugPrint('🔄 FundExplorationPage: 构建页面，使用全局Cubit管理器');
-    debugPrint('📊 FundExplorationPage: 当前状态 - ${GlobalCubitManager.instance.getFundRankingStatusInfo()}');
+    debugPrint(
+        '📊 FundExplorationPage: 当前状态 - ${GlobalCubitManager.instance.getFundRankingStatusInfo()}');
 
     return MultiBlocProvider(
       providers: [

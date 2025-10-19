@@ -811,6 +811,14 @@ class FundRepositoryImpl implements FundRepository {
         } catch (e) {
           AppLogger.warn('缓存获取失败，继续获取数据: $e');
         }
+      } else if (forceRefresh) {
+        // 强制刷新时，清除相关缓存确保获取最新数据
+        try {
+          AppLogger.business('强制刷新：清除缓存', 'Repository');
+          await localDataSource.clearRankingCache();
+        } catch (e) {
+          AppLogger.warn('清除缓存失败，继续获取数据: $e');
+        }
       }
 
       // 构建API请求参数

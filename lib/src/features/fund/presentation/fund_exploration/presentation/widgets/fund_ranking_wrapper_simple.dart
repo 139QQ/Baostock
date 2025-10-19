@@ -123,6 +123,20 @@ class _FundRankingWrapperSimpleState extends State<FundRankingWrapperSimple>
       // 缓存引用为空，重新获取
       await _reloadWithFallback();
     }
+
+    // 如果所有方法都失败，尝试创建新的Cubit实例
+    if (_cubit == null && mounted) {
+      debugPrint('🔄 FundRankingWrapperSimple: 尝试创建新的Cubit实例');
+      try {
+        final newCubit = FundRankingCubit();
+        // 等待Cubit初始化完成
+        await Future.delayed(const Duration(milliseconds: 200));
+        newCubit.forceReload();
+        debugPrint('✅ FundRankingWrapperSimple 创建新Cubit实例成功');
+      } catch (e) {
+        debugPrint('❌ FundRankingWrapperSimple 创建新Cubit实例失败: $e');
+      }
+    }
   }
 
   /// 重新获取Provider并重载

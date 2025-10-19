@@ -154,6 +154,7 @@ class AppLogger {
     if (warn != null) enableWarnLogging = warn;
     if (error != null) enableErrorLogging = error;
 
+    // ignore: avoid_print
     print(
         'Logger configuration updated - debug: $enableDebugLogging, info: $enableInfoLogging, warn: $enableWarnLogging, error: $enableErrorLogging');
   }
@@ -196,6 +197,7 @@ class ErrorReportingService {
     // TODO: 设置用户上下文到监控服务
     // 例如：Sentry.configureScope((scope) => scope.setUser(User(id: userId)));
 
+    // ignore: avoid_print
     print('User context set - userId: $userId, extra: $extra');
   }
 
@@ -204,6 +206,7 @@ class ErrorReportingService {
     // TODO: 记录面包屑到监控服务
     // 例如：Sentry.addBreadcrumb(Breadcrumb(message: message, category: category));
 
+    // ignore: avoid_print
     print('Breadcrumb recorded - message: $message, category: $category');
   }
 }

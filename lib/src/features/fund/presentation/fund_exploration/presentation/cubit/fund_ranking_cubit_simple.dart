@@ -30,7 +30,8 @@ class SimpleFundRankingCubit extends Cubit<FundRankingState> {
       return;
     }
 
-    AppLogger.debug('🔄 SimpleFundRankingCubit: 开始从API加载数据 (forceRefresh: $forceRefresh)');
+    AppLogger.debug(
+        '🔄 SimpleFundRankingCubit: 开始从API加载数据 (forceRefresh: $forceRefresh)');
 
     emit(state.copyWith(
       isLoading: true,
@@ -42,7 +43,8 @@ class SimpleFundRankingCubit extends Cubit<FundRankingState> {
       const baseUrl = 'http://154.44.25.92:8080';
       const symbol = '%E5%85%A8%E9%83%A8';
 
-      final uri = Uri.parse('$baseUrl/api/public/fund_open_fund_rank_em?symbol=$symbol');
+      final uri = Uri.parse(
+          '$baseUrl/api/public/fund_open_fund_rank_em?symbol=$symbol');
 
       AppLogger.debug('📡 SimpleFundRankingCubit: 请求URL: $uri');
 
@@ -57,27 +59,32 @@ class SimpleFundRankingCubit extends Cubit<FundRankingState> {
         },
       ).timeout(const Duration(seconds: 60));
 
-      AppLogger.debug('📊 SimpleFundRankingCubit: 响应状态: ${response.statusCode}');
-      AppLogger.debug('📊 SimpleFundRankingCubit: 响应长度: ${response.body.length}');
+      AppLogger.debug(
+          '📊 SimpleFundRankingCubit: 响应状态: ${response.statusCode}');
+      AppLogger.debug(
+          '📊 SimpleFundRankingCubit: 响应长度: ${response.body.length}');
 
       if (response.statusCode == 200) {
         // 确保正确处理UTF-8编码
         String responseData;
         try {
           // 先尝试直接解码，如果失败则使用备用方案
-          responseData = utf8.decode(response.body.codeUnits, allowMalformed: true);
+          responseData =
+              utf8.decode(response.body.codeUnits, allowMalformed: true);
         } catch (e) {
           AppLogger.debug('❌ UTF-8解码失败，尝试其他方式: $e');
           responseData = response.body;
         }
 
         final data = json.decode(responseData);
-        AppLogger.debug('📊 SimpleFundRankingCubit: API返回数据解析成功，数据类型: ${data.runtimeType}，数据长度: ${data.length}');
+        AppLogger.debug(
+            '📊 SimpleFundRankingCubit: API返回数据解析成功，数据类型: ${data.runtimeType}，数据长度: ${data.length}');
 
         // 检查第一条数据的内容
         if (data.isNotEmpty) {
           AppLogger.debug('📊 SimpleFundRankingCubit: 第一条原始数据: ${data[0]}');
-          AppLogger.debug('📊 SimpleFundRankingCubit: 第一条数据类型: ${data[0].runtimeType}');
+          AppLogger.debug(
+              '📊 SimpleFundRankingCubit: 第一条数据类型: ${data[0].runtimeType}');
         }
 
         // 缓存完整的API响应数据
@@ -86,8 +93,10 @@ class SimpleFundRankingCubit extends Cubit<FundRankingState> {
         // 转换为FundRanking对象（简单转换）
         final rankings = _convertToFundRankings(data.take(50).toList());
 
-        AppLogger.debug('✅ SimpleFundRankingCubit: 数据加载成功: ${data.length}条记录，显示${rankings.length}条');
-        AppLogger.debug('💾 SimpleFundRankingCubit: 已缓存完整API数据，共${data.length}条记录');
+        AppLogger.debug(
+            '✅ SimpleFundRankingCubit: 数据加载成功: ${data.length}条记录，显示${rankings.length}条');
+        AppLogger.debug(
+            '💾 SimpleFundRankingCubit: 已缓存完整API数据，共${data.length}条记录');
 
         if (isClosed) {
           AppLogger.debug('❌ SimpleFundRankingCubit: Cubit已关闭，无法发射状态');
@@ -103,7 +112,8 @@ class SimpleFundRankingCubit extends Cubit<FundRankingState> {
           hasMoreData: data.length > 50,
         ));
       } else {
-        final errorMsg = 'API错误: ${response.statusCode} ${response.reasonPhrase}';
+        final errorMsg =
+            'API错误: ${response.statusCode} ${response.reasonPhrase}';
         AppLogger.debug('❌ SimpleFundRankingCubit: $errorMsg');
         if (!isClosed) {
           emit(state.copyWith(
@@ -166,7 +176,7 @@ class SimpleFundRankingCubit extends Cubit<FundRankingState> {
       // 安全地获取每个字段 - 使用实际的API字段名
       final fundCode = item['基金代码']?.toString() ?? '';
       final fundName = item['基金简称']?.toString() ?? '';
-        final navValue = item['单位净值']?.toString() ?? '0.0';
+      final navValue = item['单位净值']?.toString() ?? '0.0';
       final dailyReturn = item['日增长率']?.toString() ?? '0.0';
       final oneYearReturn = item['近1年']?.toString() ?? '0.0';
       final threeYearReturn = item['近3年']?.toString() ?? '0.0';
@@ -195,14 +205,16 @@ class SimpleFundRankingCubit extends Cubit<FundRankingState> {
       }
     }
 
-    AppLogger.debug('✅ SimpleFundRankingCubit: 转换完成，生成${rankings.length}条FundRanking对象');
+    AppLogger.debug(
+        '✅ SimpleFundRankingCubit: 转换完成，生成${rankings.length}条FundRanking对象');
     if (rankings.isNotEmpty) {
-      AppLogger.debug('📊 SimpleFundRankingCubit: 第一条数据示例 - ${rankings.first.fundName} (${rankings.first.fundCode})');
-      AppLogger.debug('📊 SimpleFundRankingCubit: 第二条数据示例 - ${rankings[1].fundName} (${rankings[1].fundCode})');
+      AppLogger.debug(
+          '📊 SimpleFundRankingCubit: 第一条数据示例 - ${rankings.first.fundName} (${rankings.first.fundCode})');
+      AppLogger.debug(
+          '📊 SimpleFundRankingCubit: 第二条数据示例 - ${rankings[1].fundName} (${rankings[1].fundCode})');
     }
     return rankings;
   }
-
 
   /// 刷新数据 - 智能刷新：如果有缓存则清除缓存重新请求
   void refreshRankings() {
@@ -214,7 +226,8 @@ class SimpleFundRankingCubit extends Cubit<FundRankingState> {
   /// 强制重载 - 清除缓存并重新请求API
   void forceReload() {
     AppLogger.debug('🔄 SimpleFundRankingCubit: 用户点击强制重载 - 清除缓存');
-    AppLogger.debug('📊 SimpleFundRankingCubit: 当前状态 - isLoading: ${state.isLoading}, 数据量: ${state.rankings.length}');
+    AppLogger.debug(
+        '📊 SimpleFundRankingCubit: 当前状态 - isLoading: ${state.isLoading}, 数据量: ${state.rankings.length}');
     _cachedApiData = null; // 清除缓存
     AppLogger.debug('🗑️ SimpleFundRankingCubit: 已清除缓存数据');
     _loadFromAPI(forceRefresh: true);
@@ -237,7 +250,8 @@ class SimpleFundRankingCubit extends Cubit<FundRankingState> {
   /// 加载更多数据 - 使用缓存数据，避免重复API请求
   Future<void> loadMoreRankings() async {
     if (state.isLoading || !state.hasMoreData || isClosed) {
-      AppLogger.debug('📄 SimpleFundRankingCubit: 跳过加载更多 - isLoading:${state.isLoading}, hasMoreData:${state.hasMoreData}, isClosed:$isClosed');
+      AppLogger.debug(
+          '📄 SimpleFundRankingCubit: 跳过加载更多 - isLoading:${state.isLoading}, hasMoreData:${state.hasMoreData}, isClosed:$isClosed');
       return;
     }
 
@@ -268,8 +282,10 @@ class SimpleFundRankingCubit extends Cubit<FundRankingState> {
             rankings: allRankings,
             hasMoreData: allRankings.length < _cachedApiData!.length,
           ));
-          AppLogger.debug('✅ SimpleFundRankingCubit: 从缓存加载更多成功: 新增${moreRankings.length}条，总计${allRankings.length}条');
-          AppLogger.debug('💾 SimpleFundRankingCubit: 缓存数据使用情况: ${allRankings.length}/${_cachedApiData!.length}');
+          AppLogger.debug(
+              '✅ SimpleFundRankingCubit: 从缓存加载更多成功: 新增${moreRankings.length}条，总计${allRankings.length}条');
+          AppLogger.debug(
+              '💾 SimpleFundRankingCubit: 缓存数据使用情况: ${allRankings.length}/${_cachedApiData!.length}');
         } else {
           AppLogger.debug('❌ SimpleFundRankingCubit: Cubit已关闭，无法发射加载更多状态');
         }
@@ -297,7 +313,7 @@ class SimpleFundRankingCubit extends Cubit<FundRankingState> {
       // 在现有数据中筛选
       final filteredRankings = state.rankings.where((ranking) {
         return ranking.fundName.toLowerCase().contains(query.toLowerCase()) ||
-               ranking.fundCode.toLowerCase().contains(query.toLowerCase());
+            ranking.fundCode.toLowerCase().contains(query.toLowerCase());
       }).toList();
 
       emit(state.copyWith(rankings: filteredRankings));
