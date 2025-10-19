@@ -6,6 +6,7 @@ import '../widgets/fund_search_bar.dart';
 import '../widgets/fund_filter_panel.dart';
 import '../widgets/hot_funds_section.dart';
 import '../widgets/fund_ranking_wrapper_simple.dart';
+import '../widgets/fund_ranking_wrapper_api.dart';
 import '../widgets/market_dynamics_section.dart';
 import '../widgets/fund_comparison_tool.dart';
 import '../widgets/investment_calculator.dart';
@@ -14,9 +15,11 @@ import '../../domain/models/fund.dart' as exploration_fund;
 import '../../domain/models/fund_filter.dart';
 import '../cubit/fund_exploration_cubit.dart';
 import '../cubit/fund_ranking_cubit.dart';
+import '../cubit/fund_ranking_cubit_simple.dart';
 import '../../../bloc/fund_ranking_bloc.dart';
 import '../../../../domain/usecases/get_fund_rankings.dart';
 import '../../../../domain/repositories/fund_repository.dart';
+import '../../../../../../core/state/global_cubit_manager.dart';
 
 /// 窗口大小变化观察者
 class _WindowSizeObserver extends WidgetsBindingObserver {
@@ -45,6 +48,10 @@ class FundExplorationPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 使用全局Cubit管理器获取实例，确保状态在页面切换时保持不变
+    debugPrint('🔄 FundExplorationPage: 构建页面，使用全局Cubit管理器');
+    debugPrint('📊 FundExplorationPage: 当前状态 - ${GlobalCubitManager.instance.getFundRankingStatusInfo()}');
+
     return MultiBlocProvider(
       providers: [
         // 基金探索Cubit
@@ -54,6 +61,7 @@ class FundExplorationPage extends StatelessWidget {
               return GetIt.instance.get<FundExplorationCubit>();
             } catch (e) {
               // 如果获取失败，创建新的实例
+              debugPrint('❌ FundExplorationPage: 获取FundExplorationCubit失败: $e');
               return FundExplorationCubit(
                 fundRankingBloc: FundRankingBloc(
                   getFundRankings: GetIt.instance.get<GetFundRankings>(),
@@ -63,10 +71,8 @@ class FundExplorationPage extends StatelessWidget {
             }
           },
         ),
-        // 基金排行Cubit - 全局共享，避免重复初始化
-        BlocProvider(
-          create: (context) => FundRankingCubit(),
-        ),
+        // 基金排行Cubit - 使用应用顶层的BlocProvider，确保状态持久化
+        // 不再创建新实例，而是使用现有的全局实例
       ],
       child: const _FundExplorationPageContent(),
     );
@@ -104,11 +110,12 @@ class _FundExplorationPageContentState
   void initState() {
     super.initState();
     // 延迟初始化，确保Bloc已经创建
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        context.read<FundExplorationCubit>().initialize();
-      }
-    });
+    // 注释掉旧的初始化，现在使用SimpleFundRankingCubit直接API调用
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   if (mounted) {
+    //     context.read<FundExplorationCubit>().initialize();
+    //   }
+    // });
 
     // 监听窗口大小变化
     _windowSizeChangeCallback = () {
@@ -857,7 +864,8 @@ class _FundExplorationPageContentState
               // 基金排行榜 - 使用独立状态管理
               Expanded(
                 flex: 1,
-                child: FundRankingWrapperSimple(),
+                child: const FundRankingWrapperAPI(
+                    key: FundRankingWrapperAPI.pageKey),
               ),
               const SizedBox(height: 16),
 
@@ -906,7 +914,9 @@ class _FundExplorationPageContentState
               Expanded(child: HotFundsSection()),
               const SizedBox(height: 16),
               // 基金排行榜 - 使用独立状态管理
-              Expanded(child: FundRankingWrapperSimple()),
+              Expanded(
+                  child: const FundRankingWrapperAPI(
+                      key: FundRankingWrapperAPI.pageKey)),
               const SizedBox(height: 16),
               Expanded(child: MarketDynamicsSection()),
             ],
@@ -938,18 +948,18 @@ class _FundExplorationPageContentState
             const SizedBox(height: 8),
 
             // 主要内容 - 使用Expanded避免约束冲突
-            Expanded(
+            const Expanded(
               child: SingleChildScrollView(
-                physics: const ClampingScrollPhysics(),
+                physics: ClampingScrollPhysics(),
                 child: Column(
                   children: [
                     HotFundsSection(),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     // 基金排行榜 - 使用独立状态管理
-                    FundRankingWrapperSimple(),
-                    const SizedBox(height: 16),
+                    FundRankingWrapperAPI(key: FundRankingWrapperAPI.pageKey),
+                    SizedBox(height: 16),
                     MarketDynamicsSection(),
-                    const SizedBox(height: 80), // 为底部工具栏预留空间
+                    SizedBox(height: 80), // 为底部工具栏预留空间
                   ],
                 ),
               ),
@@ -990,7 +1000,8 @@ class _FundExplorationPageContentState
                     // 基金排行榜（紧凑版）
                     Padding(
                       padding: const EdgeInsets.all(8),
-                      child: FundRankingWrapperSimple(),
+                      child: const FundRankingWrapperAPI(
+                          key: FundRankingWrapperAPI.pageKey),
                     ),
                     const SizedBox(height: 8),
                     // 市场动态（紧凑版）
