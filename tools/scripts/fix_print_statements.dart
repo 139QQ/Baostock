@@ -9,7 +9,6 @@
 /// 3. 或者在适当的情况下添加ignore注释
 
 import 'dart:io';
-import 'dart:convert';
 
 void main() async {
   print('🔧 开始修复print语句...\n');
@@ -149,13 +148,13 @@ String _convertToLoggerFormat(String printContent) {
     // 尝试解析消息和参数
     final parts = printContent.split(RegExp(r'\$(?!\{)'));
     if (parts.length > 1) {
-      final message = parts[0].replaceAll(RegExp(r'^[\'"]|[\'"]$'), '').trim();
-      final paramName = parts[1].replaceAll(RegExp(r'[\'")\s;]$'), '').trim();
+      final message = parts[0].replaceAll(RegExp(r"^['']|['']$"), '').trim();
+      final paramName = parts[1].replaceAll(RegExp(r"['')\s;]"), '').trim();
 
       return "'$message', {'param': $paramName}";
     }
   }
 
   // 移除引号并返回
-  return printContent.replaceAll(RegExp(r'^[\'"]|[\'"]$'), '');
+  return printContent.replaceAll(RegExp(r"^['']|['']$"), '');
 }

@@ -250,7 +250,6 @@ class SecureStorageService {
   /// 验证存储完整性
   static Future<bool> verifyStorageIntegrity() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
       final testKey = 'integrity_test_${DateTime.now().millisecondsSinceEpoch}';
       const testValue = 'test_value';
 

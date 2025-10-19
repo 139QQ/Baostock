@@ -1,5 +1,6 @@
 import '../entities/multi_dimensional_comparison_criteria.dart';
 import '../entities/comparison_result.dart';
+import '../entities/fund_ranking.dart';
 
 /// 基金对比Repository接口
 ///

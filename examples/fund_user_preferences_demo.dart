@@ -1,14 +1,13 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'src/features/fund/presentation/domain/services/fund_user_preferences.dart';
-import 'src/features/fund/presentation/widgets/fund_card_components.dart';
-import 'src/features/fund/presentation/widgets/fund_card_theme.dart';
-import 'src/features/fund/domain/entities/fund_ranking.dart';
+import 'package:jisu_fund_analyzer/src/features/fund/presentation/domain/services/fund_user_preferences.dart';
+import 'package:jisu_fund_analyzer/src/features/fund/presentation/widgets/fund_card_components.dart';
+import 'package:jisu_fund_analyzer/src/features/fund/presentation/widgets/fund_card_theme.dart';
+import 'package:jisu_fund_analyzer/src/features/fund/domain/entities/fund_ranking.dart';
 
 /// 基金用户偏好功能演示
 ///
@@ -36,6 +35,7 @@ class _FundUserPreferencesDemoState extends State<FundUserPreferencesDemo>
 
   bool _isLoading = false;
   String? _errorMessage;
+
 
   @override
   void initState() {
@@ -142,17 +142,23 @@ class _FundUserPreferencesDemoState extends State<FundUserPreferencesDemo>
         fundName: fundNames[index % fundNames.length],
         company: companies[index % companies.length],
         fundType: fundTypes[index % fundTypes.length],
-        ranking: position,
+        rankingPosition: position,
+        totalCount: 2000,
+        unitNav: double.parse((random.nextDouble() * 5 + 1).toStringAsFixed(4)),
+        accumulatedNav: double.parse((random.nextDouble() * 8 + 1).toStringAsFixed(4)),
         dailyReturn: double.parse(dailyReturn.toStringAsFixed(2)),
+        return1W: double.parse(((random.nextDouble() - 0.4) * 15).toStringAsFixed(2)),
         return1M: double.parse(return1M.toStringAsFixed(2)),
+        return3M: double.parse(((random.nextDouble() - 0.3) * 25).toStringAsFixed(2)),
+        return6M: double.parse(((random.nextDouble() - 0.25) * 35).toStringAsFixed(2)),
         return1Y: double.parse(return1Y.toStringAsFixed(2)),
-        nav: double.parse((random.nextDouble() * 5 + 1).toStringAsFixed(4)),
-        navDate: DateTime.now().subtract(Duration(days: random.nextInt(7))),
-        fundScale: random.nextInt(500) + 10,
-        establishmentDate:
-            DateTime.now().subtract(Duration(days: random.nextInt(3650) + 365)),
-        manager: '${['张三', '李四', '王五', '赵六', '钱七'][index % 5]}',
-        similarFunds: [],
+        return2Y: double.parse(((random.nextDouble() - 0.2) * 60).toStringAsFixed(2)),
+        return3Y: double.parse(((random.nextDouble() - 0.15) * 80).toStringAsFixed(2)),
+        returnYTD: double.parse(((random.nextDouble() - 0.3) * 40).toStringAsFixed(2)),
+        returnSinceInception: double.parse(((random.nextDouble() * 100).toStringAsFixed(2))),
+        rankingDate: DateTime.now(),
+        rankingType: RankingType.overall,
+        rankingPeriod: RankingPeriod.daily,
       );
     });
   }
@@ -211,8 +217,7 @@ class _FundUserPreferencesDemoState extends State<FundUserPreferencesDemo>
   /// 导出用户数据
   Future<void> _exportUserData() async {
     try {
-      final userData = await FundUserPreferences.exportUserData();
-      final jsonStr = jsonEncode(userData);
+      await FundUserPreferences.exportUserData();
 
       // 这里可以实现保存到文件或分享功能
       _showMessage('用户数据导出成功\n共${_favoriteFunds.length}个收藏基金');
@@ -1362,7 +1367,7 @@ class _FundUserPreferencesDemoState extends State<FundUserPreferencesDemo>
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.history_clear),
+                leading: const Icon(Icons.clear_all),
                 title: const Text('清空历史记录'),
                 subtitle: const Text('删除搜索和浏览历史'),
                 trailing: const Icon(Icons.chevron_right),

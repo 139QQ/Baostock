@@ -46,9 +46,15 @@ class PieChartSector {
     double end = startAngle + sweepAngle;
 
     // 标准化角度到 0-2π 范围
-    while (start < 0) start += 2 * math.pi;
-    while (end < 0) end += 2 * math.pi;
-    while (angle < 0) angle += 2 * math.pi;
+    while (start < 0) {
+      start += 2 * math.pi;
+    }
+    while (end < 0) {
+      end += 2 * math.pi;
+    }
+    while (angle < 0) {
+      angle += 2 * math.pi;
+    }
 
     if (start <= end) {
       return angle >= start && angle <= end;

@@ -10,7 +10,6 @@ library base_chart_widget;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 
 import 'models/chart_data.dart';
 import 'chart_theme_manager.dart';

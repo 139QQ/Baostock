@@ -19,8 +19,9 @@ class FundRemoteDataSourceImpl implements FundRemoteDataSource {
   @override
   Future<List<Fund>> getFundList() async {
     try {
-      final response = await apiClient.getFundList();
-      return response
+      final response = await FundApiClient.searchFunds('', limit: 100);
+      final dataList = response['data'] as List<dynamic>? ?? [];
+      return dataList
           .map((json) =>
               _convertToFundEntity(exploration_fund.Fund.fromJson(json)))
           .toList();
@@ -33,9 +34,9 @@ class FundRemoteDataSourceImpl implements FundRemoteDataSource {
   Future<List<Fund>> getFundRankings(String symbol,
       {bool forceRefresh = false}) async {
     try {
-      final response = await apiClient.getFundRankings(
-          symbol: symbol, forceRefresh: forceRefresh);
-      return response
+      final response = await FundApiClient.getFundRanking('overall', '1Y');
+      final dataList = response['data'] as List<dynamic>? ?? [];
+      return dataList
           .map((json) =>
               _convertToFundEntity(exploration_fund.Fund.fromJson(json)))
           .toList();
@@ -48,13 +49,7 @@ class FundRemoteDataSourceImpl implements FundRemoteDataSource {
       } else if (e is TimeoutException) {
         throw Exception('请求超时，请检查网络连接后重试');
       } else if (e is HttpException) {
-        if (e.statusCode == 403) {
-          throw Exception('访问被拒绝，可能是CORS配置问题');
-        } else if (e.statusCode == 404) {
-          throw Exception('API接口不存在');
-        } else {
-          throw Exception('服务器错误 (${e.statusCode}): ${e.message}');
-        }
+        throw Exception('HTTP请求失败: ${e.message}');
       } else {
         throw Exception('获取基金排名失败: $e');
       }

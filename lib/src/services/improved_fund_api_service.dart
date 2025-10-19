@@ -2,6 +2,24 @@ import 'dart:convert';
 import 'dart:math' as math;
 import 'package:http/http.dart' as http;
 
+/// 简单的日志工具类
+class _Logger {
+  static void info(String message) {
+    print('INFO: $message');
+  }
+
+  static void error(String message, {Map<String, dynamic>? param}) {
+    print('ERROR: $message');
+    if (param != null) {
+      print('ERROR PARAMS: $param');
+    }
+  }
+
+  static void warn(String message) {
+    print('WARNING: $message');
+  }
+}
+
 /// 改进版基金数据API服务
 /// 支持完整的UTF-8编码处理和时间参数
 class ImprovedFundApiService {
@@ -45,19 +63,19 @@ class ImprovedFundApiService {
 
       client.close();
 
-      print('API响应状态码: ${response.statusCode}');
+      _Logger.info('API响应状态码: ${response.statusCode}');
       print(
           'API响应内容: ${response.body.substring(0, math.min(200, response.body.length))}...');
 
       if (response.statusCode == 200) {
         return _parseResponseWithEncoding(response.body);
       } else {
-        print('GET请求失败，状态码: ${response.statusCode}，尝试POST请求');
+        _Logger.error('GET请求失败，状态码: ${response.statusCode}，尝试POST请求');
         // 如果GET失败，尝试POST请求
         return await _tryPostRequest(symbol);
       }
     } catch (e) {
-      print('网络请求异常: $e');
+      _Logger.error('网络请求异常:', param: {'error': e});
       throw Exception('获取基金数据失败: $e');
     }
   }
@@ -86,7 +104,7 @@ class ImprovedFundApiService {
 
       client.close();
 
-      print('POST请求状态码: ${response.statusCode}');
+      _Logger.info('POST请求状态码: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         return _parseResponseWithEncoding(response.body);
@@ -94,7 +112,7 @@ class ImprovedFundApiService {
         throw Exception('API请求失败: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      print('POST请求异常: $e');
+      _Logger.error('POST请求异常:', param: {'error': e});
       throw Exception('POST请求失败: $e');
     }
   }
@@ -102,7 +120,7 @@ class ImprovedFundApiService {
   /// 解析响应并处理编码问题
   static List<FundRankingData> _parseResponseWithEncoding(String responseBody) {
     try {
-      print('开始解析响应数据...');
+      _Logger.info('开始解析响应数据...');
 
       // 尝试多种编码方式
       String decodedBody = _fixEncoding(responseBody);
@@ -112,14 +130,14 @@ class ImprovedFundApiService {
         decodedBody = _tryMultipleEncodingFixes(responseBody);
       }
 
-      print('编码修复完成，开始JSON解析...');
+      _Logger.info('编码修复完成，开始JSON解析...');
 
       final dynamic responseData = jsonDecode(decodedBody);
-      print('成功解析响应数据，类型: ${responseData.runtimeType}');
+      _Logger.info('成功解析响应数据，类型: ${responseData.runtimeType}');
 
       return _parseFundRankingData(responseData);
     } catch (e) {
-      print('解析响应数据失败: $e');
+      _Logger.error('解析响应数据失败:', param: {'error': e});
       print(
           '原始响应体前200字符: ${responseBody.substring(0, math.min(200, responseBody.length))}');
       throw Exception('解析基金数据失败: $e');
@@ -135,7 +153,7 @@ class ImprovedFundApiService {
       final bytes = latin1.encode(text);
       return utf8.decode(bytes);
     } catch (e) {
-      print('Latin1到UTF-8修复失败: $e');
+      _Logger.error('Latin1到UTF-8修复失败:', param: {'error': e});
     }
 
     // 方法2：直接解码为UTF-8
@@ -143,7 +161,7 @@ class ImprovedFundApiService {
       final bytes = text.codeUnits;
       return utf8.decode(bytes, allowMalformed: true);
     } catch (e) {
-      print('直接UTF-8解码失败: $e');
+      _Logger.error('直接UTF-8解码失败:', param: {'error': e});
     }
 
     // 方法3：处理常见的编码问题
@@ -163,7 +181,7 @@ class ImprovedFundApiService {
           .replaceAll('è¿1å¹´', '近1年')
           .replaceAll('æç»è´¹', '手续费');
     } catch (e) {
-      print('常见编码问题修复失败: $e');
+      _Logger.error('常见编码问题修复失败:', param: {'error': e});
     }
 
     // 如果所有方法都失败，返回原始文本
@@ -201,10 +219,10 @@ class ImprovedFundApiService {
         throw Exception('无法识别的数据格式: ${responseData.runtimeType}');
       }
 
-      print('API返回数据条数: ${rawData.length}');
+      _Logger.info('API返回数据条数: ${rawData.length}');
 
       if (rawData.isEmpty) {
-        print('警告: API返回空数据');
+        _Logger.warn('警告: API返回空数据');
         return [];
       }
 
@@ -224,7 +242,7 @@ class ImprovedFundApiService {
 
         // 打印第一个数据项的结构用于调试
         if (index == 0) {
-          print('第一个数据项的键: ${fundData.keys.toList()}');
+          _Logger.info('第一个数据项的键: ${fundData.keys.toList()}');
         }
 
         return FundRankingData(
@@ -275,16 +293,16 @@ class ImprovedFundApiService {
         );
       }).toList();
 
-      print('成功解析 ${result.length} 条基金数据');
+      _Logger.info('成功解析 ${result.length} 条基金数据');
 
       // 打印第一条数据用于验证
       if (result.isNotEmpty) {
-        print('第一条数据示例: ${result.first}');
+        _Logger.info('第一条数据示例: ${result.first}');
       }
 
       return result;
     } catch (e) {
-      print('解析基金数据详细错误: $e');
+      _Logger.error('解析基金数据详细错误:', param: {'error': e});
       throw Exception('解析基金数据失败: $e');
     }
   }
@@ -343,7 +361,7 @@ class ImprovedFundApiService {
 
     for (final company in companies) {
       if (fundName.contains(company)) {
-        return company + '基金';
+        return '$company基金';
       }
     }
 

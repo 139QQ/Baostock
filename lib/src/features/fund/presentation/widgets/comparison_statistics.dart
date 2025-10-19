@@ -106,7 +106,7 @@ class _ComparisonStatisticsState extends State<ComparisonStatistics>
                         value: StatisticsChartType.line,
                         child: Row(
                           children: [
-                            Icon(Icons.line_chart),
+                            Icon(Icons.show_chart),
                             SizedBox(width: 8),
                             Text('折线图'),
                           ],
@@ -212,7 +212,7 @@ class _ComparisonStatisticsState extends State<ComparisonStatistics>
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: color.shade700,
+              color: color.withOpacity(0.8),
             ),
           ),
           const SizedBox(height: 4),
@@ -220,7 +220,7 @@ class _ComparisonStatisticsState extends State<ComparisonStatistics>
             title,
             style: TextStyle(
               fontSize: 12,
-              color: color.shade700,
+              color: color.withOpacity(0.7),
             ),
           ),
         ],
@@ -263,12 +263,12 @@ class _ComparisonStatisticsState extends State<ComparisonStatistics>
         minY: _getMinYValue(),
         barTouchData: BarTouchData(
           touchTooltipData: BarTouchTooltipData(
-            getTooltipColor: (_) => Colors.white,
+            tooltipBgColor: Colors.white,
             getTooltipItem: (group, groupIndex, rod, rodIndex) {
               final fund = fundData[group.x.toInt()];
               return BarTooltipItem(
-                text:
-                    '${fund.fundName}\n${(fund.totalReturn * 100).toStringAsFixed(2)}%',
+                '${fund.fundName}\n${(fund.totalReturn * 100).toStringAsFixed(2)}%',
+                const TextStyle(color: Colors.black, fontSize: 12),
               );
             },
           ),
@@ -280,8 +280,9 @@ class _ComparisonStatisticsState extends State<ComparisonStatistics>
               showTitles: true,
               getTitlesWidget: (value, meta) {
                 final index = value.toInt();
-                if (index < 0 || index >= fundData.length)
+                if (index < 0 || index >= fundData.length) {
                   return const Text('');
+                }
                 final fund = fundData[index];
                 return SideTitleWidget(
                   axisSide: meta.axisSide,
@@ -306,10 +307,8 @@ class _ComparisonStatisticsState extends State<ComparisonStatistics>
               },
             ),
           ),
-          topTitles:
-              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles:
-              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
         ),
         borderData: FlBorderData(show: false),
         barGroups: fundData.asMap().entries.map((entry) {
@@ -341,7 +340,7 @@ class _ComparisonStatisticsState extends State<ComparisonStatistics>
 
     // 为每只基金创建数据点
     for (final fund in widget.comparisonResult.fundData) {
-      fundDataMap.putIfAbsent(fund.fundCode, []);
+      fundDataMap.putIfAbsent(fund.fundCode, () => []);
       fundDataMap[fund.fundCode]!.add(FlSpot(
         periods.indexOf(fund.period).toDouble(),
         fund.totalReturn * 100,
@@ -353,7 +352,6 @@ class _ComparisonStatisticsState extends State<ComparisonStatistics>
         lineBarsData: fundDataMap.entries.map((entry) {
           final fundCode = entry.key;
           final spots = entry.value;
-          final fund = widget.comparisonResult.getFundData(fundCode);
 
           return LineChartBarData(
             spots: spots,
@@ -420,7 +418,6 @@ class _ComparisonStatisticsState extends State<ComparisonStatistics>
         sectionsSpace: 2,
         centerSpaceRadius: 60,
         sections: fundData.asMap().entries.map((entry) {
-          final index = entry.key;
           final fund = entry.value;
           final value = fund.totalReturn.abs();
 
@@ -432,10 +429,7 @@ class _ComparisonStatisticsState extends State<ComparisonStatistics>
             titleStyle: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.bold,
-            ),
-            valueStyle: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
+              color: Colors.white,
             ),
           );
         }).toList(),

@@ -1537,6 +1537,100 @@ class FundRepositoryImpl implements FundRepository {
         return ranking.returnSinceInception;
     }
   }
+
+  @override
+  Future<List<FundRanking>> getFundsForComparison(
+    List<String> fundCodes,
+    List<RankingPeriod> periods,
+  ) async {
+    try {
+      final List<FundRanking> results = [];
+
+      for (final fundCode in fundCodes) {
+        for (final period in periods) {
+          // 模拟数据，实际应该调用API获取真实数据
+          final mockRanking = FundRanking(
+            fundCode: fundCode,
+            fundName: '基金$fundCode',
+            fundType: '混合型',
+            company: '基金公司',
+            rankingPosition: 1,
+            totalCount: 100,
+            unitNav: 1.0,
+            accumulatedNav: 1.0,
+            dailyReturn: 0.01,
+            return1W: 0.02,
+            return1M: 0.03,
+            return3M: 0.04,
+            return6M: 0.05,
+            return1Y: 0.10,
+            return2Y: 0.20,
+            return3Y: 0.30,
+            returnYTD: 0.08,
+            returnSinceInception: 0.50,
+            rankingDate: DateTime.now(),
+            rankingType: RankingType.overall,
+            rankingPeriod: period,
+          );
+          results.add(mockRanking);
+        }
+      }
+
+      return results;
+    } catch (e) {
+      AppLogger.error('获取基金对比数据失败', e);
+      return [];
+    }
+  }
+
+  @override
+  Future<Map<String, Map<RankingPeriod, FundRanking>>>
+      getBatchFundHistoricalData(
+    List<String> fundCodes,
+    List<RankingPeriod> periods,
+  ) async {
+    try {
+      final Map<String, Map<RankingPeriod, FundRanking>> results = {};
+
+      for (final fundCode in fundCodes) {
+        final Map<RankingPeriod, FundRanking> periodData = {};
+
+        for (final period in periods) {
+          // 模拟历史数据
+          periodData[period] = FundRanking(
+            fundCode: fundCode,
+            fundName: '基金$fundCode',
+            fundType: '混合型',
+            company: '基金公司',
+            rankingPosition: 1,
+            totalCount: 100,
+            unitNav: 1.0,
+            accumulatedNav: 1.0,
+            dailyReturn: 0.01,
+            return1W: 0.02,
+            return1M: 0.03,
+            return3M: 0.04,
+            return6M: 0.05,
+            return1Y: 0.10,
+            return2Y: 0.20,
+            return3Y: 0.30,
+            returnYTD: 0.08,
+            returnSinceInception: 0.50,
+            rankingDate: DateTime.now(),
+            rankingType: RankingType.overall,
+            rankingPeriod: period,
+          );
+        }
+
+        results[fundCode] = periodData;
+      }
+
+      return results;
+    } catch (e) {
+      AppLogger.error('批量获取基金历史数据失败', e);
+      return {};
+    }
+  }
 }
 
 /// 数学扩展方法

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../domain/entities/fund_ranking.dart';
+import 'glassmorphism_card.dart';
+import '../../../../core/theme/app_theme.dart';
 
 /// 基金排行榜卡片组件
 ///
@@ -31,6 +33,12 @@ class FundRankingCard extends StatefulWidget {
   /// 是否显示详情按钮
   final bool showDetailButton;
 
+  /// 是否启用毛玻璃效果
+  final bool enableGlassmorphism;
+
+  /// 毛玻璃配置（如果为null则使用默认配置）
+  final GlassmorphismConfig? glassmorphismConfig;
+
   const FundRankingCard({
     super.key,
     required this.ranking,
@@ -40,6 +48,8 @@ class FundRankingCard extends StatefulWidget {
     this.animationDelay,
     this.showFavoriteButton = true,
     this.showDetailButton = true,
+    this.enableGlassmorphism = false,
+    this.glassmorphismConfig,
   });
 
   @override
@@ -119,37 +129,57 @@ class _FundRankingCardState extends State<FundRankingCard>
 
   /// 构建卡片
   Widget _buildCard() {
+    final cardContent = InkWell(
+      onTap: widget.onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          gradient: _getCardGradient(),
+        ),
+        child: Column(
+          children: [
+            // 顶部信息行
+            _buildTopRow(),
+            const SizedBox(height: 12),
+
+            // 收益率信息
+            _buildReturnInfo(),
+
+            const SizedBox(height: 12),
+
+            // 底部操作行
+            _buildBottomRow(),
+          ],
+        ),
+      ),
+    );
+
+    // 如果启用毛玻璃效果
+    if (widget.enableGlassmorphism) {
+      final config =
+          widget.glassmorphismConfig ?? AppTheme.defaultGlassmorphismConfig;
+
+      return GlassmorphismCard(
+        blur: config.blur,
+        opacity: config.opacity,
+        borderRadius: config.borderRadius,
+        borderWidth: config.borderWidth,
+        borderColor: config.borderColor,
+        backgroundColor: config.backgroundColor,
+        enablePerformanceOptimization: config.enablePerformanceOptimization,
+        child: cardContent,
+      );
+    }
+
+    // 传统卡片样式
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
-      child: InkWell(
-        onTap: widget.onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            gradient: _getCardGradient(),
-          ),
-          child: Column(
-            children: [
-              // 顶部信息行
-              _buildTopRow(),
-              const SizedBox(height: 12),
-
-              // 收益率信息
-              _buildReturnInfo(),
-
-              const SizedBox(height: 12),
-
-              // 底部操作行
-              _buildBottomRow(),
-            ],
-          ),
-        ),
-      ),
+      child: cardContent,
     );
   }
 

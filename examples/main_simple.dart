@@ -272,15 +272,17 @@ class _TestHomePageState extends State<TestHomePage> {
 
   Color _getStatusColor() {
     if (_apiStatus.contains('成功')) return Colors.green;
-    if (_apiStatus.contains('失败') || _apiStatus.contains('错误'))
+    if (_apiStatus.contains('失败') || _apiStatus.contains('错误')) {
       return Colors.red;
+    }
     return Colors.grey;
   }
 
   IconData _getStatusIcon() {
     if (_apiStatus.contains('成功')) return Icons.check_circle;
-    if (_apiStatus.contains('失败') || _apiStatus.contains('错误'))
+    if (_apiStatus.contains('失败') || _apiStatus.contains('错误')) {
       return Icons.error;
+    }
     return Icons.info;
   }
 

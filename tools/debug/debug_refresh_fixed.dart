@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:convert';
 import 'dart:math' as math;
 import 'package:http/http.dart' as http;
-import 'src/core/utils/logger.dart';
+import 'package:jisu_fund_analyzer/src/core/utils/logger.dart';
 
 /// 简化的基金排行状态
 @immutable

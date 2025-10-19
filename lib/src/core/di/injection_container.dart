@@ -21,8 +21,6 @@ import '../../features/fund/domain/repositories/fund_comparison_repository.dart'
 import '../../features/fund/data/repositories/fund_comparison_repository_impl.dart';
 import '../../features/fund/presentation/cubit/fund_comparison_cubit.dart';
 import '../../features/fund/presentation/cubit/comparison_cache_cubit.dart';
-import '../../features/fund/data/datasources/fund_local_data_source.dart';
-import '../../features/fund/data/datasources/fund_remote_data_source.dart';
 // 认证相关导入
 import '../../features/auth/data/datasources/auth_api.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
@@ -96,7 +94,7 @@ Future<void> initDependencies() async {
   // 基金对比仓库
   sl.registerLazySingleton<FundComparisonRepository>(
       () => FundComparisonRepositoryImpl(
-            repository: sl(),
+            fundRepository: sl(),
             comparisonService: sl(),
             cacheManager: sl(),
           ));

@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/entities/fund_ranking.dart';
 import '../bloc/fund_ranking_bloc.dart';
-import 'fund_ranking_card.dart';
 import 'fund_ranking_table.dart';
 import 'loading_widget.dart';
 import 'error_widget.dart';

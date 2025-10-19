@@ -2,6 +2,37 @@ import 'dart:convert';
 import 'dart:math' as math;
 import 'package:http/http.dart' as http;
 
+/// 简单的日志工具类
+class _Logger {
+  static void info(String message, {Map<String, dynamic>? param}) {
+    print('INFO: $message');
+    if (param != null) {
+      print('INFO PARAMS: $param');
+    }
+  }
+
+  static void debug(String message, {Map<String, dynamic>? param}) {
+    print('DEBUG: $message');
+    if (param != null) {
+      print('DEBUG PARAMS: $param');
+    }
+  }
+
+  static void warn(String message, {Map<String, dynamic>? param}) {
+    print('WARNING: $message');
+    if (param != null) {
+      print('WARNING PARAMS: $param');
+    }
+  }
+
+  static void error(String message, {Map<String, dynamic>? param}) {
+    print('ERROR: $message');
+    if (param != null) {
+      print('ERROR PARAMS: $param');
+    }
+  }
+}
+
 /// 基金数据API服务
 class FundApiService {
   static const String baseUrl = 'http://154.44.25.92:8080';
@@ -43,8 +74,8 @@ class FundApiService {
 
       client.close();
 
-      AppLogger.info('API响应状态码', {'statusCode': response.statusCode});
-      AppLogger.debug('API响应内容预览', {
+      _Logger.info('API响应状态码', param: {'statusCode': response.statusCode});
+      _Logger.debug('API响应内容预览', param: {
         'content':
             response.body.substring(0, math.min(200, response.body.length))
       });
@@ -55,21 +86,22 @@ class FundApiService {
         try {
           responseBody = utf8.decode(response.body.codeUnits);
         } catch (e) {
-          AppLogger.warn('UTF-8解码失败，使用原始响应体', {'error': e.toString()});
+          _Logger.warn('UTF-8解码失败，使用原始响应体', param: {'error': e.toString()});
           responseBody = response.body;
         }
 
         final dynamic responseData = jsonDecode(responseBody);
-        AppLogger.debug(
-            '成功解析响应数据', {'type': responseData.runtimeType.toString()});
+        _Logger.debug('成功解析响应数据',
+            param: {'type': responseData.runtimeType.toString()});
         return _parseFundRankingData(responseData);
       } else {
-        AppLogger.info('GET请求失败，尝试POST请求', {'statusCode': response.statusCode});
+        _Logger.info('GET请求失败，尝试POST请求',
+            param: {'statusCode': response.statusCode});
         // 如果GET失败，尝试POST请求
         return await _tryPostRequest(symbol);
       }
     } catch (e) {
-      AppLogger.error('网络请求异常', {'error': e.toString()});
+      _Logger.error('网络请求异常', param: {'error': e.toString()});
       throw Exception('获取基金数据失败: $e');
     }
   }
@@ -98,7 +130,7 @@ class FundApiService {
 
       client.close();
 
-      print('POST请求状态码: ${response.statusCode}');
+      _Logger.info('POST请求状态码: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         // 确保响应体使用UTF-8编码
@@ -106,18 +138,18 @@ class FundApiService {
         try {
           responseBody = utf8.decode(response.body.codeUnits);
         } catch (e) {
-          print('POST请求UTF-8解码失败，使用原始响应体: $e');
+          _Logger.error('POST请求UTF-8解码失败，使用原始响应体:', param: {'error': e});
           responseBody = response.body;
         }
 
         final dynamic responseData = jsonDecode(responseBody);
-        print('POST请求成功，解析数据');
+        _Logger.info('POST请求成功，解析数据');
         return _parseFundRankingData(responseData);
       } else {
         throw Exception('API请求失败: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      print('POST请求异常: $e');
+      _Logger.error('POST请求异常:', param: {'error': e});
       throw Exception('POST请求失败: $e');
     }
   }
@@ -136,7 +168,7 @@ class FundApiService {
         throw Exception('无法识别的数据格式: ${responseData.runtimeType}');
       }
 
-      print('API返回数据条数: ${rawData.length}');
+      _Logger.info('API返回数据条数: ${rawData.length}');
 
       return rawData.asMap().entries.map((entry) {
         final index = entry.key;
@@ -245,7 +277,7 @@ class FundApiService {
 
     for (final company in companies) {
       if (fundName.contains(company)) {
-        return company + '基金';
+        return '$company基金';
       }
     }
 

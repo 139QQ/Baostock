@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/multi_dimensional_comparison_criteria.dart';
 import '../../domain/entities/fund_ranking.dart';
-import '../cubit/fund_comparison_cubit.dart';
 
 /// 基金对比选择器组件
 ///
@@ -54,9 +52,9 @@ class _ComparisonSelectorState extends State<ComparisonSelector>
       _includeStatistics = _criteria.includeStatistics;
       _nameController.text = _criteria.name ?? '';
     } else {
-      _criteria = const MultiDimensionalComparisonCriteria(
-        fundCodes: [],
-        periods: [RankingPeriod.oneMonth, RankingPeriod.threeMonths],
+      _criteria = MultiDimensionalComparisonCriteria(
+        fundCodes: const [],
+        periods: const [RankingPeriod.oneMonth, RankingPeriod.threeMonths],
         metric: ComparisonMetric.totalReturn,
         includeStatistics: true,
         sortBy: ComparisonSortBy.fundCode,
@@ -89,7 +87,7 @@ class _ComparisonSelectorState extends State<ComparisonSelector>
                       ),
                 ),
                 const Spacer(),
-                if (_criteria.isValid)
+                if (_criteria.isValid())
                   Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -432,11 +430,11 @@ class _ComparisonSelectorState extends State<ComparisonSelector>
         Expanded(
           flex: 2,
           child: ElevatedButton.icon(
-            onPressed: _criteria.isValid ? _applyConfiguration : null,
+            onPressed: _criteria.isValid() ? _applyConfiguration : null,
             icon: const Icon(Icons.check),
             label: const Text('应用配置'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: _criteria.isValid
+              backgroundColor: _criteria.isValid()
                   ? Theme.of(context).primaryColor
                   : Colors.grey,
               foregroundColor: Colors.white,
@@ -542,7 +540,7 @@ class _ComparisonSelectorState extends State<ComparisonSelector>
   }
 
   void _applyConfiguration() {
-    if (_criteria.isValid) {
+    if (_criteria.isValid()) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('对比配置已应用'),

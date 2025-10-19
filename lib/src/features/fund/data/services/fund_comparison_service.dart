@@ -10,10 +10,6 @@ import '../../../../core/network/fund_api_client.dart';
 /// 提供基金对比相关的计算逻辑和数据处理
 class FundComparisonService {
   static const String _tag = 'FundComparisonService';
-  final FundApiClient _apiClient;
-
-  FundComparisonService({FundApiClient? apiClient})
-      : _apiClient = apiClient ?? FundApiClient();
 
   /// 计算多维度对比结果
   ///
@@ -487,25 +483,27 @@ class FundComparisonService {
                 fundCode: fundCode,
                 fundName: periodData['fund_name'] ?? '未知基金',
                 fundType: periodData['fund_type'] ?? '未知类型',
-                totalReturn: _parsePercentage(periodData['total_return']),
-                annualizedReturn:
-                    _parsePercentage(periodData['annualized_return']),
-                volatility: _parsePercentage(periodData['volatility']),
-                sharpeRatio: _parseDouble(periodData['sharpe_ratio']),
-                maxDrawdown: _parsePercentage(periodData['max_drawdown']),
-                ranking: _parseInt(periodData['ranking']) ?? 0,
-                period: period,
-                updateDate: periodData['update_date'] ??
-                    DateTime.now().toString().substring(0, 10),
-                benchmark: periodData['benchmark'] ?? '沪深300',
-                beatBenchmarkPercent:
-                    _parsePercentage(periodData['beat_benchmark_percent']),
-                beatCategoryPercent:
-                    _parsePercentage(periodData['beat_category_percent']),
-                category: periodData['category'] ?? '未知分类',
-                categoryRanking: _parseInt(periodData['category_ranking']) ?? 0,
-                totalCategoryCount:
-                    _parseInt(periodData['total_category_count']) ?? 0,
+                company: periodData['company'] ?? '未知公司',
+                rankingPosition: _parseInt(periodData['ranking']) ?? 0,
+                totalCount: _parseInt(periodData['total_count']) ?? 100,
+                unitNav: _parseDouble(periodData['unit_nav']) ?? 1.0,
+                accumulatedNav:
+                    _parseDouble(periodData['accumulated_nav']) ?? 1.0,
+                dailyReturn: _parsePercentage(periodData['daily_return']),
+                return1W: _parsePercentage(periodData['return_1w']),
+                return1M: _parsePercentage(periodData['return_1m']),
+                return3M: _parsePercentage(periodData['return_3m']),
+                return6M: _parsePercentage(periodData['return_6m']),
+                return1Y: _parsePercentage(periodData['return_1y']),
+                return2Y: _parsePercentage(periodData['return_2y']),
+                return3Y: _parsePercentage(periodData['return_3y']),
+                returnYTD: _parsePercentage(periodData['return_ytd']),
+                returnSinceInception:
+                    _parsePercentage(periodData['return_since_inception']),
+                rankingDate: _parseDateTime(periodData['ranking_date']) ??
+                    DateTime.now(),
+                rankingType: RankingType.overall,
+                rankingPeriod: period,
               ));
             }
           }
@@ -538,7 +536,7 @@ class FundComparisonService {
       final Map<String, dynamic> fundData = {};
 
       // 获取基金基本信息
-      final basicInfo = await _apiClient.getFundsForComparison([fundCode]);
+      final basicInfo = await FundApiClient.getFundsForComparison([fundCode]);
       fundData['basic_info'] = basicInfo;
 
       // 为每个时间段获取历史数据
@@ -546,7 +544,7 @@ class FundComparisonService {
         try {
           final periodStr = _periodToString(period);
           final historicalData =
-              await _apiClient.getFundHistoricalData(fundCode, periodStr);
+              await FundApiClient.getFundHistoricalData(fundCode, periodStr);
 
           // 处理历史数据，提取关键指标
           fundData[period.name] =
@@ -755,5 +753,31 @@ class FundComparisonService {
     if (value is double) return value.toInt();
     if (value is String) return int.tryParse(value);
     return null;
+  }
+
+  /// 解析日期时间
+  DateTime? _parseDateTime(dynamic value) {
+    if (value == null) return null;
+    if (value is DateTime) return value;
+    if (value is String) {
+      try {
+        return DateTime.parse(value);
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  /// 计算波动率
+  double _calculateVolatility(List<double> returns) {
+    if (returns.length < 2) return 0.0;
+
+    final mean = returns.reduce((a, b) => a + b) / returns.length;
+    final variance =
+        returns.map((r) => (r - mean) * (r - mean)).reduce((a, b) => a + b) /
+            (returns.length - 1);
+
+    return variance > 0 ? variance : 0.0;
   }
 }

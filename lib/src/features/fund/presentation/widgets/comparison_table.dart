@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/comparison_result.dart';
 import '../../domain/entities/fund_ranking.dart';
-import '../cubit/fund_comparison_cubit.dart';
+import '../../domain/entities/multi_dimensional_comparison_criteria.dart';
 
 /// 基金对比表格组件
 ///
@@ -447,7 +446,7 @@ class _ComparisonTableState extends State<ComparisonTable> {
             label,
             style: TextStyle(
               fontSize: 12,
-              color: color.shade700,
+              color: color.withOpacity(0.8),
             ),
           ),
           const SizedBox(height: 2),
@@ -456,7 +455,7 @@ class _ComparisonTableState extends State<ComparisonTable> {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: color.shade700,
+              color: color.withOpacity(1.0),
             ),
           ),
         ],
@@ -469,7 +468,6 @@ class _ComparisonTableState extends State<ComparisonTable> {
         List<FundComparisonData>.from(widget.comparisonResult.fundData);
 
     // 按基金代码分组，取最新时间段的每个基金数据
-    final latestPeriod = widget.comparisonResult.criteria.periods.last;
     final fundDataMap = <String, FundComparisonData>{};
 
     for (final item in data) {

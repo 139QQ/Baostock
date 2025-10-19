@@ -489,7 +489,7 @@ class ErrorRecoveryStrategy {
       milliseconds:
           (exponentialBackoffBase.inMilliseconds * (1 << (attempt - 1))).clamp(
         defaultRetryDelay.inMilliseconds,
-        Duration(seconds: 30).inMilliseconds,
+        const Duration(seconds: 30).inMilliseconds,
       ),
     );
   }

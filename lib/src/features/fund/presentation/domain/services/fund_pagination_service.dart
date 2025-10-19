@@ -183,42 +183,6 @@ class FundPaginationService {
     }
   }
 
-  /// 数据验证和转换
-  List<FundRanking> _validateAndConvertData(dynamic rawData) {
-    try {
-      if (rawData is! List) {
-        throw const FormatException('API返回数据格式错误，期望List类型');
-      }
-
-      final List<FundRanking> fundData = [];
-
-      for (int i = 0; i < rawData.length; i++) {
-        try {
-          final item = rawData[i];
-          if (item is Map<String, dynamic>) {
-            // 使用容错的数据转换
-            final fundRanking = _convertFundDataSafely(item, i + 1);
-            if (fundRanking != null) {
-              fundData.add(fundRanking);
-            }
-          }
-        } catch (e) {
-          AppLogger.warn('⚠️ 跳过无效数据项 [$i]: $e');
-          continue;
-        }
-      }
-
-      if (fundData.isEmpty) {
-        throw Exception('没有有效的基金数据');
-      }
-
-      return fundData;
-    } catch (e) {
-      AppLogger.error('❌ 数据转换失败', e.toString());
-      throw Exception('数据解析失败: $e');
-    }
-  }
-
   /// 安全的基金数据转换
   FundRanking? _convertFundDataSafely(Map<String, dynamic> data, int position) {
     try {
@@ -244,18 +208,18 @@ class FundPaginationService {
             '未知',
         rankingPosition: position,
         totalCount: 0, // 需要从API获取
-        unitNav: _getDoubleValue(data, '单位净值') ?? 0.0,
-        accumulatedNav: _getDoubleValue(data, '累计净值') ?? 0.0,
-        dailyReturn: _getDoubleValue(data, '日增长率') ?? 0.0,
-        return1W: _getDoubleValue(data, '近1周') ?? 0.0,
-        return1M: _getDoubleValue(data, '近1月') ?? 0.0,
-        return3M: _getDoubleValue(data, '近3月') ?? 0.0,
-        return6M: _getDoubleValue(data, '近6月') ?? 0.0,
-        return1Y: _getDoubleValue(data, '近1年') ?? 0.0,
-        return2Y: _getDoubleValue(data, '近2年') ?? 0.0,
-        return3Y: _getDoubleValue(data, '近3年') ?? 0.0,
-        returnYTD: _getDoubleValue(data, '今年以来') ?? 0.0,
-        returnSinceInception: _getDoubleValue(data, '成立来') ?? 0.0,
+        unitNav: _getDoubleValue(data, '单位净值'),
+        accumulatedNav: _getDoubleValue(data, '累计净值'),
+        dailyReturn: _getDoubleValue(data, '日增长率'),
+        return1W: _getDoubleValue(data, '近1周'),
+        return1M: _getDoubleValue(data, '近1月'),
+        return3M: _getDoubleValue(data, '近3月'),
+        return6M: _getDoubleValue(data, '近6月'),
+        return1Y: _getDoubleValue(data, '近1年'),
+        return2Y: _getDoubleValue(data, '近2年'),
+        return3Y: _getDoubleValue(data, '近3年'),
+        returnYTD: _getDoubleValue(data, '今年以来'),
+        returnSinceInception: _getDoubleValue(data, '成立来'),
         rankingDate: DateTime.now(),
         rankingPeriod: RankingPeriod.oneYear,
         rankingType: RankingType.overall,
@@ -322,41 +286,6 @@ class FundPaginationService {
     }
   }
 
-  /// 错误处理和降级策略
-  Future<PaginationResult> _handleLoadError(int page, dynamic error) async {
-    AppLogger.warn('🔄 尝试降级策略，页面 $page');
-
-    // 尝试使用缓存
-    if (_cachedData.isNotEmpty) {
-      AppLogger.info('💾 使用本地缓存作为降级策略');
-      return PaginationResult.success(
-        _cachedData,
-        isIncremental: false,
-        hasError: true,
-        errorMessage: '使用缓存数据 (${_cachedData.length} 条)',
-      );
-    }
-
-    // 尝试使用示例数据
-    final sampleData = _generateSampleData();
-    if (sampleData.isNotEmpty) {
-      AppLogger.info('🎭 使用示例数据作为降级策略');
-      _cachedData.addAll(sampleData);
-      return PaginationResult.success(
-        _cachedData,
-        isIncremental: false,
-        hasError: true,
-        errorMessage: '使用示例数据 (${sampleData.length} 条)',
-      );
-    }
-
-    // 完全失败
-    return PaginationResult.error(
-      '数据加载失败: ${error.toString()}',
-      data: _cachedData,
-    );
-  }
-
   /// 生成示例数据
   List<FundRanking> _generateSampleData() {
     final samples = [
@@ -419,14 +348,14 @@ class FundPaginationService {
       final timeSinceLastRequest = DateTime.now().difference(_lastCacheUpdate!);
       if (timeSinceLastRequest.inSeconds < 2 && _pageCache.containsKey(page)) {
         AppLogger.warn('⚠️ 短时间内重复请求页面 $page，跳过此次请求');
-        return _PaginationValidationResult(
+        return const _PaginationValidationResult(
           isValid: false,
           errorMessage: '请求过于频繁，请稍后再试',
         );
       }
     }
 
-    return _PaginationValidationResult(isValid: true);
+    return const _PaginationValidationResult(isValid: true);
   }
 
   /// 带重试机制的数据加载
@@ -446,12 +375,9 @@ class FundPaginationService {
             'Pagination');
 
         // 请求API
-        final rawData = await _apiClient
-            .getFundRankings(
-              symbol: symbol,
-              forceRefresh: forceRefresh,
-            )
+        final response = await FundApiClient.getFundRanking('overall', '1Y')
             .timeout(Duration(seconds: 45 + retryCount * 15)); // 递增超时时间
+        final rawData = response['data'] as List<dynamic>? ?? [];
 
         return rawData;
       } catch (e) {

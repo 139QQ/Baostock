@@ -173,7 +173,7 @@ class FundComparisonCubit extends Cubit<FundComparisonState> {
   bool get hasData => state.result != null && !state.result!.fundData.isEmpty;
 
   /// 检查是否有错误
-  bool get hasError => state.status == FundComparisonState.error;
+  bool get hasError => state.status == FundComparisonStatus.error;
 
   /// 检查是否正在加载
   bool get isLoading => state.isLoading;
@@ -375,6 +375,6 @@ class FundComparisonCubit extends Cubit<FundComparisonState> {
   @override
   Future<void> close() {
     AppLogger.info(_tag, 'FundComparisonCubit disposed');
-    super.close();
+    return super.close();
   }
 }

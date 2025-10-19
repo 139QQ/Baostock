@@ -4,9 +4,10 @@ import '../../domain/entities/multi_dimensional_comparison_criteria.dart';
 import '../../domain/entities/comparison_result.dart';
 import '../../domain/entities/fund_ranking.dart';
 import '../cubit/fund_comparison_cubit.dart';
+import '../../../../core/di/injection_container.dart';
 import '../widgets/comparison_selector.dart';
 import '../widgets/comparison_table.dart';
-import '../widgets/comparison_statistics.dart';
+import '../widgets/comparison_statistics.dart' as stats;
 import '../../../../core/utils/logger.dart';
 
 /// 基金对比页面
@@ -42,7 +43,8 @@ class _FundComparisonPageState extends State<FundComparisonPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    _comparisonCubit = FundComparisonCubit();
+    // 使用依赖注入
+    _comparisonCubit = sl<FundComparisonCubit>();
 
     // 如果有初始条件，应用它
     if (widget.initialCriteria != null) {
@@ -159,7 +161,7 @@ class _FundComparisonPageState extends State<FundComparisonPage>
           ),
 
           // 当前对比条件概览
-          if (_currentCriteria != null && _currentCriteria!.isValid)
+          if (_currentCriteria != null && _currentCriteria!.isValid())
             _buildCriteriaOverview(),
         ],
       ),
@@ -221,7 +223,7 @@ class _FundComparisonPageState extends State<FundComparisonPage>
   }
 
   Widget _buildContentSection() {
-    if (_currentCriteria == null || !_currentCriteria!.isValid) {
+    if (_currentCriteria == null || !_currentCriteria!.isValid()) {
       return _buildEmptyState();
     }
 
@@ -231,11 +233,12 @@ class _FundComparisonPageState extends State<FundComparisonPage>
           return _buildLoadingState();
         }
 
-        if (state.hasError) {
+        if (state.status == FundComparisonStatus.error) {
           return _buildErrorState(state.error ?? '未知错误');
         }
 
-        if (!state.hasData) {
+        if (state.status != FundComparisonStatus.loaded ||
+            state.result == null) {
           return _buildNoDataState();
         }
 
@@ -428,9 +431,9 @@ class _FundComparisonPageState extends State<FundComparisonPage>
         Expanded(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
-            child: ComparisonStatistics(
+            child: stats.ComparisonStatistics(
               comparisonResult: result,
-              chartType: StatisticsChartType.bar,
+              chartType: stats.StatisticsChartType.bar,
             ),
           ),
         ),
@@ -558,7 +561,7 @@ class _FundComparisonPageState extends State<FundComparisonPage>
                 title,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: color.shade700,
+                      color: color,
                     ),
               ),
             ],
@@ -568,7 +571,7 @@ class _FundComparisonPageState extends State<FundComparisonPage>
           // 分析数据展示
           ...data.entries.map((entry) {
             return _buildAnalysisItem(entry.key, entry.value, color);
-          }).toList(),
+          }),
         ],
       ),
     );
@@ -595,7 +598,7 @@ class _FundComparisonPageState extends State<FundComparisonPage>
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: color.shade700,
+              color: color,
             ),
           ),
         ],
@@ -604,7 +607,7 @@ class _FundComparisonPageState extends State<FundComparisonPage>
   }
 
   Widget _buildFloatingActions() {
-    if (_currentCriteria == null || !_currentCriteria!.isValid) {
+    if (_currentCriteria == null || !_currentCriteria!.isValid()) {
       return const SizedBox.shrink();
     }
 
@@ -639,7 +642,7 @@ class _FundComparisonPageState extends State<FundComparisonPage>
       _currentCriteria = criteria;
     });
 
-    if (criteria.isValid) {
+    if (criteria.isValid()) {
       _loadComparisonData(criteria);
     }
   }

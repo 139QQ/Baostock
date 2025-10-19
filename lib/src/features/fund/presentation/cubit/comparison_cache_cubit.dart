@@ -292,7 +292,7 @@ class ComparisonCacheCubit extends Cubit<ComparisonCacheState> {
   /// 检查缓存是否过期
   bool _isCacheExpired(ComparisonResult result) {
     final now = DateTime.now();
-    final createdAt = result.lastUpdated;
+    final createdAt = result.calculatedAt;
 
     if (createdAt == null) return true;
 

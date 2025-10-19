@@ -73,7 +73,7 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
     emit(state.copyWith(status: FundExplorationStatus.loading));
 
     // 委托数据加载给FundRankingBloc
-    _fundRankingBloc.add(LoadFundRankings(
+    _fundRankingBloc.add(const LoadFundRankings(
       criteria: const RankingCriteria(
         rankingType: RankingType.overall,
         rankingPeriod: RankingPeriod.oneYear,
@@ -189,7 +189,7 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
 
   /// 加载热门基金
   void loadHotFunds() {
-    _fundRankingBloc.add(LoadHotRankings(
+    _fundRankingBloc.add(const LoadHotRankings(
       type: HotRankingType.topGainers,
       pageSize: 50,
     ));

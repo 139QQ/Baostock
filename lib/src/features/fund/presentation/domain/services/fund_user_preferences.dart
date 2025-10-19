@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:jisu_fund_analyzer/src/core/utils/logger.dart';
-import 'package:jisu_fund_analyzer/src/features/fund/presentation/widgets/fund_card_theme.dart';
+import '../../../../../core/utils/logger.dart';
+import '../../widgets/fund_card_theme.dart';
 
 /// 基金用户偏好服务
 ///

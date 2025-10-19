@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'src/features/fund/presentation/fund_exploration/presentation/cubit/fund_ranking_cubit.dart';
-import 'src/features/fund/presentation/fund_exploration/presentation/widgets/fund_ranking_wrapper_simple.dart';
-import 'src/core/utils/logger.dart';
+import 'package:jisu_fund_analyzer/src/features/fund/presentation/fund_exploration/presentation/cubit/fund_ranking_cubit.dart';
+import 'package:jisu_fund_analyzer/src/core/utils/logger.dart';
 
 /// 刷新按钮调试应用
 void main() {

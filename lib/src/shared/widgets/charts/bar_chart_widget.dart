@@ -9,7 +9,6 @@ import 'package:fl_chart/fl_chart.dart';
 
 import 'base_chart_widget.dart';
 import 'models/chart_data.dart';
-import 'chart_theme_manager.dart';
 import 'chart_config_manager.dart';
 import 'chart_di_container.dart';
 

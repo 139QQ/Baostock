@@ -9,8 +9,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
+import 'package:jisu_fund_analyzer/src/core/network/fund_api_client.dart';
 import '../models/chart_data.dart';
-import '../../../../core/network/fund_api_client.dart';
 
 /// 图表数据服务类
 ///
@@ -22,8 +22,6 @@ import '../../../../core/network/fund_api_client.dart';
 class ChartDataService {
   static const String _baseUrl = 'http://154.44.25.92:8080';
   static const Duration _defaultTimeout = Duration(seconds: 30);
-
-  final FundApiClient _apiClient = FundApiClient();
 
   /// 获取基金净值走势图数据
   ///
@@ -137,7 +135,8 @@ class ChartDataService {
     try {
       debugPrint('🔄 ChartDataService: 获取基金排行榜数据，symbol=$symbol, topN=$topN');
 
-      final data = await _apiClient.getFundRankings(symbol: symbol);
+      final response = await FundApiClient.getFundRanking('overall', '1Y');
+      final data = response['data'] as List<dynamic>? ?? [];
 
       if (data.isNotEmpty) {
         // 取前N只基金
@@ -167,7 +166,8 @@ class ChartDataService {
     try {
       debugPrint('🔄 ChartDataService: 获取基金收益率分布数据，symbol=$symbol');
 
-      final data = await _apiClient.getFundRankings(symbol: symbol);
+      final response = await FundApiClient.getFundRanking('overall', '1Y');
+      final data = response['data'] as List<dynamic>? ?? [];
 
       if (data.isNotEmpty) {
         debugPrint('✅ ChartDataService: 获取基金收益率分布成功，共 ${data.length} 只基金');

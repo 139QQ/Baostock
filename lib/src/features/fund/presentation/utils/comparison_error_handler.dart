@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:io';
+import 'dart:math';
 import 'package:flutter/foundation.dart';
 import '../../domain/entities/multi_dimensional_comparison_criteria.dart';
 import '../../../../core/utils/logger.dart';
@@ -153,16 +155,14 @@ class ComparisonErrorHandler {
         }
 
         return result;
-      } catch (e, stackTrace) {
+      } catch (e) {
         attemptCount++;
         lastError = _convertToComparisonError(e, criteria);
 
         if (enableLogging) {
           AppLogger.warn(
-            _tag,
-            '操作失败 (尝试 $attemptCount/${config.maxRetries + 1}): ${lastError.message}',
+            '$_tag: 操作失败 (尝试 $attemptCount/${config.maxRetries + 1}): ${lastError.message}',
             lastError,
-            stackTrace,
           );
         }
 
@@ -193,7 +193,7 @@ class ComparisonErrorHandler {
 
     // 抛出最后的错误
     if (enableLogging) {
-      AppLogger.error(_tag, '操作最终失败', lastError);
+      AppLogger.error('$_tag: 操作最终失败', lastError ?? Exception('未知错误'));
     }
     throw lastError ?? Exception('操作失败，未知错误');
   }

@@ -1,12 +1,9 @@
-import 'dart:convert';
-import 'package:dio/dio.dart';
 import '../../domain/entities/multi_dimensional_comparison_criteria.dart';
 import '../../domain/entities/comparison_result.dart';
 import '../../domain/entities/fund_ranking.dart';
 import '../../domain/repositories/fund_comparison_repository.dart';
 import '../../domain/repositories/fund_repository.dart';
 import '../services/fund_comparison_service.dart';
-import '../../../../core/network/fund_api_client.dart';
 import '../../../../core/utils/logger.dart';
 import '../../../../core/cache/optimized_cache_manager.dart';
 
@@ -19,7 +16,6 @@ class FundComparisonRepositoryImpl implements FundComparisonRepository {
   final FundRepository _fundRepository;
   final FundComparisonService _comparisonService;
   final OptimizedCacheManager _cacheManager;
-  final Dio _dio;
 
   FundComparisonRepositoryImpl({
     required FundRepository fundRepository,
@@ -27,8 +23,7 @@ class FundComparisonRepositoryImpl implements FundComparisonRepository {
     OptimizedCacheManager? cacheManager,
   })  : _fundRepository = fundRepository,
         _comparisonService = comparisonService,
-        _cacheManager = cacheManager ?? OptimizedCacheManager.instance,
-        _dio = FundApiClient._dio;
+        _cacheManager = cacheManager ?? OptimizedCacheManager.instance;
 
   @override
   Future<ComparisonResult> getMultiDimensionalComparison(
@@ -136,10 +131,9 @@ class FundComparisonRepositoryImpl implements FundComparisonRepository {
       }
 
       // 缓存结果
-      await _cacheManager.set(
-          cacheKey,
-          returns.map((key, value) => MapEntry(key.name, value)),
-          _cacheExpiration);
+      await _cacheManager.put(
+          cacheKey, returns.map((key, value) => MapEntry(key.name, value)),
+          ttl: _cacheExpiration);
 
       return returns;
     } catch (e) {
@@ -198,7 +192,8 @@ class FundComparisonRepositoryImpl implements FundComparisonRepository {
       }
 
       // 缓存结果
-      await _cacheManager.set(cacheKey, correlationMatrix, _cacheExpiration);
+      await _cacheManager.put(cacheKey, correlationMatrix,
+          ttl: _cacheExpiration);
 
       return correlationMatrix;
     } catch (e) {
@@ -228,7 +223,7 @@ class FundComparisonRepositoryImpl implements FundComparisonRepository {
       final averageReturn = await _getCategoryAverageFromAPI(fundType, period);
 
       // 缓存结果
-      await _cacheManager.set(cacheKey, averageReturn, _cacheExpiration);
+      await _cacheManager.put(cacheKey, averageReturn, ttl: _cacheExpiration);
 
       return averageReturn;
     } catch (e) {
@@ -260,7 +255,7 @@ class FundComparisonRepositoryImpl implements FundComparisonRepository {
           await _getBenchmarkReturnFromAPI(benchmarkCode, period);
 
       // 缓存结果
-      await _cacheManager.set(cacheKey, benchmarkReturn, _cacheExpiration);
+      await _cacheManager.put(cacheKey, benchmarkReturn, ttl: _cacheExpiration);
 
       return benchmarkReturn;
     } catch (e) {
@@ -286,7 +281,7 @@ class FundComparisonRepositoryImpl implements FundComparisonRepository {
         'lastUsed': DateTime.now().toIso8601String(),
       };
 
-      await _cacheManager.set(cacheKey, configData);
+      await _cacheManager.put(cacheKey, configData, ttl: _cacheExpiration);
 
       AppLogger.info(_tag, '对比配置保存成功');
       return true;
@@ -317,7 +312,7 @@ class FundComparisonRepositoryImpl implements FundComparisonRepository {
       AppLogger.info(_tag, '删除对比配置: $configurationId');
 
       final cacheKey = '${_cachePrefix}config_$configurationId';
-      await _cacheManager.delete(cacheKey);
+      await _cacheManager.remove(cacheKey);
 
       AppLogger.info(_tag, '对比配置删除成功');
       return true;
@@ -331,7 +326,7 @@ class FundComparisonRepositoryImpl implements FundComparisonRepository {
   Future<void> cacheComparisonResult(ComparisonResult result) async {
     try {
       final cacheKey = _generateCacheKey(result.criteria);
-      await _cacheManager.set(cacheKey, result.toJson(), _cacheExpiration);
+      await _cacheManager.put(cacheKey, result.toJson(), ttl: _cacheExpiration);
       AppLogger.debug(_tag, '对比结果已缓存');
     } catch (e) {
       AppLogger.error(_tag, '缓存对比结果失败: $e');
@@ -360,7 +355,7 @@ class FundComparisonRepositoryImpl implements FundComparisonRepository {
   @override
   Future<void> clearExpiredCache() async {
     try {
-      await _cacheManager.clearExpired();
+      await _cacheManager.cleanupExpired();
       AppLogger.info(_tag, '过期缓存清理完成');
     } catch (e) {
       AppLogger.error(_tag, '清理过期缓存失败: $e');
