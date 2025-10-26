@@ -1,8 +1,10 @@
 import 'package:get_it/get_it.dart';
 import '../network/fund_api_client.dart';
 import '../cache/hive_cache_manager.dart';
+import '../../services/optimized_cache_manager_v3.dart';
 import '../services/secure_storage_service.dart';
 import '../services/auth_service.dart';
+import '../utils/logger.dart';
 import '../../features/fund/data/datasources/fund_remote_data_source.dart';
 import '../../features/fund/data/datasources/fund_local_data_source.dart';
 import '../../features/fund/domain/repositories/fund_repository.dart';
@@ -29,11 +31,38 @@ import '../../features/auth/domain/usecases/login_with_phone.dart';
 import '../../features/auth/domain/usecases/login_with_email.dart';
 import '../../features/auth/domain/usecases/send_verification_code.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
+// 组合分析相关导入
+import '../../features/portfolio/domain/repositories/portfolio_profit_repository.dart';
+import '../../features/portfolio/data/repositories/portfolio_profit_repository_impl.dart';
+import '../../features/portfolio/data/services/portfolio_profit_api_service.dart';
+import '../../features/portfolio/data/services/portfolio_profit_cache_service.dart';
+import '../../features/portfolio/data/services/portfolio_data_service.dart';
+import '../../features/portfolio/domain/services/portfolio_profit_calculation_engine.dart';
+import '../../features/portfolio/data/adapters/portfolio_holding_adapter.dart';
+import '../../features/portfolio/data/adapters/fund_corporate_action_adapter.dart';
+import '../../features/portfolio/data/adapters/fund_split_detail_adapter.dart';
+import '../../features/portfolio/data/adapters/fund_favorite_adapter.dart';
+import '../../features/portfolio/data/services/fund_favorite_service.dart';
+import '../../features/portfolio/presentation/cubit/portfolio_analysis_cubit.dart';
+import '../../features/portfolio/presentation/cubit/fund_favorite_cubit.dart';
+import 'package:hive/hive.dart';
 
 final GetIt sl = GetIt.instance;
 
 Future<void> initDependencies() async {
   // debugPrint('初始化依赖注入...');
+
+  // ===== 核心缓存服务 =====
+
+  // 注册优化的缓存管理器V3作为单例，确保整个应用使用同一个实例
+  sl.registerLazySingleton<OptimizedCacheManagerV3>(() {
+    final cacheManager = OptimizedCacheManagerV3.createNewInstance();
+    // 异步初始化，不阻塞依赖注入过程
+    cacheManager.initialize().catchError((e) {
+      AppLogger.debug('Optimized cache manager initialization failed: $e');
+    });
+    return cacheManager;
+  });
 
   // API客户端
   sl.registerLazySingleton(() => FundApiClient());
@@ -136,6 +165,99 @@ Future<void> initDependencies() async {
 
   // 认证服务
   sl.registerLazySingleton(() => AuthService.instance);
+
+  // ===== 组合分析相关依赖 =====
+
+  // 组合收益API服务
+  sl.registerLazySingleton(() => PortfolioProfitApiService());
+
+  // 初始化Hive适配器 - 在注册服务之前
+  try {
+    // 注册组合分析相关的Hive适配器
+    if (!Hive.isAdapterRegistered(0)) {
+      Hive.registerAdapter(PortfolioHoldingAdapter());
+    }
+    if (!Hive.isAdapterRegistered(1)) {
+      Hive.registerAdapter(FundCorporateActionAdapter());
+    }
+    if (!Hive.isAdapterRegistered(2)) {
+      Hive.registerAdapter(FundSplitDetailAdapter());
+    }
+
+    // 注册自选基金相关的Hive适配器
+    if (!Hive.isAdapterRegistered(10)) {
+      Hive.registerAdapter(FundFavoriteAdapter());
+    }
+    if (!Hive.isAdapterRegistered(11)) {
+      Hive.registerAdapter(PriceAlertSettingsAdapter());
+    }
+    if (!Hive.isAdapterRegistered(12)) {
+      Hive.registerAdapter(TargetPriceAlertAdapter());
+    }
+    if (!Hive.isAdapterRegistered(13)) {
+      Hive.registerAdapter(FundFavoriteListAdapter());
+    }
+    if (!Hive.isAdapterRegistered(14)) {
+      Hive.registerAdapter(SortConfigurationAdapter());
+    }
+    if (!Hive.isAdapterRegistered(15)) {
+      Hive.registerAdapter(FilterConfigurationAdapter());
+    }
+    if (!Hive.isAdapterRegistered(17)) {
+      Hive.registerAdapter(SyncConfigurationAdapter());
+    }
+    if (!Hive.isAdapterRegistered(18)) {
+      Hive.registerAdapter(ListStatisticsAdapter());
+    }
+  } catch (e) {
+    AppLogger.debug('Failed to register Hive adapters: $e');
+  }
+
+  // 组合收益缓存服务
+  sl.registerLazySingleton<PortfolioProfitCacheService>(() {
+    final service = PortfolioProfitCacheService();
+    // 异步初始化，不阻塞依赖注入
+    service.initialize().catchError((e) {
+      AppLogger.debug('Cache service initialization failed: $e');
+    });
+    return service;
+  });
+
+  // 组合收益计算引擎
+  sl.registerLazySingleton(() => PortfolioProfitCalculationEngine());
+
+  // 持仓数据服务
+  sl.registerLazySingleton(() => PortfolioDataService());
+
+  // 组合收益仓库
+  sl.registerLazySingleton<PortfolioProfitRepository>(
+    () => PortfolioProfitRepositoryImpl(
+      apiService: sl(),
+      cacheService: sl(),
+      calculationEngine: sl(),
+    ),
+  );
+
+  // 组合分析Cubit - 改为单例模式避免重复初始化
+  sl.registerLazySingleton(() => PortfolioAnalysisCubit(
+        repository: sl(),
+        dataService: sl(),
+      ));
+
+  // ===== 自选基金相关依赖 =====
+
+  // 自选基金服务
+  sl.registerLazySingleton<FundFavoriteService>(() {
+    final service = FundFavoriteService();
+    // 异步初始化，不阻塞依赖注入
+    service.initialize().catchError((e) {
+      AppLogger.debug('Fund favorite service initialization failed: $e');
+    });
+    return service;
+  });
+
+  // 自选基金管理Cubit
+  sl.registerLazySingleton(() => FundFavoriteCubit(sl()));
 
   // debugPrint('依赖注入初始化完成');
 }

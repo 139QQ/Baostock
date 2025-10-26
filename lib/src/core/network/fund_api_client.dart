@@ -7,13 +7,11 @@ import '../utils/logger.dart';
 /// 基金API客户端 - 增强版本，支持重试和超时处理
 class FundApiClient {
   static String baseUrl = 'http://154.44.25.92:8080';
-  // API超时配置优化 - 第一阶段：保守优化 (QA审查后优化)
-  // 原配置：45秒/120秒/45秒 -> 优化后：30秒/60秒/30秒
-  static Duration connectTimeout =
-      const Duration(seconds: 30); // 连接超时：45秒 -> 30秒
-  static Duration receiveTimeout =
-      const Duration(seconds: 60); // 接收超时：120秒 -> 60秒
-  static Duration sendTimeout = const Duration(seconds: 30); // 发送超时：45秒 -> 30秒
+  // API超时配置 - 设置为120秒超时时间
+  // 连接超时：30秒，接收超时：120秒，发送超时：30秒
+  static Duration connectTimeout = const Duration(seconds: 30); // 连接超时：30秒
+  static Duration receiveTimeout = const Duration(seconds: 120); // 接收超时：120秒
+  static Duration sendTimeout = const Duration(seconds: 30); // 发送超时：30秒
   static int maxRetries = 5; // 增加重试次数从3到5
   static Duration retryDelay = const Duration(seconds: 2); // 增加重试间隔从1秒到2秒
 
@@ -81,8 +79,24 @@ class FundApiClient {
         return {};
       }
 
-      // 尝试直接解析JSON
-      return jsonDecode(response.body);
+      // 首先尝试直接解析JSON
+      try {
+        return jsonDecode(response.body);
+      } catch (e) {
+        // 如果直接解析失败，尝试UTF-8修复解码
+        AppLogger.info('Direct JSON decode failed, trying UTF-8 fix');
+
+        try {
+          final bytes = response.bodyBytes;
+          final fixedResponse = utf8.decode(bytes);
+          final data = jsonDecode(fixedResponse);
+          AppLogger.debug('UTF-8 fix successful');
+          return data;
+        } catch (utf8Error) {
+          AppLogger.warn('UTF-8 fix also failed', utf8Error);
+          throw Exception('响应解析失败: 原始错误=$e, UTF-8修复错误=$utf8Error');
+        }
+      }
     } catch (e) {
       AppLogger.warn('Response parse error', e);
       throw Exception('响应解析失败: $e');
@@ -211,11 +225,29 @@ class FundApiClient {
   static Future<Map<String, dynamic>> getFundHistory(
       String fundCode, String period) async {
     try {
+      // 使用正确的API接口获取净值数据
+      // 根据我们的修复方案，使用indicator参数
       final endpoint =
-          '/api/public/fund_history_info_em?symbol=$fundCode&period=$period';
+          '/api/public/fund_open_fund_info_em?symbol=$fundCode&indicator=单位净值走势';
       return await get(endpoint);
     } catch (e) {
       AppLogger.error('获取基金历史数据失败', e);
+      rethrow;
+    }
+  }
+
+  /// 获取基金累计净值数据
+  ///
+  /// 专门用于获取累计净值数据，解决累计净值字段为null的问题
+  static Future<Map<String, dynamic>> getFundAccumulatedNavHistory(
+      String fundCode) async {
+    try {
+      // 使用累计净值走势接口获取累计净值数据
+      final endpoint =
+          '/api/public/fund_open_fund_info_em?symbol=$fundCode&indicator=累计净值走势';
+      return await get(endpoint);
+    } catch (e) {
+      AppLogger.error('获取基金累计净值数据失败', e);
       rethrow;
     }
   }
@@ -328,7 +360,7 @@ class HttpRetryHelper {
       try {
         final response = await http
             .get(url, headers: headers)
-            .timeout(const Duration(seconds: 60));
+            .timeout(const Duration(seconds: 120));
 
         if (response.statusCode >= 200 && response.statusCode < 300) {
           return response;

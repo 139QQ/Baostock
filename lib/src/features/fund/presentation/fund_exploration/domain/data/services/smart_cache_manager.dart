@@ -505,7 +505,7 @@ class _InMemoryBox {
 /// Hive适配器（如果需要的话）
 class CacheEntryAdapter extends TypeAdapter<CacheEntry> {
   @override
-  final typeId = 0;
+  final typeId = 20;
 
   @override
   CacheEntry read(BinaryReader reader) {

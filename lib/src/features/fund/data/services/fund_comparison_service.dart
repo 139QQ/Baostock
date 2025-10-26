@@ -486,9 +486,8 @@ class FundComparisonService {
                 company: periodData['company'] ?? '未知公司',
                 rankingPosition: _parseInt(periodData['ranking']) ?? 0,
                 totalCount: _parseInt(periodData['total_count']) ?? 100,
-                unitNav: _parseDouble(periodData['unit_nav']) ?? 1.0,
-                accumulatedNav:
-                    _parseDouble(periodData['accumulated_nav']) ?? 1.0,
+                unitNav: _parseDouble(periodData['unit_nav']),
+                accumulatedNav: _parseDouble(periodData['accumulated_nav']),
                 dailyReturn: _parsePercentage(periodData['daily_return']),
                 return1W: _parsePercentage(periodData['return_1w']),
                 return1M: _parsePercentage(periodData['return_1m']),
@@ -580,7 +579,7 @@ class FundComparisonService {
       double previousValue = 0.0;
 
       for (final item in data) {
-        final currentValue = _parseDouble(item['nav']) ?? 0.0;
+        final currentValue = _parseDouble(item['nav']);
         if (previousValue > 0) {
           final returnValue = (currentValue - previousValue) / previousValue;
           returns.add(returnValue);

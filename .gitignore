@@ -125,12 +125,3 @@ lib/generated/
 .env.development.local
 .env.test.local
 .env.production.local
-.test/
-
-# Test folders
-test/
-**/test/
-test_api_encoding.dart
-test_features/
-integration_test/
-**/integration_test/

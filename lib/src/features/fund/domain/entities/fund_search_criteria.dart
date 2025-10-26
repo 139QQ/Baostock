@@ -44,6 +44,31 @@ class FundSearchCriteria extends Equatable {
   /// 扩展筛选参数（用于与筛选功能整合）
   final Map<String, dynamic> extendedFilters;
 
+  // 高级筛选字段
+  /// 基金类型筛选
+  final String fundType;
+
+  /// 基金公司筛选
+  final String fundCompany;
+
+  /// 收益率范围筛选
+  final String returnRange;
+
+  /// 净值范围筛选
+  final String navRange;
+
+  /// 最小净值
+  final double? minNav;
+
+  /// 最大净值
+  final double? maxNav;
+
+  /// 最小收益率
+  final double? minReturn;
+
+  /// 最短成立年限
+  final int? minYears;
+
   /// 创建基金搜索条件
   ///
   /// [keyword] 搜索关键词，为空时返回所有基金
@@ -58,6 +83,14 @@ class FundSearchCriteria extends Equatable {
   /// [offset] 搜索结果偏移量，默认0
   /// [includeInactive] 是否包含已停运基金，默认false
   /// [extendedFilters] 扩展筛选参数，默认为空Map
+  /// [fundType] 基金类型筛选，默认为空
+  /// [fundCompany] 基金公司筛选，默认为空
+  /// [returnRange] 收益率范围筛选，默认为空
+  /// [navRange] 净值范围筛选，默认为空
+  /// [minNav] 最小净值，默认为null
+  /// [maxNav] 最大净值，默认为null
+  /// [minReturn] 最小收益率，默认为null
+  /// [minYears] 最短成立年限，默认为null
   const FundSearchCriteria({
     this.keyword,
     this.searchType = SearchType.mixed,
@@ -71,6 +104,14 @@ class FundSearchCriteria extends Equatable {
     this.offset = 0,
     this.includeInactive = false,
     this.extendedFilters = const {},
+    this.fundType = '',
+    this.fundCompany = '',
+    this.returnRange = '',
+    this.navRange = '',
+    this.minNav,
+    this.maxNav,
+    this.minReturn,
+    this.minYears,
   })  : assert(
           fuzzyThreshold >= 0.0 && fuzzyThreshold <= 1.0,
           '模糊搜索阈值必须在0.0-1.0之间',
@@ -114,6 +155,14 @@ class FundSearchCriteria extends Equatable {
     int? offset,
     bool? includeInactive,
     Map<String, dynamic>? extendedFilters,
+    String? fundType,
+    String? fundCompany,
+    String? returnRange,
+    String? navRange,
+    double? minNav,
+    double? maxNav,
+    double? minReturn,
+    int? minYears,
     bool clearKeyword = false,
     bool clearSearchFields = false,
     bool clearExtendedFilters = false,
@@ -133,6 +182,14 @@ class FundSearchCriteria extends Equatable {
       includeInactive: includeInactive ?? this.includeInactive,
       extendedFilters:
           clearExtendedFilters ? {} : (extendedFilters ?? this.extendedFilters),
+      fundType: fundType ?? this.fundType,
+      fundCompany: fundCompany ?? this.fundCompany,
+      returnRange: returnRange ?? this.returnRange,
+      navRange: navRange ?? this.navRange,
+      minNav: minNav ?? this.minNav,
+      maxNav: maxNav ?? this.maxNav,
+      minReturn: minReturn ?? this.minReturn,
+      minYears: minYears ?? this.minYears,
     );
   }
 

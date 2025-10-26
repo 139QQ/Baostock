@@ -57,7 +57,7 @@ class SimpleFundRankingCubit extends Cubit<FundRankingState> {
           'Connection': 'keep-alive',
           if (forceRefresh) 'Cache-Control': 'no-cache',
         },
-      ).timeout(const Duration(seconds: 60));
+      ).timeout(const Duration(seconds: 120));
 
       AppLogger.debug(
           '📊 SimpleFundRankingCubit: 响应状态: ${response.statusCode}');

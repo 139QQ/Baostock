@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../domain/entities/fund_ranking.dart';
+import 'glassmorphism_card.dart';
+import '../../../../core/theme/app_theme.dart';
 
 /// 优化版基金排行榜卡片组件
 ///
@@ -32,6 +34,12 @@ class OptimizedFundRankingCard extends StatelessWidget {
   /// 是否显示详情按钮
   final bool showDetailButton;
 
+  /// 是否启用毛玻璃效果
+  final bool enableGlassmorphism;
+
+  /// 毛玻璃配置（如果为null则使用默认配置）
+  final GlassmorphismConfig? glassmorphismConfig;
+
   /// 卡片颜色缓存
   static final Map<int, Color> _badgeColorCache = {};
   static final Map<int, LinearGradient> _gradientCache = {};
@@ -45,6 +53,8 @@ class OptimizedFundRankingCard extends StatelessWidget {
     this.onFavorite,
     this.showFavoriteButton = true,
     this.showDetailButton = true,
+    this.enableGlassmorphism = true, // 默认启用毛玻璃效果
+    this.glassmorphismConfig,
   });
 
   /// 获取排名徽章颜色（缓存优化）
@@ -107,6 +117,48 @@ class OptimizedFundRankingCard extends StatelessWidget {
     });
   }
 
+  /// 获取卡片渐变色（不需要BuildContext）
+  LinearGradient _getCardGradientFromPosition(int position) {
+    return _gradientCache.putIfAbsent(position, () {
+      if (position == 1) {
+        // 金色渐变
+        return const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
+        );
+      } else if (position == 2) {
+        // 银色渐变
+        return const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFC0C0C0), Color(0xFF808080)],
+        );
+      } else if (position == 3) {
+        // 铜色渐变
+        return const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFCD7F32), Color(0xFF8B4513)],
+        );
+      } else if (position <= 10) {
+        // 前10名蓝色渐变
+        return const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF2196F3), Color(0xFF1976D2)],
+        );
+      } else {
+        // 其他灰色渐变
+        return const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF757575), Color(0xFF616161)],
+        );
+      }
+    });
+  }
+
   /// 获取收益率颜色
   Color _getReturnColor(double value) {
     if (value > 0) {
@@ -120,41 +172,66 @@ class OptimizedFundRankingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cardContent = _buildCardContent();
+
+    // 如果启用毛玻璃效果
+    if (enableGlassmorphism) {
+      final config = glassmorphismConfig ?? AppTheme.defaultGlassmorphismConfig;
+
+      return GlassmorphismCard(
+        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        blur: config.blur,
+        opacity: config.opacity,
+        borderRadius: config.borderRadius,
+        borderWidth: config.borderWidth,
+        borderColor: config.borderColor,
+        backgroundColor: config.backgroundColor,
+        enablePerformanceOptimization: config.enablePerformanceOptimization,
+        child: cardContent,
+      );
+    }
+
+    // 传统卡片样式
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            gradient: _getCardGradient(context, position),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 顶部信息行
-                _buildTopRow(),
-                const SizedBox(height: 8),
+      child: cardContent,
+    );
+  }
 
-                // 基金名称
-                _buildFundName(),
-                const SizedBox(height: 8),
+  /// 构建卡片内容
+  Widget _buildCardContent() {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          gradient: _getCardGradientFromPosition(position),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 顶部信息行
+              _buildTopRow(),
+              const SizedBox(height: 8),
 
-                // 收益率信息
-                _buildReturnInfo(),
-                const SizedBox(height: 8),
+              // 基金名称
+              _buildFundName(),
+              const SizedBox(height: 8),
 
-                // 底部信息行
-                _buildBottomRow(),
-              ],
-            ),
+              // 收益率信息
+              _buildReturnInfo(),
+              const SizedBox(height: 8),
+
+              // 底部信息行
+              _buildBottomRow(),
+            ],
           ),
         ),
       ),

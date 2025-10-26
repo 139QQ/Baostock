@@ -21,7 +21,7 @@ import '../models/chart_data.dart';
 /// - 提供多种时间维度的数据视图
 class ChartDataService {
   static const String _baseUrl = 'http://154.44.25.92:8080';
-  static const Duration _defaultTimeout = Duration(seconds: 30);
+  static const Duration _defaultTimeout = Duration(seconds: 120);
 
   /// 获取基金净值走势图数据
   ///

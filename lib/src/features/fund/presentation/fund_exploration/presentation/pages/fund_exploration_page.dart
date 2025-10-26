@@ -172,49 +172,63 @@ class _FundExplorationPageContentState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // 顶部搜索和筛选区域 - 独立监听状态
-            BlocBuilder<FundExplorationCubit, FundExplorationState>(
-              builder: (context, state) => _buildTopSection(state),
-            ),
+      body: Container(
+        decoration: const BoxDecoration(
+          // 添加渐变背景以便毛玻璃效果可见
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFF0F9FF),
+              Color(0xFFE0F2FE),
+              Color(0xFFBAE6FD),
+              Color(0xFF7DD3FC),
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // 顶部搜索和筛选区域 - 独立监听状态
+              BlocBuilder<FundExplorationCubit, FundExplorationState>(
+                builder: (context, state) => _buildTopSection(state),
+              ),
 
-            // 对比模式工具栏 - 独立监听对比状态
-            BlocBuilder<FundExplorationCubit, FundExplorationState>(
-              buildWhen: (previous, current) {
-                return previous.comparisonFunds != current.comparisonFunds;
-              },
-              builder: (context, state) {
-                if (_comparisonMode && state.comparisonFunds.isNotEmpty) {
-                  return _buildComparisonToolbar(state);
-                }
-                return const SizedBox.shrink();
-              },
-            ),
-
-            // 主要内容区域 - 优化状态监听
-            Expanded(
-              child: BlocBuilder<FundExplorationCubit, FundExplorationState>(
+              // 对比模式工具栏 - 独立监听对比状态
+              BlocBuilder<FundExplorationCubit, FundExplorationState>(
                 buildWhen: (previous, current) {
-                  // 只在关键状态变化时重建
-                  return previous.isLoading != current.isLoading ||
-                      previous.errorMessage != current.errorMessage ||
-                      previous.activeView != current.activeView;
+                  return previous.comparisonFunds != current.comparisonFunds;
                 },
                 builder: (context, state) {
-                  if (state.isLoading && state.funds.isEmpty) {
-                    return _buildLoadingWidget();
+                  if (_comparisonMode && state.comparisonFunds.isNotEmpty) {
+                    return _buildComparisonToolbar(state);
                   }
-                  if (state.errorMessage != null && state.funds.isEmpty) {
-                    return _buildErrorWidget(state.errorMessage!);
-                  }
-                  return _buildContentSection(state);
+                  return const SizedBox.shrink();
                 },
               ),
-            ),
-          ],
+
+              // 主要内容区域 - 优化状态监听
+              Expanded(
+                child: BlocBuilder<FundExplorationCubit, FundExplorationState>(
+                  buildWhen: (previous, current) {
+                    // 只在关键状态变化时重建
+                    return previous.isLoading != current.isLoading ||
+                        previous.errorMessage != current.errorMessage ||
+                        previous.activeView != current.activeView;
+                  },
+                  builder: (context, state) {
+                    if (state.isLoading && state.funds.isEmpty) {
+                      return _buildLoadingWidget();
+                    }
+                    if (state.errorMessage != null && state.funds.isEmpty) {
+                      return _buildErrorWidget(state.errorMessage!);
+                    }
+                    return _buildContentSection(state);
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

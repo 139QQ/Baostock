@@ -59,7 +59,7 @@ class ImprovedFundApiService {
           'User-Agent': 'Flutter-App/1.0',
           'Connection': 'keep-alive',
         },
-      ).timeout(const Duration(seconds: 60)); // 增加超时时间到60秒
+      ).timeout(const Duration(seconds: 120)); // 设置超时时间到120秒
 
       client.close();
 
@@ -100,7 +100,7 @@ class ImprovedFundApiService {
               'symbol': symbol,
             }),
           )
-          .timeout(const Duration(seconds: 60));
+          .timeout(const Duration(seconds: 120));
 
       client.close();
 

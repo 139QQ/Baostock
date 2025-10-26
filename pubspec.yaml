@@ -21,13 +21,20 @@ dependencies:
   flutter_bloc: ^9.1.1
   equatable: ^2.0.5
   dartz: ^0.10.1
-  
+  freezed_annotation: ^2.4.1
+
+  # 高精度数值计算
+  decimal: ^2.3.3
+
   # 网络请求
   dio: ^5.3.0
   dio_http_cache_lts: ^0.4.2
   retrofit: ^4.0.3
   json_annotation: ^4.8.1
   http: ^1.1.0
+
+  # 拼音搜索支持
+  pinyin: ^3.0.0
   
   # 本地存储
   hive: ^2.2.3
@@ -35,6 +42,11 @@ dependencies:
   shared_preferences: ^2.2.2
   path_provider: ^2.1.1
   path: ^1.8.3
+
+  # 设备信息
+  connectivity_plus: ^5.0.1
+  battery_plus: ^4.0.2
+  collection: ^1.17.2
 
   # SQL Server数据库支持
   sql_conn: ^0.0.3
@@ -53,6 +65,7 @@ dependencies:
   # 工具
   intl: ^0.18.1
   get_it: ^8.2.0
+  crypto: ^3.0.3
 # url_launcher: ^6.2.4  # 暂时移除，存在Windows构建问题
   
   # 其他
@@ -61,6 +74,7 @@ dependencies:
   animations: ^2.0.8
   mockito: ^5.4.4
   build_runner: ^2.4.9
+  meta: ^1.9.1
 
 dependency_overrides:
   intl: ^0.20.2
@@ -73,6 +87,9 @@ dev_dependencies:
   retrofit_generator: ^8.2.1
   hive_generator: ^2.0.1
   bloc_test: ^10.0.0
+  freezed: ^2.4.7
+  mockito: ^5.4.4
+  build_runner: ^2.4.9
 
 flutter:
   uses-material-design: true

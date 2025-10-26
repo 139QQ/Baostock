@@ -119,7 +119,7 @@ class FundExplorationState extends Equatable {
       case FundExplorationView.all:
       case FundExplorationView.filtered:
       case FundExplorationView.search:
-        return displayFunds.length >= (currentFilter.pageSize ?? 20);
+        return displayFunds.length >= currentFilter.pageSize;
       case FundExplorationView.ranking:
         return fundRankings.length >= 20;
       default:

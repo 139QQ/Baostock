@@ -12,10 +12,16 @@ class HiveInjectionContainer {
   static final GetIt _sl = GetIt.instance;
   static GetIt get sl => _sl;
 
-  /// 初始化Hive缓存依赖
+  /// 初始化Hive缓存依赖（带错误恢复）
   static Future<void> init() async {
-    // 初始化Hive缓存管理器
-    await HiveCacheManager.instance.initialize();
+    try {
+      // 初始化Hive缓存管理器
+      await HiveCacheManager.instance.initialize();
+    } catch (e) {
+      // 记录错误但不重新抛出，允许应用在无缓存模式下运行
+      print('⚠️ Hive缓存依赖初始化失败，应用将在无缓存模式下运行: $e');
+      // 不重新抛出异常
+    }
 
     // 注册Hive缓存管理器
     _sl.registerLazySingleton<HiveCacheManager>(

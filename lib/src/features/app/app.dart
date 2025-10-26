@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../main.dart';
+import '../../core/di/injection_container.dart';
 import '../../core/theme/app_theme.dart';
 import '../auth/domain/entities/user.dart';
 import '../navigation/presentation/pages/navigation_shell.dart';
 import '../fund/presentation/fund_exploration/presentation/cubit/fund_ranking_cubit_simple.dart';
+import '../portfolio/presentation/cubit/portfolio_analysis_cubit.dart';
+import '../portfolio/presentation/cubit/fund_favorite_cubit.dart';
 import '../../core/state/global_cubit_manager.dart';
 
 class JisuFundAnalyzerApp extends StatelessWidget {
@@ -25,11 +28,35 @@ class JisuFundAnalyzerApp extends StatelessWidget {
     );
 
     // 在应用顶层提供全局状态管理
-    return BlocProvider<SimpleFundRankingCubit>(
-      create: (context) {
-        debugPrint('🔄 JisuFundAnalyzerApp: 创建全局SimpleFundRankingCubit实例');
-        return GlobalCubitManager.instance.getFundRankingCubit();
-      },
+    return MultiBlocProvider(
+      providers: [
+        // 基金排行Cubit
+        BlocProvider<SimpleFundRankingCubit>(
+          create: (context) {
+            debugPrint('🔄 JisuFundAnalyzerApp: 创建全局SimpleFundRankingCubit实例');
+            return GlobalCubitManager.instance.getFundRankingCubit();
+          },
+        ),
+        // 持仓分析Cubit
+        BlocProvider<PortfolioAnalysisCubit>(
+          create: (context) {
+            debugPrint('🔄 JisuFundAnalyzerApp: 创建PortfolioAnalysisCubit实例');
+            return sl<PortfolioAnalysisCubit>();
+          },
+        ),
+        // 自选基金Cubit
+        BlocProvider<FundFavoriteCubit>(
+          create: (context) {
+            debugPrint('🔄 JisuFundAnalyzerApp: 创建FundFavoriteCubit实例');
+            final cubit = sl<FundFavoriteCubit>();
+            // 初始化自选基金数据
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              cubit.initialize();
+            });
+            return cubit;
+          },
+        ),
+      ],
       child: MaterialApp(
         title: '基速基金分析器',
         theme: AppTheme.lightTheme,

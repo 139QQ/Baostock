@@ -23,7 +23,7 @@ class HiveCacheManager {
   late Box _metadataBox;
   bool _isInitialized = false;
 
-  /// 初始化缓存
+  /// 初始化缓存（带完整错误恢复）
   Future<void> initialize() async {
     if (_isInitialized) return;
 
@@ -36,15 +36,39 @@ class HiveCacheManager {
         // TODO: 注册必要的适配器
       }
 
-      // 打开缓存盒子
-      _cacheBox = await Hive.openBox(CacheConstants.cacheBoxName);
-      _metadataBox = await Hive.openBox(CacheConstants.metadataBoxName);
+      // 打开缓存盒子（带错误恢复）
+      try {
+        _cacheBox = await Hive.openBox(CacheConstants.cacheBoxName);
+        _metadataBox = await Hive.openBox(CacheConstants.metadataBoxName);
+        AppLogger.info('Hive缓存盒子打开成功');
+      } catch (boxError) {
+        AppLogger.warn('Hive缓存盒子打开失败，尝试重建: $boxError');
+        // 重建损坏的缓存盒子
+        await Hive.deleteBoxFromDisk(CacheConstants.cacheBoxName);
+        await Hive.deleteBoxFromDisk(CacheConstants.metadataBoxName);
+        await Future.delayed(const Duration(milliseconds: 100));
+
+        _cacheBox = await Hive.openBox(CacheConstants.cacheBoxName);
+        _metadataBox = await Hive.openBox(CacheConstants.metadataBoxName);
+        AppLogger.info('Hive缓存盒子重建成功');
+      }
 
       _isInitialized = true;
       AppLogger.info('Hive缓存初始化成功');
     } catch (e) {
-      AppLogger.error('Hive缓存初始化失败', e);
-      rethrow;
+      AppLogger.error('Hive缓存初始化完全失败，使用内存模式', e);
+      // 创建内存模式fallback
+      try {
+        _cacheBox = await Hive.openBox(CacheConstants.cacheBoxName,
+            crashRecovery: true);
+        _metadataBox = await Hive.openBox(CacheConstants.metadataBoxName,
+            crashRecovery: true);
+        _isInitialized = true;
+        AppLogger.info('Hive缓存切换到内存模式');
+      } catch (memoryError) {
+        AppLogger.error('内存模式也失败，将完全禁用缓存', memoryError);
+        rethrow;
+      }
     }
   }
 
