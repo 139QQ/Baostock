@@ -44,7 +44,8 @@ class _HotFundsSectionState extends State<HotFundsSection> {
     if (!_hasLoaded) {
       final cubit = context.read<FundExplorationCubit>();
       debugPrint('🔄 HotFundsSection 用户触发加载...');
-      cubit.loadHotFunds();
+      // 使用现有的 loadFundRankings 方法加载数据
+      cubit.loadFundRankings();
       setState(() {
         _hasLoaded = true;
       });
@@ -67,7 +68,34 @@ class _HotFundsSectionState extends State<HotFundsSection> {
   Widget build(BuildContext context) {
     return BlocBuilder<FundExplorationCubit, FundExplorationState>(
       builder: (context, state) {
-        final hotFunds = state.hotFunds;
+        final cubit = context.read<FundExplorationCubit>();
+        final sharedHotFunds = cubit.getHotFunds(limit: 10);
+        final hotFunds = sharedHotFunds.asMap().entries.map((entry) {
+          final index = entry.key;
+          final sharedFund = entry.value;
+          return FundRanking(
+            fundCode: sharedFund.fundCode,
+            fundName: sharedFund.fundName,
+            fundType: sharedFund.fundType,
+            company: sharedFund.fundCompany,
+            rankingPosition: index + 1,
+            totalCount: sharedHotFunds.length,
+            unitNav: sharedFund.nav,
+            accumulatedNav: 0.0, // shared模型没有这个字段
+            dailyReturn: sharedFund.dailyReturn,
+            return1W: 0.0, // shared模型没有这个字段
+            return1M: 0.0, // shared模型没有这个字段
+            return3M: 0.0, // shared模型没有这个字段
+            return6M: 0.0, // shared模型没有这个字段
+            return1Y: sharedFund.oneYearReturn,
+            return2Y: 0.0, // shared模型没有这个字段
+            return3Y: sharedFund.threeYearReturn,
+            returnYTD: 0.0, // shared模型没有这个字段
+            returnSinceInception: sharedFund.sinceInceptionReturn,
+            date: DateTime.now().toString().substring(0, 10), // 使用当前日期
+            fee: sharedFund.managementFee,
+          );
+        }).toList();
         final isLoading = state.isLoading;
 
         return Card(
@@ -161,7 +189,7 @@ class _HotFundsSectionState extends State<HotFundsSection> {
 
   /// 构建内容区域
   Widget _buildContent(BuildContext context, bool isLoading,
-      List<Fund> hotFunds, bool hasLoaded) {
+      List<FundRanking> hotFunds, bool hasLoaded) {
     // 加载状态
     if (isLoading && hotFunds.isEmpty) {
       return const Center(
@@ -262,34 +290,13 @@ class _HotFundsSectionState extends State<HotFundsSection> {
               width: availableHeight.clamp(200.0, 280.0),
               margin: const EdgeInsets.only(right: 8),
               child: ModernFundCard(
-                fund: FundRanking(
-                  fundCode: fund.code,
-                  fundName: fund.name,
-                  fundType: fund.type,
-                  company: fund.company,
-                  rankingPosition: index + 1,
-                  totalCount: hotFunds.length,
-                  unitNav: fund.unitNav ?? 0.0,
-                  accumulatedNav: fund.accumulatedNav ?? 0.0,
-                  dailyReturn: fund.dailyReturn ?? 0.0,
-                  return1W: fund.return1W,
-                  return1M: fund.return1M,
-                  return3M: fund.return3M,
-                  return6M: fund.return6M,
-                  return1Y: fund.return1Y,
-                  return2Y: 0.0, // Fund实体没有return2Y字段
-                  return3Y: fund.return3Y,
-                  returnYTD: fund.returnYTD ?? 0.0,
-                  returnSinceInception: fund.returnSinceInception ?? 0.0,
-                  date: '', // Fund实体没有date字段
-                  fee: fund.managementFee ?? 0.0,
-                ),
+                fund: fund,
                 ranking: index + 1,
                 onTap: () {
                   Navigator.pushNamed(
                     context,
                     '/fund-detail',
-                    arguments: fund.code,
+                    arguments: fund.fundCode,
                   );
                 },
               ),

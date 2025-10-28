@@ -185,7 +185,7 @@ class FundApiAnalyzer {
       final response = await _dio.get(
         _apiUrl,
         options: Options(
-          receiveTimeout: const Duration(seconds: 10),
+          receiveTimeout: const Duration(seconds: 120),
         ),
       );
 
@@ -246,7 +246,7 @@ class FundApiAnalyzer {
       final response = await _dio.get(
         _apiUrl,
         options: Options(
-          receiveTimeout: const Duration(seconds: 30),
+          receiveTimeout: const Duration(seconds: 120),
           headers: {
             'Accept': 'application/json; charset=utf-8',
             'Content-Type': 'application/json; charset=utf-8',
@@ -308,7 +308,7 @@ class FundApiAnalyzer {
       final response = await _dio.get(
         _apiUrl,
         options: Options(
-          receiveTimeout: const Duration(seconds: 30),
+          receiveTimeout: const Duration(seconds: 120),
           headers: {
             'Accept': 'application/json; charset=utf-8',
             'Content-Type': 'application/json; charset=utf-8',
@@ -371,7 +371,7 @@ class FundApiAnalyzer {
       final response = await _dio.get(
         _apiUrl,
         options: Options(
-          receiveTimeout: const Duration(seconds: 30),
+          receiveTimeout: const Duration(seconds: 120),
           headers: {
             'Accept': 'application/json; charset=utf-8',
             'Content-Type': 'application/json; charset=utf-8',

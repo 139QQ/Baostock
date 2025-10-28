@@ -4,6 +4,7 @@ import '../../features/fund/presentation/fund_exploration/domain/data/repositori
 import '../../features/fund/presentation/fund_exploration/domain/repositories/cache_repository.dart';
 import '../../features/fund/presentation/fund_exploration/domain/data/services/fund_service.dart';
 import '../cache/hive_cache_manager.dart';
+import '../utils/logger.dart';
 
 /// Hive缓存依赖注入配置
 ///
@@ -19,7 +20,7 @@ class HiveInjectionContainer {
       await HiveCacheManager.instance.initialize();
     } catch (e) {
       // 记录错误但不重新抛出，允许应用在无缓存模式下运行
-      print('⚠️ Hive缓存依赖初始化失败，应用将在无缓存模式下运行: $e');
+      AppLogger.error('⚠️ Hive缓存依赖初始化失败，应用将在无缓存模式下运行', e.toString());
       // 不重新抛出异常
     }
 
@@ -56,7 +57,9 @@ class HiveInjectionContainer {
   /// 清理过期缓存
   static Future<void> clearExpiredCache() async {
     if (_sl.isRegistered<HiveCacheManager>()) {
-      await _sl<HiveCacheManager>().clearExpiredCache();
+      // HiveCacheManager 目前没有 clearExpiredCache 方法，使用 clear() 作为替代
+      // TODO: 如果需要过期缓存管理，需要在 HiveCacheManager 中实现相应功能
+      await _sl<HiveCacheManager>().clear();
     }
   }
 

@@ -41,11 +41,11 @@ void main() {
           expect(data, isA<List>());
           expect(data.isNotEmpty, isTrue);
 
-          // 验证返回的数据包含必要字段
+          // 验证返回的数据包含净值字段（这是净值API）
           final fundData = data.first as Map<String, dynamic>;
-          expect(fundData, containsKey('基金代码'));
-          expect(fundData, containsKey('基金名称'));
-          expect(fundData, containsKey('基金类型'));
+          expect(fundData.keys.contains('净值日期'), isTrue);
+          expect(fundData.keys.contains('单位净值'), isTrue);
+          expect(fundData.keys.contains('日增长率'), isTrue);
         } else {
           print('API请求失败，状态码: ${response.statusCode}');
           print('响应内容: ${response.body}');
@@ -180,7 +180,7 @@ void main() {
       test('应该处理极大或极小的基金代码', () {
         expect(isValidFundCode('999999'), isTrue);
         expect(isValidFundCode('000001'), isTrue);
-        expect(isValidFundCode('100000'), isFalse);
+        expect(isValidFundCode('100000'), isTrue); // 100000是有效的6位数字
       });
     });
 

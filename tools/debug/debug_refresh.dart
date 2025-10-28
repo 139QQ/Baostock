@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:jisu_fund_analyzer/src/features/fund/presentation/fund_exploration/presentation/cubit/fund_ranking_cubit.dart';
+import 'package:jisu_fund_analyzer/src/features/fund/presentation/fund_exploration/presentation/cubit/fund_exploration_cubit.dart';
 import 'package:jisu_fund_analyzer/src/core/utils/logger.dart';
 
 /// 刷新按钮调试应用
@@ -33,7 +33,7 @@ class RefreshDebugPage extends StatefulWidget {
 
 class _RefreshDebugPageState extends State<RefreshDebugPage> {
   String _log = '等待操作...\n';
-  FundRankingCubit? _cubit;
+  FundExplorationCubit? _cubit;
 
   @override
   void initState() {
@@ -44,18 +44,18 @@ class _RefreshDebugPageState extends State<RefreshDebugPage> {
 
   void _initializeCubit() {
     try {
-      AppLogger.debug('🔄 创建FundRankingCubit');
-      _cubit = FundRankingCubit();
+      AppLogger.debug('🔄 创建FundExplorationCubit');
+      // _cubit = FundExplorationCubit(); // 需要依赖注入，暂时注释
 
-      // 监听状态变化
-      _cubit!.stream.listen((state) {
+      // 监听状态变化 - 暂时注释，因为_cubit为null
+      /*_cubit!.stream.listen((state) {
         AppLogger.debug('📊 Cubit状态变化: ${state.runtimeType}');
         _addLog('Cubit状态: ${state.runtimeType}');
-      });
+      });*/
 
-      _addLog('✅ FundRankingCubit 创建成功');
+      _addLog('⚠️ FundExplorationCubit 需要依赖注入，暂时跳过创建');
     } catch (e, stackTrace) {
-      AppLogger.error('❌ 创建FundRankingCubit失败', e.toString(), stackTrace);
+      AppLogger.error('❌ 创建FundExplorationCubit失败', e.toString(), stackTrace);
       _addLog('❌ 创建失败: $e');
     }
   }
@@ -69,11 +69,11 @@ class _RefreshDebugPageState extends State<RefreshDebugPage> {
 
   void _testInitialize() {
     if (_cubit != null) {
-      _addLog('🔄 调用 initialize()');
-      _cubit!.initialize().then((_) {
-        _addLog('✅ initialize() 完成');
+      _addLog('🔄 调用 loadFundRankings()');
+      _cubit!.loadFundRankings().then((_) {
+        _addLog('✅ loadFundRankings() 完成');
       }).catchError((e) {
-        _addLog('❌ initialize() 失败: $e');
+        _addLog('❌ loadFundRankings() 失败: $e');
       });
     } else {
       _addLog('❌ Cubit为空，无法初始化');
@@ -82,9 +82,9 @@ class _RefreshDebugPageState extends State<RefreshDebugPage> {
 
   void _testRefreshRankings() {
     if (_cubit != null) {
-      _addLog('🔄 调用 refreshRankings()');
-      _cubit!.refreshRankings();
-      _addLog('✅ refreshRankings() 调用完成');
+      _addLog('🔄 调用 refreshData()');
+      _cubit!.refreshData();
+      _addLog('✅ refreshData() 调用完成');
     } else {
       _addLog('❌ Cubit为空，无法刷新');
     }
@@ -92,9 +92,9 @@ class _RefreshDebugPageState extends State<RefreshDebugPage> {
 
   void _testForceReload() {
     if (_cubit != null) {
-      _addLog('🔄 调用 forceReload()');
-      _cubit!.forceReload();
-      _addLog('✅ forceReload() 调用完成');
+      _addLog('🔄 调用 loadFundRankings(forceRefresh: true)');
+      _cubit!.loadFundRankings(forceRefresh: true);
+      _addLog('✅ loadFundRankings(forceRefresh: true) 调用完成');
     } else {
       _addLog('❌ Cubit为空，无法强制重载');
     }

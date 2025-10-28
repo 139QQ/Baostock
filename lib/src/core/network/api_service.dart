@@ -42,4 +42,30 @@ class ApiService {
     final response = await _dio.get('/api/public/fund_manager_em');
     return response.data;
   }
+
+  /// 获取货币型基金实时数据
+  Future<List<dynamic>> getMoneyFundDaily() async {
+    final response = await _dio.get('/api/public/fund_money_fund_daily_em');
+    return response.data;
+  }
+
+  /// 获取货币型基金历史数据
+  Future<List<dynamic>> getMoneyFundInfo(String symbol) async {
+    final response = await _dio.get('/api/public/fund_money_fund_info_em',
+        queryParameters: {'symbol': symbol});
+    return response.data;
+  }
+
+  /// 获取理财型基金实时数据
+  Future<List<dynamic>> getFinancialFundDaily() async {
+    final response = await _dio.get('/api/public/fund_financial_fund_daily_em');
+    return response.data;
+  }
+
+  /// 获取理财型基金历史数据
+  Future<List<dynamic>> getFinancialFundInfo(String symbol) async {
+    final response = await _dio.get('/api/public/fund_financial_fund_info_em',
+        queryParameters: {'symbol': symbol});
+    return response.data;
+  }
 }

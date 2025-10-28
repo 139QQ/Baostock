@@ -1,6 +1,15 @@
 import 'package:get_it/get_it.dart';
+import 'package:dio/dio.dart';
 import '../network/fund_api_client.dart';
+import '../network/api_service.dart';
+// 统一缓存系统导入
+import '../cache/interfaces/cache_service.dart';
+import '../cache/unified_hive_cache_manager.dart';
+import '../config/cache_system_config.dart';
+
+// 兼容性缓存管理器导入 (备份)
 import '../cache/hive_cache_manager.dart';
+import '../cache/enhanced_hive_cache_manager.dart';
 import '../../services/optimized_cache_manager_v3.dart';
 import '../services/secure_storage_service.dart';
 import '../services/auth_service.dart';
@@ -12,11 +21,11 @@ import '../../features/fund/domain/repositories/fund_repository_impl.dart';
 import '../../features/fund/domain/usecases/get_fund_list.dart';
 import '../../features/fund/domain/usecases/get_fund_rankings.dart';
 import '../../features/fund/domain/usecases/fund_search_usecase.dart';
-import '../../features/fund/presentation/bloc/fund_bloc.dart';
-import '../../features/fund/presentation/bloc/fund_ranking_bloc.dart';
-import '../../features/fund/presentation/bloc/search_bloc.dart';
 import '../../features/fund/presentation/fund_exploration/presentation/cubit/fund_exploration_cubit.dart';
-import '../../features/fund/presentation/fund_exploration/presentation/cubit/fund_ranking_cubit.dart';
+import '../../features/fund/shared/services/fund_data_service.dart';
+import '../../features/fund/shared/services/search_service.dart';
+import '../../features/fund/shared/services/data_validation_service.dart';
+import '../../features/fund/shared/services/money_fund_service.dart';
 // 基金对比相关导入
 import '../../features/fund/data/services/fund_comparison_service.dart';
 import '../../features/fund/domain/repositories/fund_comparison_repository.dart';
@@ -41,7 +50,9 @@ import '../../features/portfolio/domain/services/portfolio_profit_calculation_en
 import '../../features/portfolio/data/adapters/portfolio_holding_adapter.dart';
 import '../../features/portfolio/data/adapters/fund_corporate_action_adapter.dart';
 import '../../features/portfolio/data/adapters/fund_split_detail_adapter.dart';
-import '../../features/portfolio/data/adapters/fund_favorite_adapter.dart';
+// 导入所有适配器类
+import '../../features/portfolio/data/adapters/fund_favorite_adapter.dart'
+    as favorite_adapters;
 import '../../features/portfolio/data/services/fund_favorite_service.dart';
 import '../../features/portfolio/presentation/cubit/portfolio_analysis_cubit.dart';
 import '../../features/portfolio/presentation/cubit/fund_favorite_cubit.dart';
@@ -54,26 +65,93 @@ Future<void> initDependencies() async {
 
   // ===== 核心缓存服务 =====
 
-  // 注册优化的缓存管理器V3作为单例，确保整个应用使用同一个实例
-  sl.registerLazySingleton<OptimizedCacheManagerV3>(() {
-    final cacheManager = OptimizedCacheManagerV3.createNewInstance();
-    // 异步初始化，不阻塞依赖注入过程
-    cacheManager.initialize().catchError((e) {
-      AppLogger.debug('Optimized cache manager initialization failed: $e');
+  // 统一缓存系统 - 主要缓存服务
+  if (!sl.isRegistered<UnifiedHiveCacheManager>()) {
+    sl.registerLazySingleton<UnifiedHiveCacheManager>(() {
+      final cacheManager = UnifiedHiveCacheManager.instance;
+      // 异步初始化，不阻塞依赖注入过程
+      cacheManager.initialize().catchError((e) {
+        AppLogger.debug('Unified Hive cache manager initialization failed: $e');
+      });
+      return cacheManager;
     });
-    return cacheManager;
-  });
+  }
+
+  // 统一缓存服务接口
+  if (!sl.isRegistered<CacheService>()) {
+    sl.registerLazySingleton<CacheService>(
+        () => CacheSystemConfig.getCacheService(sl: sl));
+  }
+
+  // ===== 兼容性缓存管理器 (根据配置动态注册) =====
+  // 为了向后兼容性，如果配置禁用统一缓存，则注册传统缓存管理器
+
+  if (!CacheSystemConfig.useUnifiedCache) {
+    // 注册基础Hive缓存管理器作为单例
+    if (!sl.isRegistered<HiveCacheManager>()) {
+      sl.registerLazySingleton<HiveCacheManager>(
+          () => HiveCacheManager.instance);
+    }
+
+    // 注册增强版Hive缓存管理器作为单例
+    if (!sl.isRegistered<EnhancedHiveCacheManager>()) {
+      sl.registerLazySingleton<EnhancedHiveCacheManager>(() {
+        final cacheManager = EnhancedHiveCacheManager.instance;
+        // 异步初始化，不阻塞依赖注入过程
+        cacheManager.initialize().catchError((e) {
+          AppLogger.debug(
+              'Enhanced Hive cache manager initialization failed: $e');
+        });
+        return cacheManager;
+      });
+    }
+
+    // 注册优化的缓存管理器V3作为单例，确保整个应用使用同一个实例
+    if (!sl.isRegistered<OptimizedCacheManagerV3>()) {
+      sl.registerLazySingleton<OptimizedCacheManagerV3>(() {
+        final cacheManager = OptimizedCacheManagerV3.createNewInstance();
+        // 异步初始化，不阻塞依赖注入过程
+        cacheManager.initialize().catchError((e) {
+          AppLogger.debug('Optimized cache manager initialization failed: $e');
+        });
+        return cacheManager;
+      });
+    }
+
+    AppLogger.debug(
+        'DependencyInjection: Legacy cache managers registered (compatibility mode)');
+  } else {
+    AppLogger.debug('DependencyInjection: Using unified cache system');
+  }
 
   // API客户端
   sl.registerLazySingleton(() => FundApiClient());
+
+  // API服务 - 配置120秒超时时间
+  sl.registerLazySingleton(() => ApiService(Dio(BaseOptions(
+        baseUrl: 'http://154.44.25.92:8080',
+        connectTimeout: const Duration(seconds: 30), // 连接超时：30秒
+        receiveTimeout: const Duration(seconds: 120), // 接收超时：120秒
+        sendTimeout: const Duration(seconds: 30), // 发送超时：30秒
+        headers: {
+          'Accept': 'application/json; charset=utf-8',
+          'Content-Type': 'application/json; charset=utf-8',
+        },
+      ))));
 
   // 数据源
   sl.registerLazySingleton<FundRemoteDataSource>(
     () => FundRemoteDataSourceImpl(sl()),
   );
 
-  sl.registerLazySingleton<FundLocalDataSource>(
-    () => FundLocalDataSourceImpl(HiveCacheManager.instance.cacheBox),
+  sl.registerLazySingletonAsync<FundLocalDataSource>(
+    () async {
+      // 由于HiveCacheManager的cacheBox是私有的，我们需要重新设计
+      // 暂时使用一个新的box实例，但这不是最佳实践
+      // TODO: 重构HiveCacheManager以提供公共的cacheBox访问或重构FundLocalDataSourceImpl
+      final box = await Hive.openBox('fund_cache_local');
+      return FundLocalDataSourceImpl(box);
+    },
   );
 
   // 仓库
@@ -90,30 +168,29 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => GetFundRankings(sl()));
   sl.registerLazySingleton(() => FundSearchUseCase(sl()));
 
-  // Bloc
-  sl.registerFactory(() => FundBloc(
-        getFundList: sl(),
-        getFundRankings: sl(),
+  // 基金数据服务
+  sl.registerLazySingleton<FundDataService>(() => FundDataService(
+        cacheService: sl(),
       ));
 
-  // 排行榜BLoC
-  sl.registerFactory(() => FundRankingBloc(
-        getFundRankings: sl(),
-        repository: sl(),
+  // 数据验证服务（在FundDataService之后注册，避免循环依赖）
+  sl.registerLazySingleton<DataValidationService>(() => DataValidationService(
+        cacheService: sl(),
+        fundDataService: sl(),
       ));
 
-  // 搜索BLoC
-  sl.registerFactory(() => SearchBloc(
-        searchUseCase: sl(),
-      ));
+  // 搜索服务
+  sl.registerLazySingleton<SearchService>(() => SearchService());
 
-  // 基金探索Cubit
-  sl.registerFactory(() => FundExplorationCubit(
-        fundRankingBloc: sl(),
-      ));
+  // 货币基金服务
+  sl.registerLazySingleton<MoneyFundService>(() => MoneyFundService());
 
-  // 基金排行Cubit
-  sl.registerLazySingleton(() => FundRankingCubit());
+  // 统一的基金探索Cubit
+  sl.registerLazySingleton<FundExplorationCubit>(() => FundExplorationCubit(
+        fundDataService: sl(),
+        searchService: sl(),
+        moneyFundService: sl(),
+      ));
 
   // ===== 基金对比相关依赖 =====
 
@@ -125,7 +202,7 @@ Future<void> initDependencies() async {
       () => FundComparisonRepositoryImpl(
             fundRepository: sl(),
             comparisonService: sl(),
-            cacheManager: sl(),
+            cacheService: sl(),
           ));
 
   // 基金对比Cubit
@@ -186,28 +263,28 @@ Future<void> initDependencies() async {
 
     // 注册自选基金相关的Hive适配器
     if (!Hive.isAdapterRegistered(10)) {
-      Hive.registerAdapter(FundFavoriteAdapter());
+      Hive.registerAdapter(favorite_adapters.FundFavoriteAdapter());
     }
     if (!Hive.isAdapterRegistered(11)) {
-      Hive.registerAdapter(PriceAlertSettingsAdapter());
+      Hive.registerAdapter(favorite_adapters.PriceAlertSettingsAdapter());
     }
     if (!Hive.isAdapterRegistered(12)) {
-      Hive.registerAdapter(TargetPriceAlertAdapter());
+      Hive.registerAdapter(favorite_adapters.TargetPriceAlertAdapter());
     }
     if (!Hive.isAdapterRegistered(13)) {
-      Hive.registerAdapter(FundFavoriteListAdapter());
+      Hive.registerAdapter(favorite_adapters.FundFavoriteListAdapter());
     }
     if (!Hive.isAdapterRegistered(14)) {
-      Hive.registerAdapter(SortConfigurationAdapter());
+      Hive.registerAdapter(favorite_adapters.SortConfigurationAdapter());
     }
     if (!Hive.isAdapterRegistered(15)) {
-      Hive.registerAdapter(FilterConfigurationAdapter());
+      Hive.registerAdapter(favorite_adapters.FilterConfigurationAdapter());
     }
     if (!Hive.isAdapterRegistered(17)) {
-      Hive.registerAdapter(SyncConfigurationAdapter());
+      Hive.registerAdapter(favorite_adapters.SyncConfigurationAdapter());
     }
     if (!Hive.isAdapterRegistered(18)) {
-      Hive.registerAdapter(ListStatisticsAdapter());
+      Hive.registerAdapter(favorite_adapters.ListStatisticsAdapter());
     }
   } catch (e) {
     AppLogger.debug('Failed to register Hive adapters: $e');
@@ -215,10 +292,12 @@ Future<void> initDependencies() async {
 
   // 组合收益缓存服务
   sl.registerLazySingleton<PortfolioProfitCacheService>(() {
-    final service = PortfolioProfitCacheService();
+    final service = PortfolioProfitCacheService(
+      cacheService: sl(),
+    );
     // 异步初始化，不阻塞依赖注入
     service.initialize().catchError((e) {
-      AppLogger.debug('Cache service initialization failed: $e');
+      AppLogger.debug('PortfolioProfitCacheService initialization failed: $e');
     });
     return service;
   });

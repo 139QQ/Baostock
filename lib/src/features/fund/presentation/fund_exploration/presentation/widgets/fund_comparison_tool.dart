@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/models/fund.dart';
 import '../cubit/fund_exploration_cubit.dart';
+import '../../../../shared/extensions/fund_ranking_extension.dart';
 
 /// 基金对比工具组件
 ///
@@ -64,13 +65,13 @@ class _FundComparisonToolState extends State<FundComparisonTool> {
                 if (state.comparisonFunds.isEmpty)
                   _buildEmptyState()
                 else
-                  _buildComparisonList(state.comparisonFunds),
+                  _buildComparisonList(state.comparisonFunds.toFundList()),
 
                 const SizedBox(height: 16),
 
                 // 对比操作按钮
                 if (state.comparisonFunds.isNotEmpty) ...[
-                  _buildComparisonActions(state.comparisonFunds),
+                  _buildComparisonActions(state.comparisonFunds.toFundList()),
                 ],
               ],
             ),

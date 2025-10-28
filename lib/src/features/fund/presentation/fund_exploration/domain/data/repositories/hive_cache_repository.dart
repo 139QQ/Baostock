@@ -233,8 +233,10 @@ class HiveCacheRepository implements CacheRepository {
   @override
   Future<void> clearExpiredCache() async {
     try {
-      await _cacheManager.clearExpiredCache();
-      debugPrint('Hive过期缓存清理完成');
+      // HiveCacheManager 目前没有 clearExpiredCache 方法，使用 clear() 作为替代
+      // TODO: 如果需要过期缓存管理，需要在 HiveCacheManager 中实现相应功能
+      await _cacheManager.clear();
+      debugPrint('Hive过期缓存清理完成（使用clear()方法替代）');
     } catch (e) {
       debugPrint('Hive过期缓存清理失败: $e');
     }

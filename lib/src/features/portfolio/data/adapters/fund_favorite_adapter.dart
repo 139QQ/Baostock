@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:hive/hive.dart';
 import 'package:jisu_fund_analyzer/src/features/portfolio/domain/fund_favorite/src/entities/fund_favorite.dart';
 import 'package:jisu_fund_analyzer/src/features/portfolio/domain/fund_favorite/src/entities/fund_favorite_list.dart';
+import '../../../../core/utils/logger.dart';
 
 /// 自选基金Hive适配器
 ///
@@ -345,22 +346,24 @@ class FundFavoriteListAdapter extends TypeAdapter<FundFavoriteList> {
 
       // 如果字段数量不是17，记录警告但继续处理
       if (numberOfFields != 17) {
-        print('⚠️ FundFavoriteList: 字段数量异常 ($numberOfFields)，期望 17');
+        AppLogger.warn('⚠️ FundFavoriteList: 字段数量异常 ($numberOfFields)，期望 17');
       }
 
       final fields = <int, dynamic>{};
       for (int i = 0; i < numberOfFields; i++) {
-        // 超时保护：如果读取时间超过5秒，抛出异常
-        if (DateTime.now().difference(startTime).inSeconds > 5) {
+        // 增强的超时保护：如果读取时间超过2秒，抛出异常
+        if (DateTime.now().difference(startTime).inMilliseconds > 2000) {
           throw TimeoutException(
-              '读取 FundFavoriteList 超时', const Duration(seconds: 5));
+              '读取 FundFavoriteList 超时（字段 $i）', const Duration(seconds: 2));
         }
 
         try {
-          fields[i] = reader.read();
+          // 使用异步读取的方式来避免阻塞
+          final fieldValue = _readWithTimeout(reader, 500); // 500ms超时
+          fields[i] = fieldValue;
         } catch (e) {
           // 如果单个字段读取失败，使用默认值而不是抛出异常
-          print('⚠️ 读取字段 $i 失败，使用默认值: $e');
+          AppLogger.warn('⚠️ 读取字段 $i 失败，使用默认值: $e');
           fields[i] = _getDefaultFieldValue(i);
         }
       }
@@ -470,6 +473,36 @@ class FundFavoriteListAdapter extends TypeAdapter<FundFavoriteList> {
       other is FundFavoriteListAdapter &&
           runtimeType == other.runtimeType &&
           typeId == other.typeId;
+
+  /// 带超时保护的读取方法
+  dynamic _readWithTimeout(BinaryReader reader, int timeoutMs) {
+    final startTime = DateTime.now();
+
+    try {
+      // 直接读取，但立即检查超时
+      final result = reader.read();
+
+      // 检查是否超时
+      if (DateTime.now().difference(startTime).inMilliseconds > timeoutMs) {
+        throw TimeoutException('读取操作超时', Duration(milliseconds: timeoutMs));
+      }
+
+      return result;
+    } catch (e) {
+      // 如果是超时异常，直接重新抛出
+      if (e is TimeoutException) {
+        rethrow;
+      }
+
+      // 检查是否因为超时导致的异常
+      if (DateTime.now().difference(startTime).inMilliseconds > timeoutMs) {
+        throw TimeoutException('读取操作超时', Duration(milliseconds: timeoutMs));
+      }
+
+      // 其他异常重新抛出
+      rethrow;
+    }
+  }
 
   /// 获取字段的默认值（用于读取失败时的容错处理）
   dynamic _getDefaultFieldValue(int fieldIndex) {

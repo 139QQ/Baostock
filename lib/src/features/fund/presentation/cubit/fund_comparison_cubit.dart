@@ -170,7 +170,7 @@ class FundComparisonCubit extends Cubit<FundComparisonState> {
   }
 
   /// 检查是否有数据
-  bool get hasData => state.result != null && !state.result!.fundData.isEmpty;
+  bool get hasData => state.result != null && state.result!.fundData.isNotEmpty;
 
   /// 检查是否有错误
   bool get hasError => state.status == FundComparisonStatus.error;

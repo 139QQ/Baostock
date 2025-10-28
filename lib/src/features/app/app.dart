@@ -6,7 +6,7 @@ import '../../core/di/injection_container.dart';
 import '../../core/theme/app_theme.dart';
 import '../auth/domain/entities/user.dart';
 import '../navigation/presentation/pages/navigation_shell.dart';
-import '../fund/presentation/fund_exploration/presentation/cubit/fund_ranking_cubit_simple.dart';
+import '../fund/presentation/fund_exploration/presentation/cubit/fund_exploration_cubit.dart';
 import '../portfolio/presentation/cubit/portfolio_analysis_cubit.dart';
 import '../portfolio/presentation/cubit/fund_favorite_cubit.dart';
 import '../../core/state/global_cubit_manager.dart';
@@ -30,10 +30,10 @@ class JisuFundAnalyzerApp extends StatelessWidget {
     // 在应用顶层提供全局状态管理
     return MultiBlocProvider(
       providers: [
-        // 基金排行Cubit
-        BlocProvider<SimpleFundRankingCubit>(
+        // 基金探索Cubit
+        BlocProvider<FundExplorationCubit>(
           create: (context) {
-            debugPrint('🔄 JisuFundAnalyzerApp: 创建全局SimpleFundRankingCubit实例');
+            debugPrint('🔄 JisuFundAnalyzerApp: 获取统一的FundExplorationCubit实例');
             return GlobalCubitManager.instance.getFundRankingCubit();
           },
         ),

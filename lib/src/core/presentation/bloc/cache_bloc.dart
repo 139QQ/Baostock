@@ -179,7 +179,9 @@ class CacheBloc extends Bloc<CacheEvent, CacheState> {
     Emitter<CacheState> emit,
   ) async {
     try {
-      await _cacheManager.clearExpiredCache();
+      // HiveCacheManager 目前没有 clearExpiredCache 方法，使用 clear() 作为替代
+      // TODO: 如果需要过期缓存管理，需要在 HiveCacheManager 中实现相应功能
+      await _cacheManager.clear();
 
       emit(state.copyWith(
         status: CacheStatus.expiredCleared,
@@ -187,7 +189,7 @@ class CacheBloc extends Bloc<CacheEvent, CacheState> {
         lastUpdated: DateTime.now(),
       ));
 
-      debugPrint('✅ 过期缓存清理完成');
+      debugPrint('✅ 过期缓存清理完成（使用clear()方法替代）');
     } catch (e) {
       emit(state.copyWith(
         status: CacheStatus.error,

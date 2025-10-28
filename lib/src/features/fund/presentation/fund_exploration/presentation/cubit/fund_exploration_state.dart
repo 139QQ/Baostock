@@ -1,229 +1,464 @@
 part of 'fund_exploration_cubit.dart';
 
+/// 基金探索视图枚举
+enum FundExplorationView {
+  /// 搜索视图
+  search,
+
+  /// 筛选视图
+  filtered,
+
+  /// 对比视图
+  comparison,
+
+  /// 全部视图
+  all,
+
+  /// 热门视图
+  hot,
+
+  /// 排行视图
+  ranking,
+
+  /// 货币基金视图
+  moneyFunds,
+}
+
+/// 基金探索状态枚举
 enum FundExplorationStatus {
+  /// 初始状态
   initial,
+
+  /// 加载中
   loading,
-  searching,
-  filtering,
+
+  /// 加载完成
   loaded,
+
+  /// 搜索中
+  searching,
+
+  /// 搜索完成
+  searched,
+
+  /// 筛选中
+  filtering,
+
+  /// 筛选完成
+  filtered,
+
+  /// 错误状态
   error,
 }
 
-enum FundExplorationView {
-  all, // 全部基金
-  hot, // 热门基金
-  ranking, // 基金排行
-  filtered, // 筛选结果
-  search, // 搜索结果
-  comparison, // 对比模式
-}
-
+/// 基金探索状态类
+///
+/// 统一的基金探索页面状态，包含所有需要的状态信息
+/// 使用Equatable确保状态比较的效率
 class FundExplorationState extends Equatable {
+  /// 当前状态
   final FundExplorationStatus status;
-  final FundExplorationView activeView;
-  final List<exploration_fund.Fund> funds;
-  final List<exploration_fund.Fund> hotFunds;
-  final List<FundRanking> fundRankings;
-  final List<exploration_fund.Fund> searchResults;
-  final List<exploration_fund.Fund> filteredFunds;
-  final List<exploration_fund.Fund> comparisonFunds;
-  final FundFilter currentFilter;
-  final String searchQuery;
-  final String sortBy;
-  final String? errorMessage;
-  final bool isRefreshing;
-  final int fundRankingsPage; // 基金排行当前页码
-  final int fundRankingsPageSize; // 基金排行每页大小
-  final bool hasMoreFundRankings; // 是否还有更多基金排行数据
-  final bool isFundRankingsRealData; // 基金排行是否为真实数据（而非模拟数据）
-  final int selectedTab; // 当前选中的标签页
-  final Set<String> expandedFunds; // 展开的基金列表
-  final String activeFilter; // 当前激活的筛选条件
-  final String activeSortBy; // 当前激活的排序条件
-  final double scrollPosition; // 滚动位置
-  final bool isRealData; // 是否为真实数据
 
-  FundExplorationState({
+  /// 基金排行数据（原始数据）
+  final List<FundRanking> fundRankings;
+
+  /// 搜索结果数据
+  final List<FundRanking> searchResults;
+
+  /// 筛选后的结果数据
+  final List<FundRanking> filteredRankings;
+
+  /// 搜索查询字符串
+  final String searchQuery;
+
+  /// 错误信息
+  final String? errorMessage;
+
+  /// 是否正在加载
+  final bool isLoading;
+
+  /// 是否正在加载更多数据
+  final bool isLoadingMore;
+
+  /// 是否有更多数据可加载
+  final bool hasMoreData;
+
+  /// 最后更新时间
+  final DateTime? lastUpdateTime;
+
+  /// 数据总数
+  final int totalCount;
+
+  /// 是否为真实数据（相对于模拟数据）
+  final bool isRealData;
+
+  /// 当前激活的筛选条件
+  final String activeFilter;
+
+  /// 当前激活的排序字段
+  final String activeSortBy;
+
+  /// 当前激活的排序顺序
+  final String activeSortOrder;
+
+  /// 展开的基金代码集合
+  final Set<String> expandedFunds;
+
+  /// 加载进度（0.0-1.0）
+  final double loadProgress;
+
+  /// 搜索历史记录
+  final List<String> searchHistory;
+
+  /// 对比基金列表
+  final List<FundRanking> comparisonFunds;
+
+  /// 是否处于对比模式
+  final bool isComparing;
+
+  /// 货币基金数据
+  final List<MoneyFund> moneyFunds;
+
+  /// 货币基金搜索结果
+  final List<MoneyFund> moneyFundSearchResults;
+
+  /// 货币基金是否正在加载
+  final bool isMoneyFundsLoading;
+
+  /// 货币基金加载错误信息
+  final String? moneyFundsError;
+
+  /// 当前活跃视图
+  final FundExplorationView activeView;
+
+  /// 排序字段
+  final String sortBy;
+
+  const FundExplorationState({
     this.status = FundExplorationStatus.initial,
-    this.activeView = FundExplorationView.hot,
-    this.funds = const [],
-    this.hotFunds = const [],
     this.fundRankings = const [],
     this.searchResults = const [],
-    this.filteredFunds = const [],
-    this.comparisonFunds = const [],
-    FundFilter? currentFilter,
+    this.filteredRankings = const [],
     this.searchQuery = '',
-    this.sortBy = 'return1Y',
     this.errorMessage,
-    this.isRefreshing = false,
-    this.fundRankingsPage = 1,
-    this.fundRankingsPageSize = 1000, // 每页1000条，平衡性能和体验
-    this.hasMoreFundRankings = true,
-    this.isFundRankingsRealData = false, // 默认为false，表示初始为无数据状态
-    this.selectedTab = 0,
-    this.expandedFunds = const {},
-    this.activeFilter = '',
-    this.activeSortBy = '',
-    this.scrollPosition = 0.0,
+    this.isLoading = false,
+    this.isLoadingMore = false,
+    this.hasMoreData = false,
+    this.lastUpdateTime,
+    this.totalCount = 0,
     this.isRealData = false,
-  }) : currentFilter = currentFilter ?? FundFilter();
+    this.activeFilter = '',
+    this.activeSortBy = 'return1Y',
+    this.activeSortOrder = 'desc',
+    this.expandedFunds = const {},
+    this.loadProgress = 0.0,
+    this.searchHistory = const [],
+    this.comparisonFunds = const [],
+    this.isComparing = false,
+    this.moneyFunds = const [],
+    this.moneyFundSearchResults = const [],
+    this.isMoneyFundsLoading = false,
+    this.moneyFundsError,
+    this.activeView = FundExplorationView.ranking,
+    this.sortBy = 'return1Y',
+  });
 
-  /// 获取当前显示的数据列表
-  List<dynamic> get displayData {
-    switch (activeView) {
-      case FundExplorationView.all:
-        return funds;
-      case FundExplorationView.hot:
-        return hotFunds;
-      case FundExplorationView.ranking:
-        return fundRankings;
-      case FundExplorationView.filtered:
-        return filteredFunds;
-      case FundExplorationView.search:
-        return searchResults;
-      case FundExplorationView.comparison:
-        return comparisonFunds;
-    }
-  }
+  /// 初始状态构造函数
+  const FundExplorationState.initial()
+      : this(
+          status: FundExplorationStatus.initial,
+          fundRankings: const [],
+          searchResults: const [],
+          filteredRankings: const [],
+          searchQuery: '',
+          errorMessage: null,
+          isLoading: false,
+          isLoadingMore: false,
+          hasMoreData: false,
+          lastUpdateTime: null,
+          totalCount: 0,
+          isRealData: false,
+          activeFilter: '',
+          activeSortBy: 'return1Y',
+          activeSortOrder: 'desc',
+          expandedFunds: const {},
+          loadProgress: 0.0,
+          searchHistory: const [],
+          comparisonFunds: const [],
+          isComparing: false,
+          moneyFunds: const [],
+          moneyFundSearchResults: const [],
+          isMoneyFundsLoading: false,
+          moneyFundsError: null,
+          activeView: FundExplorationView.ranking,
+          sortBy: 'return1Y',
+        );
 
-  /// 获取当前显示的基金列表
-  List<exploration_fund.Fund> get displayFunds {
-    switch (activeView) {
-      case FundExplorationView.all:
-        return funds;
-      case FundExplorationView.hot:
-        return hotFunds;
-      case FundExplorationView.filtered:
-        return filteredFunds;
-      case FundExplorationView.search:
-        return searchResults;
-      case FundExplorationView.comparison:
-        return comparisonFunds;
-      case FundExplorationView.ranking:
-        return [];
-    }
-  }
+  /// 加载状态构造函数
+  const FundExplorationState.loading({
+    this.fundRankings = const [],
+    this.searchResults = const [],
+    this.filteredRankings = const [],
+    this.searchQuery = '',
+    this.errorMessage,
+    this.lastUpdateTime,
+    this.totalCount = 0,
+    this.isRealData = false,
+    this.activeFilter = '',
+    this.activeSortBy = 'return1Y',
+    this.activeSortOrder = 'desc',
+    this.expandedFunds = const {},
+    this.loadProgress = 0.0,
+    this.searchHistory = const [],
+    this.comparisonFunds = const [],
+    this.isComparing = false,
+    this.moneyFunds = const [],
+    this.moneyFundSearchResults = const [],
+    this.isMoneyFundsLoading = false,
+    this.moneyFundsError,
+    this.activeView = FundExplorationView.ranking,
+    this.sortBy = 'return1Y',
+  })  : status = FundExplorationStatus.loading,
+        isLoading = true,
+        isLoadingMore = false,
+        hasMoreData = false;
 
-  /// 是否正在加载数据
-  bool get isLoading =>
-      status == FundExplorationStatus.loading ||
-      status == FundExplorationStatus.searching ||
-      status == FundExplorationStatus.filtering;
+  /// 错误状态构造函数
+  const FundExplorationState.error({
+    required this.errorMessage,
+    this.fundRankings = const [],
+    this.searchResults = const [],
+    this.filteredRankings = const [],
+    this.searchQuery = '',
+    this.lastUpdateTime,
+    this.totalCount = 0,
+    this.isRealData = false,
+    this.activeFilter = '',
+    this.activeSortBy = 'return1Y',
+    this.activeSortOrder = 'desc',
+    this.expandedFunds = const {},
+    this.loadProgress = 0.0,
+    this.searchHistory = const [],
+    this.comparisonFunds = const [],
+    this.isComparing = false,
+    this.moneyFunds = const [],
+    this.moneyFundSearchResults = const [],
+    this.isMoneyFundsLoading = false,
+    this.moneyFundsError,
+    this.activeView = FundExplorationView.ranking,
+    this.sortBy = 'return1Y',
+  })  : status = FundExplorationStatus.error,
+        isLoading = false,
+        isLoadingMore = false,
+        hasMoreData = false;
 
-  /// 是否可以加载更多
-  bool get canLoadMore {
-    if (isLoading) return false;
-
-    switch (activeView) {
-      case FundExplorationView.all:
-      case FundExplorationView.filtered:
-      case FundExplorationView.search:
-        return displayFunds.length >= currentFilter.pageSize;
-      case FundExplorationView.ranking:
-        return fundRankings.length >= 20;
-      default:
-        return false;
-    }
-  }
-
-  /// 是否显示空状态
-  bool get isEmpty {
-    if (isLoading) return false;
-
-    switch (activeView) {
-      case FundExplorationView.all:
-        return funds.isEmpty;
-      case FundExplorationView.hot:
-        return hotFunds.isEmpty;
-      case FundExplorationView.ranking:
-        return fundRankings.isEmpty;
-      case FundExplorationView.filtered:
-        return filteredFunds.isEmpty;
-      case FundExplorationView.search:
-        return searchResults.isEmpty;
-      case FundExplorationView.comparison:
-        return comparisonFunds.isEmpty;
-    }
-  }
-
+  /// 复制并修改部分属性
   FundExplorationState copyWith({
     FundExplorationStatus? status,
-    FundExplorationView? activeView,
-    List<exploration_fund.Fund>? funds,
-    List<exploration_fund.Fund>? hotFunds,
     List<FundRanking>? fundRankings,
-    List<exploration_fund.Fund>? searchResults,
-    List<exploration_fund.Fund>? filteredFunds,
-    List<exploration_fund.Fund>? comparisonFunds,
-    FundFilter? currentFilter,
+    List<FundRanking>? searchResults,
+    List<FundRanking>? filteredRankings,
     String? searchQuery,
-    String? sortBy,
     String? errorMessage,
-    bool? isRefreshing,
-    int? fundRankingsPage,
-    int? fundRankingsPageSize,
-    bool? hasMoreFundRankings,
-    bool? isFundRankingsRealData,
-    int? selectedTab,
-    Set<String>? expandedFunds,
+    bool? isLoading,
+    bool? isLoadingMore,
+    bool? hasMoreData,
+    DateTime? lastUpdateTime,
+    int? totalCount,
+    bool? isRealData,
     String? activeFilter,
     String? activeSortBy,
-    double? scrollPosition,
-    bool? isRealData,
+    String? activeSortOrder,
+    Set<String>? expandedFunds,
+    double? loadProgress,
+    List<String>? searchHistory,
+    List<FundRanking>? comparisonFunds,
+    bool? isComparing,
+    List<MoneyFund>? moneyFunds,
+    List<MoneyFund>? moneyFundSearchResults,
+    bool? isMoneyFundsLoading,
+    String? moneyFundsError,
+    FundExplorationView? activeView,
+    String? sortBy,
+    bool clearErrorMessage = false,
   }) {
     return FundExplorationState(
       status: status ?? this.status,
-      activeView: activeView ?? this.activeView,
-      funds: funds ?? this.funds,
-      hotFunds: hotFunds ?? this.hotFunds,
       fundRankings: fundRankings ?? this.fundRankings,
       searchResults: searchResults ?? this.searchResults,
-      filteredFunds: filteredFunds ?? this.filteredFunds,
-      comparisonFunds: comparisonFunds ?? this.comparisonFunds,
-      currentFilter: currentFilter ?? this.currentFilter,
+      filteredRankings: filteredRankings ?? this.filteredRankings,
       searchQuery: searchQuery ?? this.searchQuery,
-      sortBy: sortBy ?? this.sortBy,
-      errorMessage: errorMessage ?? this.errorMessage,
-      isRefreshing: isRefreshing ?? this.isRefreshing,
-      fundRankingsPage: fundRankingsPage ?? this.fundRankingsPage,
-      fundRankingsPageSize: fundRankingsPageSize ?? this.fundRankingsPageSize,
-      hasMoreFundRankings: hasMoreFundRankings ?? this.hasMoreFundRankings,
-      isFundRankingsRealData:
-          isFundRankingsRealData ?? this.isFundRankingsRealData,
-      selectedTab: selectedTab ?? this.selectedTab,
-      expandedFunds: expandedFunds ?? this.expandedFunds,
+      errorMessage:
+          clearErrorMessage ? null : (errorMessage ?? this.errorMessage),
+      isLoading: isLoading ?? this.isLoading,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      hasMoreData: hasMoreData ?? this.hasMoreData,
+      lastUpdateTime: lastUpdateTime ?? this.lastUpdateTime,
+      totalCount: totalCount ?? this.totalCount,
+      isRealData: isRealData ?? this.isRealData,
       activeFilter: activeFilter ?? this.activeFilter,
       activeSortBy: activeSortBy ?? this.activeSortBy,
-      scrollPosition: scrollPosition ?? this.scrollPosition,
-      isRealData: isRealData ?? this.isRealData,
+      activeSortOrder: activeSortOrder ?? this.activeSortOrder,
+      expandedFunds: expandedFunds ?? this.expandedFunds,
+      loadProgress: loadProgress ?? this.loadProgress,
+      searchHistory: searchHistory ?? this.searchHistory,
+      comparisonFunds: comparisonFunds ?? this.comparisonFunds,
+      isComparing: isComparing ?? this.isComparing,
+      moneyFunds: moneyFunds ?? this.moneyFunds,
+      moneyFundSearchResults:
+          moneyFundSearchResults ?? this.moneyFundSearchResults,
+      isMoneyFundsLoading: isMoneyFundsLoading ?? this.isMoneyFundsLoading,
+      moneyFundsError: moneyFundsError ?? this.moneyFundsError,
+      activeView: activeView ?? this.activeView,
+      sortBy: sortBy ?? this.sortBy,
     );
+  }
+
+  /// 获取基金数据（别名，为了兼容性）
+  List<FundRanking> get funds {
+    final data = currentData;
+    return data.whereType<FundRanking>().toList();
+  }
+
+  /// 获取筛选后的基金数据
+  List<FundRanking> get filteredFunds {
+    if (filteredRankings.isNotEmpty) return filteredRankings;
+    final data = currentData;
+    return data.whereType<FundRanking>().toList();
+  }
+
+  /// 获取当前显示的数据
+  List<dynamic> get currentData {
+    switch (activeView) {
+      case FundExplorationView.moneyFunds:
+        return isMoneyFundsSearching ? moneyFundSearchResults : moneyFunds;
+      default:
+        switch (status) {
+          case FundExplorationStatus.searching:
+          case FundExplorationStatus.searched:
+            return searchResults;
+          case FundExplorationStatus.filtered:
+            return filteredRankings.isNotEmpty
+                ? filteredRankings
+                : searchResults;
+          default:
+            return fundRankings;
+        }
+    }
+  }
+
+  /// 是否正在搜索货币基金
+  bool get isMoneyFundsSearching =>
+      activeView == FundExplorationView.moneyFunds && searchQuery.isNotEmpty;
+
+  /// 获取货币基金数据
+  List<MoneyFund> get currentMoneyFunds {
+    if (activeView == FundExplorationView.moneyFunds) {
+      return isMoneyFundsSearching ? moneyFundSearchResults : moneyFunds;
+    }
+    return [];
+  }
+
+  /// 是否有数据
+  bool get hasData => currentData.isNotEmpty;
+
+  /// 是否为空状态
+  bool get isEmpty => !hasData && !isLoading;
+
+  /// 是否显示加载指示器
+  bool get showLoadingIndicator => isLoading || isLoadingMore;
+
+  /// 是否显示错误视图
+  bool get showErrorView =>
+      status == FundExplorationStatus.error && errorMessage != null;
+
+  /// 是否显示数据视图
+  bool get showDataView => hasData && !showErrorView;
+
+  /// 是否有搜索查询
+  bool get hasSearchQuery => searchQuery.isNotEmpty;
+
+  /// 是否有筛选条件
+  bool get hasActiveFilter => activeFilter.isNotEmpty;
+
+  /// 获取数据状态描述
+  String get statusDescription {
+    switch (status) {
+      case FundExplorationStatus.initial:
+        return '准备加载数据';
+      case FundExplorationStatus.loading:
+        return isLoadingMore ? '加载更多数据...' : '加载数据中...';
+      case FundExplorationStatus.loaded:
+        return isRealData ? '数据加载完成' : '使用模拟数据';
+      case FundExplorationStatus.searching:
+        return '搜索中...';
+      case FundExplorationStatus.searched:
+        return hasSearchQuery ? '搜索完成' : '显示全部数据';
+      case FundExplorationStatus.filtering:
+        return '筛选中...';
+      case FundExplorationStatus.filtered:
+        return '筛选完成';
+      case FundExplorationStatus.error:
+        return '加载失败';
+    }
+  }
+
+  /// 获取数据统计信息
+  String get dataStatistics {
+    final currentCount = currentData.length;
+    final totalCountText = totalCount > 0 ? ' / $totalCount' : '';
+    final searchInfo = hasSearchQuery ? ' (搜索: "$searchQuery")' : '';
+    final filterInfo = hasActiveFilter ? ' (筛选: $activeFilter)' : '';
+
+    return '显示 $currentCount$totalCountText 条数据$searchInfo$filterInfo';
   }
 
   @override
   List<Object?> get props => [
         status,
-        activeView,
-        funds,
-        hotFunds,
         fundRankings,
         searchResults,
-        filteredFunds,
-        comparisonFunds,
-        currentFilter,
+        filteredRankings,
         searchQuery,
-        sortBy,
         errorMessage,
-        isRefreshing,
-        fundRankingsPage,
-        fundRankingsPageSize,
-        hasMoreFundRankings,
-        isFundRankingsRealData,
-        selectedTab,
-        expandedFunds,
+        isLoading,
+        isLoadingMore,
+        hasMoreData,
+        lastUpdateTime,
+        totalCount,
+        isRealData,
         activeFilter,
         activeSortBy,
-        scrollPosition,
-        isRealData,
+        activeSortOrder,
+        expandedFunds,
+        loadProgress,
+        searchHistory,
+        comparisonFunds,
+        isComparing,
+        moneyFunds,
+        moneyFundSearchResults,
+        isMoneyFundsLoading,
+        moneyFundsError,
+        activeView,
+        sortBy,
       ];
+
+  @override
+  String toString() {
+    return 'FundExplorationState('
+        'status: $status, '
+        'fundRankings: ${fundRankings.length}, '
+        'searchResults: ${searchResults.length}, '
+        'filteredRankings: ${filteredRankings.length}, '
+        'searchQuery: "$searchQuery", '
+        'isLoading: $isLoading, '
+        'errorMessage: $errorMessage, '
+        'totalCount: $totalCount, '
+        'isRealData: $isRealData, '
+        'moneyFunds: ${moneyFunds.length}, '
+        'moneyFundSearchResults: ${moneyFundSearchResults.length}, '
+        'isMoneyFundsLoading: $isMoneyFundsLoading, '
+        'moneyFundsError: $moneyFundsError'
+        ')';
+  }
 }

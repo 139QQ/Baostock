@@ -65,45 +65,53 @@ class FundErrorHandler {
 
   /// 分析错误类型
   static FundErrorType analyzeError(dynamic error) {
-    final errorString = error.toString().toLowerCase();
+    final errorString = error.toString();
+
+    // 首先尝试通过异常类型匹配
+    final errorType = error.runtimeType.toString();
+    if (_errorTypeMap.containsKey(errorType)) {
+      return _errorTypeMap[errorType]!;
+    }
+
+    final errorStringLower = errorString.toLowerCase();
 
     // 网络错误
-    if (_isNetworkError(errorString)) {
+    if (_isNetworkError(errorStringLower)) {
       return FundErrorType.networkError;
     }
 
     // 超时错误
-    if (_isTimeoutError(errorString)) {
+    if (_isTimeoutError(errorStringLower)) {
       return FundErrorType.networkTimeout;
     }
 
     // 连接错误
-    if (_isConnectionError(errorString)) {
+    if (_isConnectionError(errorStringLower)) {
       return FundErrorType.networkConnection;
     }
 
     // 数据解析错误
-    if (_isParsingError(errorString)) {
+    if (_isParsingError(errorStringLower)) {
       return FundErrorType.dataParsing;
     }
 
     // 数据验证错误
-    if (_isValidationError(errorString)) {
+    if (_isValidationError(errorStringLower)) {
       return FundErrorType.dataValidation;
     }
 
     // 参数错误
-    if (_isParameterError(errorString)) {
+    if (_isParameterError(errorStringLower)) {
       return FundErrorType.parameterError;
     }
 
     // 业务逻辑错误
-    if (_isBusinessError(errorString)) {
+    if (_isBusinessError(errorStringLower)) {
       return FundErrorType.businessError;
     }
 
     // 状态错误
-    if (_isStateError(errorString)) {
+    if (_isStateError(errorStringLower)) {
       return FundErrorType.stateError;
     }
 
