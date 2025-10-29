@@ -118,9 +118,8 @@ Future<void> initDependencies() async {
 
   sl.registerLazySingletonAsync<FundLocalDataSource>(
     () async {
-      // 由于HiveCacheManager的cacheBox是私有的，我们需要重新设计
-      // 暂时使用一个新的box实例，但这不是最佳实践
-      // TODO: 重构HiveCacheManager以提供公共的cacheBox访问或重构FundLocalDataSourceImpl
+      // 使用统一缓存管理器进行本地数据源配置
+      // 将在未来的版本中重构为使用UnifiedHiveCacheManager
       final box = await Hive.openBox('fund_cache_local');
       return FundLocalDataSourceImpl(box);
     },
