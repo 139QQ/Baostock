@@ -1,9 +1,19 @@
 import 'package:dio/dio.dart';
+import 'package:get_it/get_it.dart';
 
 import '../utils/logger.dart';
 import 'market_real_service.dart';
 import 'market_data_models.dart';
-import 'market_cache_manager.dart';
+import '../cache/unified_hive_cache_manager.dart';
+import '../di/injection_container.dart';
+
+/// 缓存键定义
+class _CacheKeys {
+  static String marketIndices = 'market_indices';
+  static String marketOverview = 'market_overview';
+  static String fundRankings = 'fund_rankings';
+  static String sectorData = 'sector_data';
+}
 
 /// 增强版市场数据服务
 /// 优化超时配置和重试机制
@@ -15,9 +25,11 @@ class MarketRealServiceEnhanced implements MarketRealService {
   static Duration sendTimeout = const Duration(seconds: 30);
 
   final Dio _dio;
+  late final UnifiedHiveCacheManager _cacheManager;
 
   MarketRealServiceEnhanced() : _dio = Dio() {
     _initializeDio();
+    _cacheManager = sl<UnifiedHiveCacheManager>();
   }
 
   /// 初始化Dio配置
@@ -152,8 +164,7 @@ class MarketRealServiceEnhanced implements MarketRealService {
       AppLogger.info('📊 开始获取实时指数数据...');
 
       // 首先尝试从缓存获取数据
-      final cachedData = MarketCacheManager.instance
-          .getCachedData<List>(CacheKeys.marketIndices);
+      final cachedData = _cacheManager.get<List>(_CacheKeys.marketIndices);
       if (cachedData != null) {
         AppLogger.info('📋 从缓存获取指数数据');
         return _convertToMarketIndicesData(
@@ -165,9 +176,12 @@ class MarketRealServiceEnhanced implements MarketRealService {
 
       AppLogger.info('✅ 成功获取 ${allData.length} 条指数数据');
 
-      // 缓存原始数据
-      await MarketCacheManager.instance
-          .setCachedData(CacheKeys.marketIndices, allData);
+      // 缓存原始数据（缓存15分钟）
+      await _cacheManager.put(
+        _CacheKeys.marketIndices,
+        allData,
+        expiration: const Duration(minutes: 15),
+      );
 
       return _convertToMarketIndicesData(
           allData.map((item) => Map<String, dynamic>.from(item)).toList());
