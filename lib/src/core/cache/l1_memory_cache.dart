@@ -228,6 +228,33 @@ class L1MemoryCache {
     AppLogger.debug('L1缓存已清空');
   }
 
+  /// 清理过期的缓存项
+  int clearExpired() {
+    int clearedCount = 0;
+    final now = DateTime.now();
+    final expiredKeys = <String>[];
+
+    // 找出所有过期的键
+    for (final entry in _cache.entries) {
+      final item = entry.value.item;
+      if (item.isExpired) {
+        expiredKeys.add(entry.key);
+      }
+    }
+
+    // 批量删除过期项
+    for (final key in expiredKeys) {
+      remove(key);
+      clearedCount++;
+    }
+
+    if (clearedCount > 0) {
+      AppLogger.debug('L1缓存清理了 $clearedCount 个过期项');
+    }
+
+    return clearedCount;
+  }
+
   /// 获取所有缓存键
   List<String> getAllKeys() {
     return _cache.keys.toList();
@@ -260,14 +287,14 @@ class L1MemoryCache {
     _updateMemoryUsage(
         _estimateItemSize(newItem.value) - _estimateItemSize(oldItem.value));
 
-    // 更新节点数据
-    node.item = newItem;
+    // 更新节点数据 - 使用类型转换确保兼容性
+    node.item = newItem as dynamic;
 
     // 移动到链表头部
     _moveToHead(node);
 
     // 更新优先级队列
-    _updatePriorityQueue(key, newItem);
+    _updatePriorityQueue<T>(key, newItem);
   }
 
   /// 添加新项
@@ -284,15 +311,15 @@ class L1MemoryCache {
     // 创建新节点
     final node = _LRUNode(key, item);
 
-    // 添加到缓存
-    _cache[key] = node;
-    _priorityQueue[key] = item;
+    // 添加到缓存 - 使用dynamic类型确保兼容性
+    _cache[key] = node as _LRUNode<dynamic>;
+    _priorityQueue[key] = item as dynamic;
 
     // 添加到链表头部
     _addToHead(node);
 
     // 添加到优先级队列
-    _addToPriorityQueue(key, item);
+    _addToPriorityQueue<T>(key, item);
 
     // 更新内存使用量
     _updateMemoryUsage(estimatedSize);

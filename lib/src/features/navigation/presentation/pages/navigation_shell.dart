@@ -5,9 +5,9 @@ import '../../../auth/domain/entities/user.dart';
 import '../../../home/presentation/pages/dashboard_page.dart';
 import '../../../fund/presentation/fund_exploration/presentation/pages/fund_exploration_page.dart';
 import '../../../fund/presentation/pages/watchlist_page.dart';
-import '../../../portfolio/presentation/pages/portfolio_analysis_page.dart';
+import '../../../portfolio/presentation/widgets/portfolio_manager.dart';
+import '../../../portfolio/presentation/cubit/portfolio_analysis_cubit.dart';
 import '../../../alerts/presentation/pages/alerts_page.dart';
-import '../../../data_center/presentation/pages/data_center_page.dart';
 import '../../../settings/presentation/pages/settings_page.dart';
 import '../../../home/presentation/widgets/global_navigation_bar.dart';
 import '../../../../core/di/injection_container.dart';
@@ -62,7 +62,7 @@ class _NavigationShellState extends State<NavigationShell> {
       body: Row(
         children: [
           SizedBox(
-            width: 90, // 匹配NavigationRail的minWidth
+            width: 100, // 匹配NavigationRail的minWidth
             child: _buildEnhancedNavigationRail(),
           ),
           const VerticalDivider(thickness: 1, width: 1),
@@ -83,8 +83,11 @@ class _NavigationShellState extends State<NavigationShell> {
         return const FundExplorationPage();
       case 2: // Watchlist
         return const WatchlistPage();
-      case 3: // Portfolio Analysis - 使用全局已提供的PortfolioAnalysisCubit和FundFavoriteCubit
-        return const PortfolioAnalysisPage();
+      case 3: // Portfolio Management - 使用全局已提供的PortfolioAnalysisCubit和FundFavoriteCubit
+        return BlocProvider<PortfolioAnalysisCubit>.value(
+          value: sl<PortfolioAnalysisCubit>(),
+          child: const PortfolioManager(),
+        );
       case 4: // Alerts
         return const AlertsPage();
       case 5: // Data Center
@@ -110,7 +113,7 @@ class _NavigationShellState extends State<NavigationShell> {
       backgroundColor: const Color(0xFFF8FAFC),
       elevation: 1,
       extended: false,
-      minWidth: 90, // 增加最小宽度
+      minWidth: 100, // 增加最小宽度以适应更多项目
       // 移除leading以节省空间，或者使用更紧凑的leading
       leading: null,
       trailing: null, // 移除trailing组件以节省空间，防止溢出
@@ -202,49 +205,5 @@ class _NavigationShellState extends State<NavigationShell> {
         overflow: TextOverflow.ellipsis,
       ),
     );
-  }
-
-  /// 获取当前页面的图标
-  IconData _getCurrentPageIcon() {
-    switch (_selectedIndex) {
-      case 0:
-        return Icons.dashboard;
-      case 1:
-        return Icons.filter_alt;
-      case 2:
-        return Icons.star; // 🌟 自选基金
-      case 3:
-        return Icons.analytics; // 📊 持仓分析
-      case 4:
-        return Icons.notifications;
-      case 5:
-        return Icons.data_usage;
-      case 6:
-        return Icons.settings;
-      default:
-        return Icons.dashboard;
-    }
-  }
-
-  /// 获取当前页面的名称
-  String _getCurrentPageName() {
-    switch (_selectedIndex) {
-      case 0:
-        return '市场概览';
-      case 1:
-        return '基金筛选';
-      case 2:
-        return '🌟自选基金';
-      case 3:
-        return '📊持仓分析';
-      case 4:
-        return '行情预警';
-      case 5:
-        return '数据中心';
-      case 6:
-        return '系统设置';
-      default:
-        return '未知';
-    }
   }
 }

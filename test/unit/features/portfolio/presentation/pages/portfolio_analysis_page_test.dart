@@ -15,6 +15,38 @@ import 'package:jisu_fund_analyzer/src/core/di/injection_container.dart';
 
 import 'portfolio_analysis_page_test.mocks.dart';
 
+// 简单的模拟对话框类，用于测试
+class _ImportFromFavoritesDialog extends StatelessWidget {
+  final Function(List<Map<String, dynamic>>) onImport;
+
+  const _ImportFromFavoritesDialog({
+    required this.onImport,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('导入自选基金'),
+      content: const Text('模拟导入对话框'),
+      actions: [
+        TextButton(
+          onPressed: () {
+            onImport([]);
+            Navigator.of(context).pop();
+          },
+          child: const Text('导入'),
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          child: const Text('取消'),
+        ),
+      ],
+    );
+  }
+}
+
 @GenerateMocks([PortfolioAnalysisCubit, FundFavoriteCubit])
 void main() {
   group('PortfolioAnalysisPage Tests', () {

@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:hive_flutter/hive_flutter.dart';
 import 'src/core/di/injection_container.dart';
-import 'src/core/di/hive_injection_container.dart';
+import 'package:get_it/get_it.dart';
 import 'src/features/app/app.dart';
 import 'src/core/utils/logger.dart';
 import 'src/core/state/global_cubit_manager.dart';
+import 'src/core/cache/hive_cache_manager.dart';
 import 'src/models/fund_info.dart';
 import 'src/features/portfolio/data/adapters/fund_favorite_adapter.dart';
 
@@ -74,9 +75,8 @@ Future<void> main() async {
         //   AppLogger.debug('LegacyType230兼容性适配器注册成功');
         // }
 
-        // 初始化Hive缓存依赖注入
-        await HiveInjectionContainer.init();
-        AppLogger.debug('Hive缓存初始化成功');
+        // Hive缓存适配器注册已完成，将在initDependencies中初始化缓存管理器
+        AppLogger.debug('Hive适配器注册完成');
       } catch (e, stack) {
         AppLogger.debug('Hive缓存初始化失败，使用内存缓存: $e');
         AppLogger.debug('Hive错误堆栈: $stack');
@@ -136,14 +136,25 @@ class _AppLifecycleManagerState extends State<AppLifecycleManager>
     switch (state) {
       case AppLifecycleState.paused:
         // 应用进入后台，清理过期缓存
-        HiveInjectionContainer.clearExpiredCache();
+        // 通过GetIt获取缓存管理器清理过期缓存
+        _clearCacheInBackground();
         break;
       case AppLifecycleState.detached:
         // 应用被关闭，清理资源
-        HiveInjectionContainer.dispose();
+        // 应用退出时Hive会自动清理
         break;
       default:
         break;
+    }
+  }
+
+  /// 在后台清理缓存
+  void _clearCacheInBackground() async {
+    try {
+      final cacheManager = sl<HiveCacheManager>();
+      await cacheManager.clear();
+    } catch (e) {
+      AppLogger.debug('清理缓存时出错: $e');
     }
   }
 

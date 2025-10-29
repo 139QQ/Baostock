@@ -3,35 +3,39 @@ import 'package:http/http.dart' as http;
 import '../../features/fund/presentation/fund_exploration/domain/data/repositories/hive_cache_repository.dart';
 import '../../features/fund/presentation/fund_exploration/domain/repositories/cache_repository.dart';
 import '../../features/fund/presentation/fund_exploration/domain/data/services/fund_service.dart';
-import '../cache/hive_cache_manager.dart';
+import '../cache/unified_hive_cache_manager.dart';
+import '../utils/logger.dart';
 
-/// Hive缓存依赖注入配置
+/// 统一缓存依赖注入配置
 ///
-/// 负责初始化和管理所有Hive缓存相关的依赖关系
+/// 负责初始化和管理所有缓存相关的依赖关系，包括：
+/// - 统一Hive缓存管理器（带键标准化）
+/// - 缓存仓库和服务
+/// - 键管理器和迁移适配器
 class HiveInjectionContainer {
   static final GetIt _sl = GetIt.instance;
   static GetIt get sl => _sl;
 
-  /// 初始化Hive缓存依赖（带错误恢复）
+  /// 初始化缓存依赖（带错误恢复）
   static Future<void> init() async {
     try {
-      // 初始化Hive缓存管理器
-      await HiveCacheManager.instance.initialize();
+      // 初始化统一缓存管理器
+      await UnifiedHiveCacheManager.instance.initialize();
     } catch (e) {
       // 记录错误但不重新抛出，允许应用在无缓存模式下运行
-      print('⚠️ Hive缓存依赖初始化失败，应用将在无缓存模式下运行: $e');
+      AppLogger.error('⚠️ 统一缓存依赖初始化失败，应用将在无缓存模式下运行', e.toString());
       // 不重新抛出异常
     }
 
-    // 注册Hive缓存管理器
-    _sl.registerLazySingleton<HiveCacheManager>(
-      () => HiveCacheManager.instance,
+    // 注册统一缓存管理器
+    _sl.registerLazySingleton<UnifiedHiveCacheManager>(
+      () => UnifiedHiveCacheManager.instance,
     );
 
     // 注册缓存仓库
     _sl.registerLazySingleton<CacheRepository>(
       () => HiveCacheRepository(
-        cacheManager: _sl<HiveCacheManager>(),
+        cacheManager: _sl<UnifiedHiveCacheManager>(),
       ),
     );
 
@@ -55,15 +59,15 @@ class HiveInjectionContainer {
 
   /// 清理过期缓存
   static Future<void> clearExpiredCache() async {
-    if (_sl.isRegistered<HiveCacheManager>()) {
-      await _sl<HiveCacheManager>().clearExpiredCache();
+    if (_sl.isRegistered<UnifiedHiveCacheManager>()) {
+      await _sl<UnifiedHiveCacheManager>().clearExpiredCache();
     }
   }
 
   /// 获取缓存统计信息
   static Map<String, dynamic> getCacheStats() {
-    if (_sl.isRegistered<HiveCacheManager>()) {
-      return _sl<HiveCacheManager>().getStats();
+    if (_sl.isRegistered<UnifiedHiveCacheManager>()) {
+      return _sl<UnifiedHiveCacheManager>().getStatsSync();
     }
     return {};
   }
@@ -75,9 +79,9 @@ class HiveInjectionContainer {
 
   /// 应用退出时清理资源
   static Future<void> dispose() async {
-    // 关闭Hive缓存
-    if (_sl.isRegistered<HiveCacheManager>()) {
-      await _sl<HiveCacheManager>().close();
+    // 关闭统一缓存
+    if (_sl.isRegistered<UnifiedHiveCacheManager>()) {
+      await _sl<UnifiedHiveCacheManager>().dispose();
     }
 
     // 关闭HTTP客户端

@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../../core/utils/logger.dart';
-import '../../widgets/fund_card_theme.dart';
 
 /// 基金用户偏好服务
 ///
@@ -507,7 +506,6 @@ class FundDisplayPreferences {
   final String defaultSortBy;
   final String defaultSortOrder;
   final int itemsPerPage;
-  final FundCardSize cardSize;
   final bool enableAnimations;
   final bool showTrendIndicators;
   final bool enableAutoRefresh;
@@ -522,7 +520,6 @@ class FundDisplayPreferences {
     this.defaultSortBy = 'return1Y',
     this.defaultSortOrder = 'desc',
     this.itemsPerPage = 20,
-    this.cardSize = FundCardSize.normal,
     this.enableAnimations = true,
     this.showTrendIndicators = true,
     this.enableAutoRefresh = false,
@@ -542,7 +539,6 @@ class FundDisplayPreferences {
     String? defaultSortBy,
     String? defaultSortOrder,
     int? itemsPerPage,
-    FundCardSize? cardSize,
     bool? enableAnimations,
     bool? showTrendIndicators,
     bool? enableAutoRefresh,
@@ -557,7 +553,6 @@ class FundDisplayPreferences {
       defaultSortBy: defaultSortBy ?? this.defaultSortBy,
       defaultSortOrder: defaultSortOrder ?? this.defaultSortOrder,
       itemsPerPage: itemsPerPage ?? this.itemsPerPage,
-      cardSize: cardSize ?? this.cardSize,
       enableAnimations: enableAnimations ?? this.enableAnimations,
       showTrendIndicators: showTrendIndicators ?? this.showTrendIndicators,
       enableAutoRefresh: enableAutoRefresh ?? this.enableAutoRefresh,
@@ -584,8 +579,6 @@ class FundDisplayPreferences {
         return copyWith(defaultSortOrder: value as String?);
       case 'itemsPerPage':
         return copyWith(itemsPerPage: value as int?);
-      case 'cardSize':
-        return copyWith(cardSize: value as FundCardSize?);
       case 'enableAnimations':
         return copyWith(enableAnimations: value as bool?);
       case 'showTrendIndicators':
@@ -609,7 +602,6 @@ class FundDisplayPreferences {
       'defaultSortBy': defaultSortBy,
       'defaultSortOrder': defaultSortOrder,
       'itemsPerPage': itemsPerPage,
-      'cardSize': cardSize.index,
       'enableAnimations': enableAnimations,
       'showTrendIndicators': showTrendIndicators,
       'enableAutoRefresh': enableAutoRefresh,
@@ -627,9 +619,6 @@ class FundDisplayPreferences {
       defaultSortBy: json['defaultSortBy'] ?? 'return1Y',
       defaultSortOrder: json['defaultSortOrder'] ?? 'desc',
       itemsPerPage: json['itemsPerPage'] ?? 20,
-      cardSize: FundCardSize.values.elementAt(
-        json['cardSize'] ?? 1,
-      ),
       enableAnimations: json['enableAnimations'] ?? true,
       showTrendIndicators: json['showTrendIndicators'] ?? true,
       enableAutoRefresh: json['enableAutoRefresh'] ?? false,

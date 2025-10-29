@@ -45,7 +45,9 @@ void main() {
         final apiUrl = '$baseUrl/fund_open_fund_daily_em';
 
         try {
-          final response = await http.get(Uri.parse(apiUrl));
+          final response = await http
+              .get(Uri.parse(apiUrl))
+              .timeout(const Duration(seconds: 120));
 
           if (response.statusCode == 200) {
             final data = jsonDecode(response.body);
@@ -102,7 +104,9 @@ void main() {
             '$baseUrl/fund_open_fund_info_em?symbol=110022&indicator=单位净值走势';
 
         try {
-          final response = await http.get(Uri.parse(apiUrl));
+          final response = await http
+              .get(Uri.parse(apiUrl))
+              .timeout(const Duration(seconds: 120));
 
           if (response.statusCode == 200) {
             final data = jsonDecode(response.body);
@@ -135,7 +139,9 @@ void main() {
             '$baseUrl/fund_open_fund_info_em?symbol=110022&indicator=累计净值走势';
 
         try {
-          final response = await http.get(Uri.parse(apiUrl));
+          final response = await http
+              .get(Uri.parse(apiUrl))
+              .timeout(const Duration(seconds: 120));
 
           if (response.statusCode == 200) {
             final data = jsonDecode(response.body);
@@ -170,7 +176,9 @@ void main() {
               '$baseUrl/fund_open_fund_info_em?symbol=110022&indicator=累计收益率走势&period=$period';
 
           try {
-            final response = await http.get(Uri.parse(apiUrl));
+            final response = await http
+                .get(Uri.parse(apiUrl))
+                .timeout(const Duration(seconds: 120));
 
             if (response.statusCode == 200) {
               final data = jsonDecode(response.body);
@@ -200,7 +208,9 @@ void main() {
             '$baseUrl/fund_open_fund_info_em?symbol=110022&indicator=同类排名走势';
 
         try {
-          final response = await http.get(Uri.parse(apiUrl));
+          final response = await http
+              .get(Uri.parse(apiUrl))
+              .timeout(const Duration(seconds: 120));
 
           if (response.statusCode == 200) {
             final data = jsonDecode(response.body);
@@ -232,7 +242,9 @@ void main() {
             '$baseUrl/fund_open_fund_info_em?symbol=110022&indicator=同类排名百分比';
 
         try {
-          final response = await http.get(Uri.parse(apiUrl));
+          final response = await http
+              .get(Uri.parse(apiUrl))
+              .timeout(const Duration(seconds: 120));
 
           if (response.statusCode == 200) {
             final data = jsonDecode(response.body);
@@ -264,7 +276,9 @@ void main() {
             '$baseUrl/fund_open_fund_info_em?symbol=161606&indicator=分红送配详情';
 
         try {
-          final response = await http.get(Uri.parse(apiUrl));
+          final response = await http
+              .get(Uri.parse(apiUrl))
+              .timeout(const Duration(seconds: 120));
 
           if (response.statusCode == 200) {
             final data = jsonDecode(response.body);
@@ -300,7 +314,9 @@ void main() {
             '$baseUrl/fund_open_fund_info_em?symbol=161606&indicator=拆分详情';
 
         try {
-          final response = await http.get(Uri.parse(apiUrl));
+          final response = await http
+              .get(Uri.parse(apiUrl))
+              .timeout(const Duration(seconds: 120));
 
           if (response.statusCode == 200) {
             final data = jsonDecode(response.body);
@@ -334,7 +350,9 @@ void main() {
         final apiUrl = '$baseUrl/fund_money_fund_daily_em';
 
         try {
-          final response = await http.get(Uri.parse(apiUrl));
+          final response = await http
+              .get(Uri.parse(apiUrl))
+              .timeout(const Duration(seconds: 120));
 
           if (response.statusCode == 200) {
             final data = jsonDecode(response.body);
@@ -385,7 +403,9 @@ void main() {
         const apiUrl = '$baseUrl/fund_money_fund_info_em?symbol=000009';
 
         try {
-          final response = await http.get(Uri.parse(apiUrl));
+          final response = await http
+              .get(Uri.parse(apiUrl))
+              .timeout(const Duration(seconds: 120));
 
           if (response.statusCode == 200) {
             final data = jsonDecode(response.body);
@@ -420,7 +440,9 @@ void main() {
         final apiUrl = '$baseUrl/fund_financial_fund_daily_em';
 
         try {
-          final response = await http.get(Uri.parse(apiUrl));
+          final response = await http
+              .get(Uri.parse(apiUrl))
+              .timeout(const Duration(seconds: 120));
 
           if (response.statusCode == 200) {
             final data = jsonDecode(response.body);
@@ -453,7 +475,9 @@ void main() {
         const apiUrl = '$baseUrl/fund_financial_fund_info_em?symbol=000134';
 
         try {
-          final response = await http.get(Uri.parse(apiUrl));
+          final response = await http
+              .get(Uri.parse(apiUrl))
+              .timeout(const Duration(seconds: 120));
 
           if (response.statusCode == 200) {
             final data = jsonDecode(response.body);
@@ -489,7 +513,9 @@ void main() {
         final apiUrl = '$baseUrl/fund_graded_fund_daily_em';
 
         try {
-          final response = await http.get(Uri.parse(apiUrl));
+          final response = await http
+              .get(Uri.parse(apiUrl))
+              .timeout(const Duration(seconds: 120));
 
           if (response.statusCode == 200) {
             final data = jsonDecode(response.body);
@@ -522,7 +548,9 @@ void main() {
         const apiUrl = '$baseUrl/fund_graded_fund_info_em?symbol=150232';
 
         try {
-          final response = await http.get(Uri.parse(apiUrl));
+          final response = await http
+              .get(Uri.parse(apiUrl))
+              .timeout(const Duration(seconds: 120));
 
           if (response.statusCode == 200) {
             final data = jsonDecode(response.body);
@@ -556,7 +584,9 @@ void main() {
         final apiUrl = '$baseUrl/fund_etf_fund_daily_em';
 
         try {
-          final response = await http.get(Uri.parse(apiUrl));
+          final response = await http
+              .get(Uri.parse(apiUrl))
+              .timeout(const Duration(seconds: 120));
 
           if (response.statusCode == 200) {
             final data = jsonDecode(response.body);
@@ -590,7 +620,9 @@ void main() {
             '$baseUrl/fund_etf_fund_info_em?fund=511280&start_date=20000101&end_date=20500101';
 
         try {
-          final response = await http.get(Uri.parse(apiUrl));
+          final response = await http
+              .get(Uri.parse(apiUrl))
+              .timeout(const Duration(seconds: 120));
 
           if (response.statusCode == 200) {
             final data = jsonDecode(response.body);
@@ -626,7 +658,9 @@ void main() {
             '$baseUrl/fund_hk_fund_hist_em?code=1002200683&symbol=历史净值明细';
 
         try {
-          final response = await http.get(Uri.parse(apiUrl));
+          final response = await http
+              .get(Uri.parse(apiUrl))
+              .timeout(const Duration(seconds: 120));
 
           if (response.statusCode == 200) {
             final data = jsonDecode(response.body);
@@ -661,7 +695,9 @@ void main() {
             '$baseUrl/fund_hk_fund_hist_em?code=1002200683&symbol=分红送配详情';
 
         try {
-          final response = await http.get(Uri.parse(apiUrl));
+          final response = await http
+              .get(Uri.parse(apiUrl))
+              .timeout(const Duration(seconds: 120));
 
           if (response.statusCode == 200) {
             final data = jsonDecode(response.body);
@@ -698,7 +734,9 @@ void main() {
             '$baseUrl/fund_open_fund_info_em?symbol=$fundCode&indicator=单位净值走势';
 
         try {
-          final response = await http.get(Uri.parse(apiUrl));
+          final response = await http
+              .get(Uri.parse(apiUrl))
+              .timeout(const Duration(seconds: 120));
 
           if (response.statusCode == 200) {
             final navData = jsonDecode(response.body);
@@ -787,7 +825,9 @@ void main() {
           final stopwatch = Stopwatch()..start();
 
           try {
-            final response = await http.get(Uri.parse(apiTest['url']!));
+            final response = await http
+                .get(Uri.parse(apiTest['url']!))
+                .timeout(const Duration(seconds: 120));
             stopwatch.stop();
 
             final responseTime = stopwatch.elapsedMilliseconds;

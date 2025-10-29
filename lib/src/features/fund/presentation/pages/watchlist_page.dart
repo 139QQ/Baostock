@@ -5,7 +5,7 @@ import 'package:jisu_fund_analyzer/src/features/portfolio/presentation/cubit/por
 import 'package:jisu_fund_analyzer/src/features/portfolio/presentation/cubit/fund_favorite_cubit.dart';
 import 'package:jisu_fund_analyzer/src/features/portfolio/domain/fund_favorite/src/entities/fund_favorite.dart';
 import 'package:jisu_fund_analyzer/src/features/portfolio/data/services/fund_favorite_service.dart';
-import 'package:jisu_fund_analyzer/src/features/portfolio/presentation/pages/portfolio_analysis_page.dart';
+import 'package:jisu_fund_analyzer/src/features/portfolio/presentation/widgets/portfolio_manager.dart';
 import 'package:jisu_fund_analyzer/src/services/optimized_cache_manager_v3.dart';
 import 'package:jisu_fund_analyzer/src/core/di/injection_container.dart';
 import 'package:jisu_fund_analyzer/src/models/fund_info.dart' as models;
@@ -367,7 +367,7 @@ class _WatchlistPageState extends State<WatchlistPage> {
                                       builder: (context) => BlocProvider<
                                           PortfolioAnalysisCubit>.value(
                                         value: sl<PortfolioAnalysisCubit>(),
-                                        child: const PortfolioAnalysisPage(),
+                                        child: const PortfolioManager(),
                                       ),
                                     ),
                                   );

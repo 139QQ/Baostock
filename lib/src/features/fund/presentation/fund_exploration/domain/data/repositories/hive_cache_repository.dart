@@ -1,23 +1,23 @@
 import 'package:flutter/foundation.dart';
-import 'package:jisu_fund_analyzer/src/core/cache/hive_cache_manager.dart';
+import 'package:jisu_fund_analyzer/src/core/cache/unified_hive_cache_manager.dart';
 
-import '../../models/fund.dart';
-import '../../models/fund_filter.dart';
-import '../../repositories/cache_repository.dart';
+import 'package:jisu_fund_analyzer/src/features/fund/presentation/fund_exploration/domain/models/fund.dart';
+import 'package:jisu_fund_analyzer/src/features/fund/presentation/fund_exploration/domain/models/fund_filter.dart';
+import 'package:jisu_fund_analyzer/src/features/fund/presentation/fund_exploration/domain/repositories/cache_repository.dart';
 
 /// Hive缓存仓库实现
 ///
-/// 使用Hive作为持久化缓存，支持：
+/// 使用UnifiedHiveCacheManager作为统一缓存管理器，支持：
 /// - 基金数据缓存
 /// - 排行榜数据缓存
 /// - 搜索结果缓存
 /// - 基金详情缓存
 class HiveCacheRepository implements CacheRepository {
-  final HiveCacheManager _cacheManager;
+  final UnifiedHiveCacheManager _cacheManager;
 
   HiveCacheRepository({
-    HiveCacheManager? cacheManager,
-  }) : _cacheManager = cacheManager ?? HiveCacheManager.instance;
+    UnifiedHiveCacheManager? cacheManager,
+  }) : _cacheManager = cacheManager ?? UnifiedHiveCacheManager.instance;
 
   @override
   Future<List<Fund>?> getCachedFunds(String cacheKey) async {
@@ -28,6 +28,7 @@ class HiveCacheRepository implements CacheRepository {
       // 将缓存数据转换为Fund列表
       return cachedData.map((data) => Fund.fromJson(data)).toList();
     } catch (e) {
+      debugPrint('❌ 获取缓存基金列表失败: $e');
       return null;
     }
   }
@@ -53,6 +54,7 @@ class HiveCacheRepository implements CacheRepository {
 
       return Fund.fromJson(cachedData);
     } catch (e) {
+      debugPrint('❌ 获取缓存基金详情失败: $e');
       return null;
     }
   }
@@ -77,6 +79,7 @@ class HiveCacheRepository implements CacheRepository {
 
       return cachedData.map((data) => Fund.fromJson(data)).toList();
     } catch (e) {
+      debugPrint('❌ 获取缓存搜索结果失败: $e');
       return null;
     }
   }
@@ -102,6 +105,7 @@ class HiveCacheRepository implements CacheRepository {
 
       return cachedData.map((data) => Fund.fromJson(data)).toList();
     } catch (e) {
+      debugPrint('❌ 获取缓存筛选结果失败: $e');
       return null;
     }
   }
@@ -142,6 +146,7 @@ class HiveCacheRepository implements CacheRepository {
       // 检查缓存是否存在
       return !_cacheManager.containsKey(cacheKey);
     } catch (e) {
+      debugPrint('❌ 检查缓存过期状态失败: $e');
       return true; // 数据损坏或不存在，认为已过期
     }
   }
@@ -233,15 +238,17 @@ class HiveCacheRepository implements CacheRepository {
   @override
   Future<void> clearExpiredCache() async {
     try {
-      await _cacheManager.clearExpiredCache();
-      debugPrint('Hive过期缓存清理完成');
+      // HiveCacheManager 目前没有 clearExpiredCache 方法，使用 clear() 作为替代
+      // TODO: 如果需要过期缓存管理，需要在 HiveCacheManager 中实现相应功能
+      await _cacheManager.clear();
+      debugPrint('Hive过期缓存清理完成（使用clear()方法替代）');
     } catch (e) {
       debugPrint('Hive过期缓存清理失败: $e');
     }
   }
 
-  /// 获取Hive缓存管理器实例（用于高级操作）
-  HiveCacheManager get cacheManager => _cacheManager;
+  /// 获取缓存管理器实例（用于高级操作）
+  UnifiedHiveCacheManager get cacheManager => _cacheManager;
 
   /// 获取缓存数据（通用）
   @override
@@ -271,6 +278,6 @@ class HiveCacheRepository implements CacheRepository {
 
   /// 关闭缓存（应用退出时调用）
   Future<void> dispose() async {
-    await _cacheManager.close();
+    await _cacheManager.dispose();
   }
 }

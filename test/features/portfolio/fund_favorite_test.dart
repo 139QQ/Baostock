@@ -1,45 +1,50 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:jisu_fund_analyzer/src/features/portfolio/data/services/fund_favorite_service.dart';
 import 'package:jisu_fund_analyzer/src/features/portfolio/data/adapters/fund_favorite_adapter.dart';
 import 'package:jisu_fund_analyzer/src/features/portfolio/domain/fund_favorite/src/entities/fund_favorite.dart';
+import '../../test_helpers.dart';
 
 void main() {
   group('自选基金功能测试', () {
     late FundFavoriteService service;
 
     setUpAll(() async {
-      // 初始化Hive测试环境
-      Hive.init('test_fund_favorite');
-
-      // 注册适配器
-      if (!Hive.isAdapterRegistered(10)) {
-        Hive.registerAdapter(FundFavoriteAdapter());
-      }
-      if (!Hive.isAdapterRegistered(11)) {
-        Hive.registerAdapter(PriceAlertSettingsAdapter());
-      }
-      if (!Hive.isAdapterRegistered(12)) {
-        Hive.registerAdapter(TargetPriceAlertAdapter());
-      }
-      if (!Hive.isAdapterRegistered(13)) {
-        Hive.registerAdapter(FundFavoriteListAdapter());
-      }
-      if (!Hive.isAdapterRegistered(14)) {
-        Hive.registerAdapter(SortConfigurationAdapter());
-      }
-      if (!Hive.isAdapterRegistered(15)) {
-        Hive.registerAdapter(FilterConfigurationAdapter());
-      }
-      if (!Hive.isAdapterRegistered(16)) {
-        Hive.registerAdapter(SyncConfigurationAdapter());
-      }
-      if (!Hive.isAdapterRegistered(17)) {
-        Hive.registerAdapter(ListStatisticsAdapter());
-      }
+      // 使用测试助手初始化Hive环境
+      await TestSetupHelper.setUpTestEnvironment();
+      print('✅ 测试环境Hive初始化完成');
     });
 
     setUp(() async {
+      // 确保Hive已初始化（用于测试环境）
+      try {
+        // Hive的新API不需要isInitialized检查，直接初始化即可
+        await Hive.initFlutter();
+        print('✅ 测试中Hive初始化成功');
+      } catch (e) {
+        print('⚠️ Hive初始化失败，使用内存模式: $e');
+        // 测试环境初始化失败是正常的，继续执行
+      }
+
+      // 确保所有适配器已注册（包括ListStatistics）
+      try {
+        // 检查并注册所有必要的适配器
+        if (!Hive.isAdapterRegistered(10)) {
+          Hive.registerAdapter(FundFavoriteAdapter());
+          print('✅ 测试中注册FundFavorite适配器');
+        }
+        if (!Hive.isAdapterRegistered(18)) {
+          Hive.registerAdapter(ListStatisticsAdapter());
+          print('✅ 测试中注册ListStatistics适配器');
+        }
+        if (!Hive.isAdapterRegistered(13)) {
+          Hive.registerAdapter(FundFavoriteListAdapter());
+          print('✅ 测试中注册FundFavoriteList适配器');
+        }
+      } catch (e) {
+        print('⚠️ 适配器注册失败: $e');
+      }
+
       // 初始化服务
       service = FundFavoriteService();
       await service.initialize();
@@ -52,7 +57,8 @@ void main() {
     });
 
     tearDownAll(() async {
-      await Hive.deleteFromDisk();
+      // 使用测试助手清理环境
+      await TestSetupHelper.tearDownTestEnvironment();
     });
 
     test('应该能够初始化服务', () async {

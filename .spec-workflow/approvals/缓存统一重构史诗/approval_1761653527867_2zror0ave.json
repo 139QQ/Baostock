@@ -1,0 +1,10 @@
+{
+  "id": "approval_1761653527867_2zror0ave",
+  "title": "故事2.1：依赖注入容器统一和缓存服务集成 - 开发批准",
+  "filePath": "docs/stories/2.1.dependency-injection-unification.md",
+  "type": "document",
+  "status": "pending",
+  "createdAt": "2025-10-28T12:12:07.867Z",
+  "category": "spec",
+  "categoryName": "缓存统一重构史诗"
+}

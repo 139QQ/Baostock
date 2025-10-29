@@ -259,8 +259,8 @@ class FundFavoriteLoaded extends FundFavoriteState {
       currentSortDirection: currentSortDirection ?? this.currentSortDirection,
       favoriteStatusCache: favoriteStatusCache ?? this.favoriteStatusCache,
       favoriteLists: favoriteLists ?? this.favoriteLists,
-      operatingFundCode: operatingFundCode,
-      lastMessage: lastMessage,
+      operatingFundCode: operatingFundCode ?? this.operatingFundCode,
+      lastMessage: lastMessage ?? this.lastMessage,
     );
   }
 
@@ -674,6 +674,7 @@ class FundFavoriteCubit extends Cubit<FundFavoriteState> {
         final currentState = state as FundFavoriteLoaded;
         emit(currentState.copyWith(
           favoriteLists: lists,
+          // 保持现有消息，不覆盖
         ));
       }
     } catch (e) {

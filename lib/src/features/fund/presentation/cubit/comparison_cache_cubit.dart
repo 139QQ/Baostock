@@ -294,8 +294,6 @@ class ComparisonCacheCubit extends Cubit<ComparisonCacheState> {
     final now = DateTime.now();
     final createdAt = result.calculatedAt;
 
-    if (createdAt == null) return true;
-
     return now.difference(createdAt) > _cacheExpiration;
   }
 

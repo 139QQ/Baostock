@@ -29,8 +29,8 @@ enum RequestPriority {
 /// 6. 错误恢复和降级策略
 class HighPerformanceFundService {
   static const String _baseUrl = 'http://154.44.25.92:8080/api/public/';
-  static const Duration _defaultTimeout = Duration(seconds: 15);
-  static const Duration _longTimeout = Duration(seconds: 60);
+  static const Duration _defaultTimeout = Duration(seconds: 120); // 修改默认超时为120秒
+  static const Duration _longTimeout = Duration(seconds: 120); // 修改长超时为120秒
 
   // 单例实例
   static final HighPerformanceFundService _instance =

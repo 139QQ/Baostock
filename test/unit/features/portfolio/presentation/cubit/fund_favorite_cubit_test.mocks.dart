@@ -57,6 +57,16 @@ class MockFundFavoriteService extends _i1.Mock
       ) as _i4.Future<void>);
 
   @override
+  _i4.Future<void> resetCache() => (super.noSuchMethod(
+        Invocation.method(
+          #resetCache,
+          [],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+
+  @override
   _i4.Future<List<_i5.FundFavorite>> getAllFavorites() => (super.noSuchMethod(
         Invocation.method(
           #getAllFavorites,

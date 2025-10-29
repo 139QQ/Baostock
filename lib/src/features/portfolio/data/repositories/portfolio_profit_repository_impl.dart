@@ -8,15 +8,19 @@ import '../../domain/entities/fund_split_detail.dart';
 import '../../domain/repositories/portfolio_profit_repository.dart';
 import '../../domain/services/portfolio_profit_calculation_engine.dart';
 import '../services/portfolio_profit_api_service.dart';
-import '../services/portfolio_profit_cache_service.dart';
+import '../services/portfolio_profit_cache_service.dart' as cache;
 import '../../../../core/utils/logger.dart';
+
+// 类型别名，解决命名冲突
+typedef CacheBenchmarkIndex = cache.BenchmarkIndex;
+typedef CacheDataQualityReport = cache.DataQualityReport;
 
 /// 组合收益数据仓库实现
 ///
 /// 实现组合收益计算相关的数据访问方法
 class PortfolioProfitRepositoryImpl implements PortfolioProfitRepository {
   final PortfolioProfitApiService _apiService;
-  final PortfolioProfitCacheService _cacheService;
+  final cache.PortfolioProfitCacheService _cacheService;
   final PortfolioProfitCalculationEngine _calculationEngine;
 
   /// 构造函数
@@ -26,7 +30,7 @@ class PortfolioProfitRepositoryImpl implements PortfolioProfitRepository {
   /// [_calculationEngine] - 计算引擎实例
   PortfolioProfitRepositoryImpl({
     required PortfolioProfitApiService apiService,
-    required PortfolioProfitCacheService cacheService,
+    required cache.PortfolioProfitCacheService cacheService,
     required PortfolioProfitCalculationEngine calculationEngine,
   })  : _apiService = apiService,
         _cacheService = cacheService,
@@ -536,7 +540,18 @@ class PortfolioProfitRepositoryImpl implements PortfolioProfitRepository {
           await _cacheService.getCachedBenchmarkIndices(cacheKey);
       if (cachedResult != null) {
         AppLogger.debug('从缓存获取基准指数列表');
-        return Right(cachedResult);
+        // 转换缓存类型到领域类型
+        final domainBenchmarks = cachedResult
+            .map((cacheIndex) => BenchmarkIndex(
+                  code: cacheIndex.code,
+                  name: cacheIndex.name,
+                  description: '',
+                  type: BenchmarkType.mixed,
+                  exchange: '',
+                  isActive: true,
+                ))
+            .toList();
+        return Right(domainBenchmarks);
       }
 
       // 从API获取数据
@@ -545,8 +560,15 @@ class PortfolioProfitRepositoryImpl implements PortfolioProfitRepository {
       return result.fold(
         (failure) => Left(failure),
         (benchmarks) async {
+          // 转换领域类型到缓存类型
+          final cacheBenchmarks = benchmarks
+              .map((domainIndex) => CacheBenchmarkIndex(
+                    code: domainIndex.code,
+                    name: domainIndex.name,
+                  ))
+              .toList();
           // 缓存结果
-          await _cacheService.cacheBenchmarkIndices(cacheKey, benchmarks);
+          await _cacheService.cacheBenchmarkIndices(cacheKey, cacheBenchmarks);
           return Right(benchmarks);
         },
       );
@@ -574,7 +596,20 @@ class PortfolioProfitRepositoryImpl implements PortfolioProfitRepository {
           await _cacheService.getCachedDataQualityReport(cacheKey);
       if (cachedResult != null) {
         AppLogger.debug('从缓存获取数据质量报告');
-        return Right(cachedResult);
+        // 转换缓存类型到领域类型
+        final domainReport = DataQualityReport(
+          fundCode: fundCode,
+          startDate: startDate,
+          endDate: endDate,
+          totalDays: endDate.difference(startDate).inDays,
+          availableDataPoints: 0, // 需要从metrics中计算
+          missingDataPoints: 0, // 需要从metrics中计算
+          quality: DataQuality.good,
+          issues: [],
+          dataPointCounts: {},
+          reportGeneratedAt: cachedResult.timestamp,
+        );
+        return Right(domainReport);
       }
 
       // 获取净值数据进行质量分析
@@ -603,8 +638,20 @@ class PortfolioProfitRepositoryImpl implements PortfolioProfitRepository {
       return qualityReportResult.fold(
         (failure) => Left(failure),
         (report) async {
+          // 转换领域类型到缓存类型
+          final cacheReport = CacheDataQualityReport(
+            metrics: {
+              'totalDays': report.totalDays,
+              'availableDataPoints': report.availableDataPoints,
+              'missingDataPoints': report.missingDataPoints,
+              'quality': report.quality.name,
+              'issues': report.issues,
+              'dataPointCounts': report.dataPointCounts,
+            },
+            timestamp: report.reportGeneratedAt,
+          );
           // 缓存报告
-          await _cacheService.cacheDataQualityReport(cacheKey, report);
+          await _cacheService.cacheDataQualityReport(cacheKey, cacheReport);
           return Right(report);
         },
       );
