@@ -6,7 +6,7 @@ import 'package:get_it/get_it.dart';
 import 'src/features/app/app.dart';
 import 'src/core/utils/logger.dart';
 import 'src/core/state/global_cubit_manager.dart';
-import 'src/core/cache/hive_cache_manager.dart';
+import 'src/core/cache/unified_hive_cache_manager.dart';
 import 'src/models/fund_info.dart';
 import 'src/features/portfolio/data/adapters/fund_favorite_adapter.dart';
 
@@ -151,7 +151,7 @@ class _AppLifecycleManagerState extends State<AppLifecycleManager>
   /// 在后台清理缓存
   void _clearCacheInBackground() async {
     try {
-      final cacheManager = sl<HiveCacheManager>();
+      final cacheManager = sl<UnifiedHiveCacheManager>();
       await cacheManager.clear();
     } catch (e) {
       AppLogger.debug('清理缓存时出错: $e');

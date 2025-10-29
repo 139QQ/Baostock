@@ -12,12 +12,12 @@
 接口定义的输入参数：symbol（如 “沪深指数”“行业主题”）、indicator（如 “增强指数型”“被动指数型”）。
 若需同时指定 symbol="沪深指数" 和 indicator="增强指数型"，对应的 URL 为：
 ```http
-http://127.0.0.1:8080/api/public/fund_info_index_em?symbol=沪深指数&indicator=增强指数型
+http://154.44.25.92:8080/api/public/fund_info_index_em?symbol=沪深指数&indicator=增强指数型
 ```
 三、更多参数的扩展逻辑
 若接口有 3 个及以上参数（如假设某接口需传入 a、b、c 三个参数），只需继续用 & 拼接：
 ```http
-http://127.0.0.1:8080/api/public/接口名?a=值1&b=值2&c=值3
+http://154.44.25.92:8080/api/public/接口名?a=值1&b=值2&c=值3
 ```
 关键注意事项：
 参数名称必须与接口文档中定义的输入参数名完全一致（区分大小写）。

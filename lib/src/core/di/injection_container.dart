@@ -6,10 +6,6 @@ import '../network/api_service.dart';
 import '../cache/interfaces/cache_service.dart';
 import '../cache/unified_hive_cache_manager.dart';
 import '../config/cache_system_config.dart';
-
-// 兼容性缓存管理器导入 (备份)
-import '../cache/hive_cache_manager.dart';
-import '../cache/enhanced_hive_cache_manager.dart';
 import '../../services/optimized_cache_manager_v3.dart';
 import '../services/secure_storage_service.dart';
 import '../services/auth_service.dart';
@@ -83,45 +79,21 @@ Future<void> initDependencies() async {
         () => CacheSystemConfig.getCacheService(sl: sl));
   }
 
-  // ===== 兼容性缓存管理器 (根据配置动态注册) =====
-  // 为了向后兼容性，如果配置禁用统一缓存，则注册传统缓存管理器
+  // ===== 统一缓存系统 =====
+  // 使用统一缓存管理器替代所有重复的缓存实现
+  AppLogger.debug('DependencyInjection: Using unified cache system');
 
-  if (!CacheSystemConfig.useUnifiedCache) {
-    // 注册基础Hive缓存管理器作为单例
-    if (!sl.isRegistered<HiveCacheManager>()) {
-      sl.registerLazySingleton<HiveCacheManager>(
-          () => HiveCacheManager.instance);
-    }
-
-    // 注册增强版Hive缓存管理器作为单例
-    if (!sl.isRegistered<EnhancedHiveCacheManager>()) {
-      sl.registerLazySingleton<EnhancedHiveCacheManager>(() {
-        final cacheManager = EnhancedHiveCacheManager.instance;
-        // 异步初始化，不阻塞依赖注入过程
-        cacheManager.initialize().catchError((e) {
-          AppLogger.debug(
-              'Enhanced Hive cache manager initialization failed: $e');
-        });
-        return cacheManager;
+  // 注册优化的缓存管理器V3作为单例，确保整个应用使用同一个实例
+  // 临时保留用于兼容性，将来需要迁移到统一缓存系统
+  if (!sl.isRegistered<OptimizedCacheManagerV3>()) {
+    sl.registerLazySingleton<OptimizedCacheManagerV3>(() {
+      final cacheManager = OptimizedCacheManagerV3.createNewInstance();
+      // 异步初始化，不阻塞依赖注入过程
+      cacheManager.initialize().catchError((e) {
+        AppLogger.debug('Optimized cache manager initialization failed: $e');
       });
-    }
-
-    // 注册优化的缓存管理器V3作为单例，确保整个应用使用同一个实例
-    if (!sl.isRegistered<OptimizedCacheManagerV3>()) {
-      sl.registerLazySingleton<OptimizedCacheManagerV3>(() {
-        final cacheManager = OptimizedCacheManagerV3.createNewInstance();
-        // 异步初始化，不阻塞依赖注入过程
-        cacheManager.initialize().catchError((e) {
-          AppLogger.debug('Optimized cache manager initialization failed: $e');
-        });
-        return cacheManager;
-      });
-    }
-
-    AppLogger.debug(
-        'DependencyInjection: Legacy cache managers registered (compatibility mode)');
-  } else {
-    AppLogger.debug('DependencyInjection: Using unified cache system');
+      return cacheManager;
+    });
   }
 
   // API客户端

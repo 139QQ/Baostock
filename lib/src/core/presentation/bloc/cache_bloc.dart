@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 
-import '../../cache/hive_cache_manager.dart';
+import '../../cache/unified_hive_cache_manager.dart';
 
 part 'cache_event.dart';
 part 'cache_state.dart';
@@ -13,10 +13,10 @@ part 'cache_state.dart';
 /// 负责管理应用中所有缓存相关的状态和操作
 /// 包括缓存数据的存储、获取、清理和统计
 class CacheBloc extends Bloc<CacheEvent, CacheState> {
-  final HiveCacheManager _cacheManager;
+  final UnifiedHiveCacheManager _cacheManager;
 
-  CacheBloc({HiveCacheManager? cacheManager})
-      : _cacheManager = cacheManager ?? HiveCacheManager.instance,
+  CacheBloc({UnifiedHiveCacheManager? cacheManager})
+      : _cacheManager = cacheManager ?? UnifiedHiveCacheManager.instance,
         super(CacheState.initial()) {
     on<InitializeCache>(_onInitializeCache);
     on<StoreCacheData>(_onStoreCacheData);
@@ -39,9 +39,10 @@ class CacheBloc extends Bloc<CacheEvent, CacheState> {
     try {
       await _cacheManager.initialize();
 
+      final statistics = await _cacheManager.getStats();
       emit(state.copyWith(
         status: CacheStatus.initialized,
-        statistics: _cacheManager.getStats(),
+        statistics: statistics,
         lastUpdated: DateTime.now(),
       ));
 
@@ -206,7 +207,7 @@ class CacheBloc extends Bloc<CacheEvent, CacheState> {
     Emitter<CacheState> emit,
   ) async {
     try {
-      final statistics = _cacheManager.getStats();
+      final statistics = await _cacheManager.getStats();
       final hitRate = _calculateHitRate();
 
       emit(state.copyWith(
@@ -233,7 +234,7 @@ class CacheBloc extends Bloc<CacheEvent, CacheState> {
     Emitter<CacheState> emit,
   ) async {
     // 获取实时统计信息
-    final statistics = _cacheManager.getStats();
+    final statistics = await _cacheManager.getStats();
     final hitRate = _calculateHitRate();
 
     emit(state.copyWith(

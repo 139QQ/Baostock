@@ -1,26 +1,18 @@
 import '../cache/interfaces/cache_service.dart';
 import '../cache/unified_hive_cache_manager.dart';
 import '../cache/adapters/unified_cache_adapter.dart';
-import '../cache/adapters/legacy_cache_adapter.dart';
-import '../cache/hive_cache_manager.dart';
 import 'package:get_it/get_it.dart';
 
 /// 缓存系统配置
 ///
-/// 管理缓存系统的配置和切换
-/// 支持新旧缓存系统的快速切换，确保向后兼容性
+/// 管理统一缓存系统的配置
+/// 仅使用 UnifiedHiveCacheManager 缓存系统
 class CacheSystemConfig {
   static const String _tag = 'CacheSystemConfig';
 
-  /// 是否使用统一缓存系统
-  ///
-  /// true: 使用 UnifiedHiveCacheManager + UnifiedCacheAdapter
-  /// false: 使用原有的 HiveCacheManager + LegacyCacheAdapter (回滚模式)
-  static bool useUnifiedCache = true;
-
   /// 获取缓存服务实例
   ///
-  /// 根据配置返回相应的缓存服务适配器
+  /// 返回统一缓存系统的缓存服务适配器
   /// [sl] 依赖注入容器实例
   ///
   /// 返回实现了 CacheService 接口的缓存服务实例
@@ -28,37 +20,13 @@ class CacheSystemConfig {
     sl ??= GetIt.instance;
 
     try {
-      if (useUnifiedCache) {
-        // 使用统一缓存系统
-        final unifiedManager = sl.get<UnifiedHiveCacheManager>();
-        return UnifiedCacheAdapter(unifiedManager);
-      } else {
-        // 使用传统缓存系统 (回滚模式)
-        final legacyManager = sl.get<HiveCacheManager>();
-        return LegacyCacheAdapter(legacyManager);
-      }
+      // 使用统一缓存系统
+      final unifiedManager = sl.get<UnifiedHiveCacheManager>();
+      return UnifiedCacheAdapter(unifiedManager);
     } catch (e) {
       // 如果获取缓存服务失败，抛出异常
-      throw Exception(
-          'Failed to get cache service. useUnifiedCache: $useUnifiedCache, Error: $e');
+      throw Exception('Failed to get unified cache service. Error: $e');
     }
-  }
-
-  /// 切换到统一缓存系统
-  ///
-  /// 启用新的 UnifiedHiveCacheManager 缓存系统
-  static void enableUnifiedCache() {
-    _logConfigChange('Unified Cache System ENABLED');
-    useUnifiedCache = true;
-  }
-
-  /// 切换到传统缓存系统
-  ///
-  /// 回滚到原有的 HiveCacheManager 缓存系统
-  /// 用于紧急回滚或兼容性处理
-  static void enableLegacyCache() {
-    _logConfigChange('Legacy Cache System ENABLED (Rollback mode)');
-    useUnifiedCache = false;
   }
 
   /// 获取当前缓存系统配置信息
@@ -66,10 +34,8 @@ class CacheSystemConfig {
   /// 返回当前缓存系统的配置状态
   static Map<String, dynamic> getCurrentConfig() {
     return {
-      'useUnifiedCache': useUnifiedCache,
-      'cacheSystem':
-          useUnifiedCache ? 'UnifiedHiveCacheManager' : 'HiveCacheManager',
-      'adapter': useUnifiedCache ? 'UnifiedCacheAdapter' : 'LegacyCacheAdapter',
+      'cacheSystem': 'UnifiedHiveCacheManager',
+      'adapter': 'UnifiedCacheAdapter',
       'timestamp': DateTime.now().toIso8601String(),
     };
   }
@@ -91,17 +57,10 @@ class CacheSystemConfig {
     };
 
     try {
-      // 检查依赖注入容器中是否注册了必要的缓存管理器
-      if (useUnifiedCache) {
-        if (!sl.isRegistered<UnifiedHiveCacheManager>()) {
-          result['errors'].add(
-              'UnifiedHiveCacheManager not registered in dependency injection');
-        }
-      } else {
-        if (!sl.isRegistered<HiveCacheManager>()) {
-          result['errors']
-              .add('HiveCacheManager not registered in dependency injection');
-        }
+      // 检查依赖注入容器中是否注册了统一缓存管理器
+      if (!sl.isRegistered<UnifiedHiveCacheManager>()) {
+        result['errors'].add(
+            'UnifiedHiveCacheManager not registered in dependency injection');
       }
 
       // 尝试获取缓存服务实例
@@ -129,7 +88,7 @@ class CacheSystemConfig {
   /// 恢复到推荐配置（使用统一缓存系统）
   static void resetToDefault() {
     _logConfigChange('Cache config reset to default (Unified Cache)');
-    useUnifiedCache = true;
+    // 已经是统一缓存系统，无需更改
   }
 
   /// 记录配置变更日志
@@ -149,11 +108,7 @@ class CacheSystemConfig {
     final recommendations = <String>[];
     final warnings = <String>[];
 
-    if (!useUnifiedCache) {
-      recommendations.add('建议启用统一缓存系统以获得更好的性能和功能');
-      recommendations.add('可以调用 CacheSystemConfig.enableUnifiedCache() 来切换');
-    }
-
+    // 当前使用统一缓存系统，无需迁移建议
     recommendations.add('定期执行缓存系统验证：CacheSystemConfig.validateCacheConfig()');
     recommendations.add('监控缓存性能和使用情况');
 
