@@ -1,28 +1,28 @@
 import 'dart:io';
+import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../utils/logger.dart';
 
-/// PathProvider接口抽象
-abstract class _PathProviderInterface {
-  Future<Directory> getApplicationDocumentsDirectory();
-}
-
 // 缓存常量定义
 class CacheConstants {
-  static String cacheBoxName = 'fund_cache';
-  static String metadataBoxName = 'fund_metadata';
+  static String cacheBoxName = 'fund_cache_enhanced';
+  static String metadataBoxName = 'fund_metadata_enhanced';
 }
 
 /// 增强版Hive缓存管理器
-/// 提供高性能的本地缓存解决方案，支持多种环境兼容
-class HiveCacheManager {
-  static HiveCacheManager? _instance;
-  static HiveCacheManager get instance {
-    _instance ??= HiveCacheManager._();
+///
+/// 支持多种初始化模式：
+/// - 生产模式：使用path_provider获取应用目录
+/// - 测试模式：使用临时目录或内存模式
+/// - 容错模式：自动降级到内存存储
+class EnhancedHiveCacheManager {
+  static EnhancedHiveCacheManager? _instance;
+  static EnhancedHiveCacheManager get instance {
+    _instance ??= EnhancedHiveCacheManager._();
     return _instance!;
   }
 
-  HiveCacheManager._();
+  EnhancedHiveCacheManager._();
 
   Box? _cacheBox;
   Box? _metadataBox;
@@ -46,7 +46,7 @@ class HiveCacheManager {
   Future<void> initialize() async {
     if (_isInitialized) return;
 
-    AppLogger.info('🔄 HiveCacheManager: 开始初始化缓存系统');
+    AppLogger.info('🔄 EnhancedHiveCacheManager: 开始初始化缓存系统');
 
     try {
       // 尝试多种初始化策略
@@ -58,16 +58,17 @@ class HiveCacheManager {
         _isInitialized = true;
         final mode = _isInMemoryMode ? '内存模式' : '文件模式';
         final path = _initPath ?? '内存';
-        AppLogger.info('✅ HiveCacheManager: 缓存初始化成功 ($mode, 路径: $path)');
+        AppLogger.info(
+            '✅ EnhancedHiveCacheManager: 缓存初始化成功 ($mode, 路径: $path)');
       } else {
         throw Exception('所有初始化策略都失败了');
       }
     } catch (e) {
-      AppLogger.error('❌ HiveCacheManager: 缓存初始化完全失败', e);
+      AppLogger.error('❌ EnhancedHiveCacheManager: 缓存初始化完全失败', e);
       // 最后的容错措施：创建一个空的管理器实例
       _isInitialized = true;
       _isInMemoryMode = true;
-      AppLogger.warn('⚠️ HiveCacheManager: 已降级到无缓存模式');
+      AppLogger.warn('⚠️ EnhancedHiveCacheManager: 已降级到无缓存模式');
     }
   }
 
@@ -164,11 +165,11 @@ class HiveCacheManager {
   }
 
   /// 动态导入path_provider
-  Future<_PathProviderInterface?> _tryImportPathProvider() async {
+  Future<dynamic?> _tryImportPathProvider() async {
     try {
-      // 暂时返回null，让其他策略接管
-      // 在实际使用中可以动态导入path_provider
-      return null;
+      // 尝试导入path_provider
+      // 注意：这里使用动态导入来避免测试环境中的依赖问题
+      return null; // 暂时返回null，让其他策略接管
     } catch (e) {
       return null;
     }
@@ -179,7 +180,7 @@ class HiveCacheManager {
     await _ensureInitialized();
 
     if (_cacheBox == null) {
-      AppLogger.warn('⚠️ HiveCacheManager: 缓存未初始化，跳过存储: $key');
+      AppLogger.warn('⚠️ EnhancedHiveCacheManager: 缓存未初始化，跳过存储: $key');
       return;
     }
 
@@ -202,16 +203,16 @@ class HiveCacheManager {
         });
       }
 
-      AppLogger.debug('💾 HiveCacheManager: 缓存数据已存储: $key');
+      AppLogger.debug('💾 EnhancedHiveCacheManager: 缓存数据已存储: $key');
     } catch (e) {
-      AppLogger.error('❌ HiveCacheManager: 存储缓存数据失败 $key', e);
+      AppLogger.error('❌ EnhancedHiveCacheManager: 存储缓存数据失败 $key', e);
     }
   }
 
   /// 获取数据
   T? get<T>(String key) {
     if (!_isInitialized || _cacheBox == null) {
-      AppLogger.debug('🔍 HiveCacheManager: 缓存未初始化，返回null: $key');
+      AppLogger.debug('🔍 EnhancedHiveCacheManager: 缓存未初始化，返回null: $key');
       return null;
     }
 
@@ -223,15 +224,15 @@ class HiveCacheManager {
 
       // 检查是否过期
       if (cacheItem.isExpired) {
-        AppLogger.debug('⏰ HiveCacheManager: 缓存已过期，清理: $key');
+        AppLogger.debug('⏰ EnhancedHiveCacheManager: 缓存已过期，清理: $key');
         remove(key);
         return null;
       }
 
-      AppLogger.debug('📥 HiveCacheManager: 缓存命中: $key');
+      AppLogger.debug('📥 EnhancedHiveCacheManager: 缓存命中: $key');
       return cacheItem.value;
     } catch (e) {
-      AppLogger.error('❌ HiveCacheManager: 获取缓存数据失败 $key', e);
+      AppLogger.error('❌ EnhancedHiveCacheManager: 获取缓存数据失败 $key', e);
       // 尝试清理损坏的数据
       try {
         remove(key);
@@ -249,9 +250,9 @@ class HiveCacheManager {
       if (_metadataBox != null) {
         await _metadataBox!.delete('${key}_meta');
       }
-      AppLogger.debug('🗑️ HiveCacheManager: 缓存数据已删除: $key');
+      AppLogger.debug('🗑️ EnhancedHiveCacheManager: 缓存数据已删除: $key');
     } catch (e) {
-      AppLogger.error('❌ HiveCacheManager: 删除缓存数据失败 $key', e);
+      AppLogger.error('❌ EnhancedHiveCacheManager: 删除缓存数据失败 $key', e);
     }
   }
 
@@ -264,9 +265,9 @@ class HiveCacheManager {
       if (_metadataBox != null) {
         await _metadataBox!.clear();
       }
-      AppLogger.info('🗑️ HiveCacheManager: 所有缓存已清空');
+      AppLogger.info('🗑️ EnhancedHiveCacheManager: 所有缓存已清空');
     } catch (e) {
-      AppLogger.error('❌ HiveCacheManager: 清空缓存失败', e);
+      AppLogger.error('❌ EnhancedHiveCacheManager: 清空缓存失败', e);
     }
   }
 
@@ -281,7 +282,7 @@ class HiveCacheManager {
   Map<String, dynamic> getStats() {
     if (!_isInitialized || _cacheBox == null) {
       return {
-        'initialized': false,
+        'isInitialized': false,
         'mode': 'disabled',
         'size': 0,
         'path': null,
@@ -289,7 +290,7 @@ class HiveCacheManager {
     }
 
     return {
-      'initialized': _isInitialized,
+      'isInitialized': _isInitialized,
       'mode': _isInMemoryMode ? 'memory' : 'file',
       'size': _cacheBox!.length,
       'path': _initPath,
@@ -299,7 +300,7 @@ class HiveCacheManager {
 
   /// 关闭缓存
   Future<void> close() async {
-    if (_isInitialized) {
+    try {
       if (_cacheBox != null && _cacheBox!.isOpen) {
         await _cacheBox!.close();
       }
@@ -307,12 +308,14 @@ class HiveCacheManager {
         await _metadataBox!.close();
       }
       _isInitialized = false;
-      AppLogger.info('🔒 HiveCacheManager: 缓存已关闭');
+      AppLogger.info('🔒 EnhancedHiveCacheManager: 缓存已关闭');
+    } catch (e) {
+      AppLogger.error('❌ EnhancedHiveCacheManager: 关闭缓存失败', e);
     }
   }
 }
 
-/// 缓存项
+/// 缓存项数据结构
 class _CacheItem<T> {
   final T value;
   final DateTime timestamp;
@@ -324,13 +327,16 @@ class _CacheItem<T> {
     this.expiration,
   });
 
-  /// 是否过期
-  bool get isExpired {
-    if (expiration == null) return false;
-    return DateTime.now().isAfter(expiration!);
+  factory _CacheItem.fromJson(Map<String, dynamic> json) {
+    return _CacheItem<T>(
+      value: json['value'] as T,
+      timestamp: DateTime.parse(json['timestamp'] as String),
+      expiration: json['expiration'] != null
+          ? DateTime.parse(json['expiration'] as String)
+          : null,
+    );
   }
 
-  /// 转换为JSON
   Map<String, dynamic> toJson() {
     return {
       'value': value,
@@ -339,14 +345,16 @@ class _CacheItem<T> {
     };
   }
 
-  /// 从JSON创建
-  factory _CacheItem.fromJson(Map<String, dynamic> json) {
-    return _CacheItem<T>(
-      value: json['value'] as T,
-      timestamp: DateTime.parse(json['timestamp']),
-      expiration: json['expiration'] != null
-          ? DateTime.parse(json['expiration'])
-          : null,
-    );
+  /// 检查是否过期
+  bool get isExpired {
+    if (expiration == null) return false;
+    return DateTime.now().isAfter(expiration!);
+  }
+
+  /// 检查是否即将过期（5分钟内）
+  bool get isExpiringSoon {
+    if (expiration == null) return false;
+    final fiveMinutesFromNow = DateTime.now().add(const Duration(minutes: 5));
+    return expiration!.isBefore(fiveMinutesFromNow);
   }
 }
