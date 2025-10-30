@@ -240,6 +240,9 @@ test/reports/
 test/coverage/
 test/logs/
 
+# Test directory (exclude entire test folder from version control)
+test/
+
 # Local development files
 local.properties
 secrets.properties
