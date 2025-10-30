@@ -1,11 +1,12 @@
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hive/hive.dart';
 import 'package:jisu_fund_analyzer/src/core/cache/unified_hive_cache_manager.dart';
 import 'package:jisu_fund_analyzer/src/core/cache/cache_key_manager.dart';
 import 'package:jisu_fund_analyzer/src/core/cache/cache_key_migration_adapter.dart';
 import 'package:jisu_fund_analyzer/src/core/config/cache_key_config.dart';
 import 'package:jisu_fund_analyzer/src/core/utils/logger.dart';
+import '../../../helpers/hive_test_helper.dart';
 
 void main() {
   group('缓存键管理系统集成测试', () {
@@ -15,15 +16,13 @@ void main() {
     late String tempPath;
 
     setUpAll(() async {
-      // 初始化Hive用于测试
-      tempPath = Directory.systemTemp.path + '/cache_key_management_test';
-      await Directory(tempPath).create(recursive: true);
-      Hive.initFlutter(tempPath);
+      // 使用测试辅助类初始化Hive
+      await HiveTestHelper.initializeForTest();
     });
 
     tearDownAll(() async {
-      await Hive.close();
-      await Directory(tempPath).delete(recursive: true);
+      // 使用测试辅助类清理环境
+      await HiveTestHelper.cleanupTestEnvironment();
     });
 
     setUp(() async {

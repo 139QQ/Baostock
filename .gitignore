@@ -127,3 +127,149 @@ lib/generated/
 .env.production.local
 # Test cache directory
 test_cache/
+
+# Additional project-specific ignores
+.bmad-core/
+.claude/
+.docs-templates/
+.docs-config.yaml
+.metadata
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+*.swp
+*.swo
+*~
+
+# Development and debugging files
+bash.exe.stackdump
+debug_commands.txt
+temp_debug.dart
+check_imports.dart
+run_windows_test.bat
+
+# Installation scripts and configuration
+*.sh
+install_*
+setup_*
+config_*
+*.env
+*.env.*
+.claude/
+.claude.json
+.settings/
+
+# Claude Code related
+claude-code/
+@anthropic-ai/
+.npm/
+.node_repl_history
+
+# Sensitive and temporary files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.log
+*.tmp
+
+# Backup files
+*.backup
+*.bak
+*.old
+*.backup.*
+
+# Screenshots and temporary images
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.bmp
+*.ico
+*.svg
+
+# Large data files
+*.csv
+*.xlsx
+*.xls
+*.data
+*.db
+*.sqlite
+*.sqlite3
+
+# Build artifacts (additional)
+target/
+out/
+dist/
+
+# IDE-specific files
+.settings/
+.project
+.classpath
+.factorypath
+
+# Claude-specific files
+.claude/
+.spec-workflow/
+
+# Documentation build artifacts
+docs/.claude/
+docs/.spec-workflow/
+docs/build/
+docs/_site/
+docs/_build/
+
+# Cache and temporary directories
+.cache/
+.nyc_output/
+.coverage/
+reports/
+
+# Analysis and profiling
+coverage/
+.nyc_output/
+coverage.json
+*.lcov
+.coverage
+
+# Test outputs
+test/reports/
+test/coverage/
+test/logs/
+
+# Local development files
+local.properties
+secrets.properties
+keystore.properties
+debug.keystore
+
+# OS-specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Node modules (if any)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Package files
+*.tar.gz
+*.zip
+*.rar
+*.7z
+
+# Temporary editor files
+.~lock.*
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace

@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 import 'package:jisu_fund_analyzer/src/core/cache/interfaces/cache_service.dart';
 import 'package:jisu_fund_analyzer/src/core/config/cache_system_config.dart';
@@ -7,17 +9,43 @@ import 'package:jisu_fund_analyzer/src/core/di/injection_container.dart';
 import 'package:jisu_fund_analyzer/src/features/fund/shared/services/fund_data_service.dart';
 import 'package:jisu_fund_analyzer/src/features/fund/shared/services/data_validation_service.dart';
 import 'package:jisu_fund_analyzer/src/core/cache/adapters/unified_cache_adapter.dart';
+import 'package:jisu_fund_analyzer/src/core/cache/unified_hive_cache_manager.dart';
 
 void main() {
   group('统一缓存系统集成测试', () {
     late GetIt testSl;
+    late String tempPath;
+    late UnifiedHiveCacheManager cacheManager;
 
     setUpAll(() async {
       testSl = GetIt.instance;
       CacheSystemConfig.enableUnifiedCache();
 
+      // 初始化Hive用于测试
+      try {
+        // 简化Hive初始化，避免path_provider依赖
+        tempPath = Directory.current.path +
+            '/test_cache_${DateTime.now().millisecondsSinceEpoch}';
+        await Directory(tempPath).create(recursive: true);
+
+        // 直接使用Hive.init而不是Hive.initFlutter来避免path_provider依赖
+        Hive.init(tempPath);
+        print('Hive initialized for testing at: $tempPath');
+      } catch (e) {
+        print('Hive initialization failed: $e');
+        // 设置一个默认值让测试能够继续
+        tempPath = Directory.current.path;
+      }
+
       // 只初始化一次依赖注入
       await initDependencies();
+
+      // 获取缓存管理器实例并等待初始化完成
+      cacheManager = UnifiedHiveCacheManager.instance;
+      await cacheManager.initialize();
+
+      // 等待缓存系统完全初始化
+      await Future.delayed(Duration(milliseconds: 1000));
     });
 
     setUp(() async {
@@ -25,6 +53,8 @@ void main() {
       try {
         final cacheService = testSl<CacheService>();
         await cacheService.clear();
+        // 同时清理缓存管理器
+        await cacheManager.clear();
       } catch (e) {
         // 如果清理失败，记录但不影响测试
         print('测试前清理缓存失败: $e');
@@ -32,7 +62,21 @@ void main() {
     });
 
     tearDownAll(() async {
-      await testSl.reset();
+      try {
+        // 清理缓存（只有在cacheManager初始化成功的情况下）
+        if (cacheManager != null) {
+          await cacheManager.clear();
+          await cacheManager.dispose();
+        }
+        await Hive.close();
+        // 删除临时目录
+        if (tempPath != null && await Directory(tempPath).exists()) {
+          await Directory(tempPath).delete(recursive: true);
+        }
+        await testSl.reset();
+      } catch (e) {
+        print('清理测试环境失败: $e');
+      }
     });
 
     group('缓存服务集成测试', () {

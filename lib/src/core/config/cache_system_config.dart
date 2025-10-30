@@ -10,6 +10,9 @@ import 'package:get_it/get_it.dart';
 class CacheSystemConfig {
   static const String _tag = 'CacheSystemConfig';
 
+  // 配置状态跟踪
+  static bool _useUnifiedCache = true;
+
   /// 获取缓存服务实例
   ///
   /// 返回统一缓存系统的缓存服务适配器
@@ -22,7 +25,7 @@ class CacheSystemConfig {
     try {
       // 使用统一缓存系统
       final unifiedManager = sl.get<UnifiedHiveCacheManager>();
-      return UnifiedCacheAdapter(unifiedManager);
+      return UnifiedCacheAdapter(unifiedManager) as CacheService;
     } catch (e) {
       // 如果获取缓存服务失败，抛出异常
       throw Exception('Failed to get unified cache service. Error: $e');
@@ -36,6 +39,8 @@ class CacheSystemConfig {
     return {
       'cacheSystem': 'UnifiedHiveCacheManager',
       'adapter': 'UnifiedCacheAdapter',
+      'useUnifiedCache': _useUnifiedCache, // 使用当前配置状态
+      'cacheType': getCurrentCacheType(),
       'timestamp': DateTime.now().toIso8601String(),
     };
   }
@@ -117,5 +122,28 @@ class CacheSystemConfig {
       'warnings': warnings,
       'currentConfig': getCurrentConfig(),
     };
+  }
+
+  /// 启用统一缓存系统
+  ///
+  /// 配置系统使用统一缓存管理器
+  static void enableUnifiedCache() {
+    _useUnifiedCache = true;
+    _logConfigChange('Unified cache system enabled');
+  }
+
+  /// 启用传统缓存系统
+  ///
+  /// 配置系统使用传统缓存管理器（仅用于测试和兼容性）
+  static void enableLegacyCache() {
+    _useUnifiedCache = false;
+    _logConfigChange('Legacy cache system enabled (for testing only)');
+  }
+
+  /// 获取当前缓存系统类型
+  ///
+  /// 返回当前使用的缓存系统类型
+  static String getCurrentCacheType() {
+    return 'unified'; // 当前只支持统一缓存系统
   }
 }

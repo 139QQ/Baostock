@@ -1,0 +1,53 @@
+# Handle line endings
+* text=auto eol=lf
+
+# Source code files
+*.dart text diff=dart
+*.yaml text diff=yaml
+*.yml text diff=yaml
+*.json text diff=json
+*.md text diff=markdown
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.tar.gz binary
+
+# Generated files
+*.g.dart text linguist-generated
+*.freezed.dart text linguist-generated
+*.config.dart text linguist-generated
+
+# Large files
+*.csv binary
+*.xlsx binary
+*.xls binary
+
+# Documentation
+*.md text diff=markdown
+*.txt text
+
+# Git files
+.gitignore text
+.gitattributes text
+.gitmodules text
+
+# IDE files
+*.iml text
+*.ipr text
+*.iws text
+
+# CI/CD files
+*.yml text
+*.yaml text
+*.json text
+
+# Shell scripts
+*.sh text eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf

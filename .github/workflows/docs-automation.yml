@@ -1,0 +1,371 @@
+# 📖 基金量化分析平台 - 文档自动化工作流
+# 版本: v1.0
+# 描述: 自动化文档生成、检查和更新
+
+name: 📖 文档自动化
+
+# 触发条件
+on:
+  # 代码推送时触发
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'docs/**'
+      - '.docs-config.yaml'
+      - '.github/workflows/docs-automation.yml'
+      - '.github/scripts/doc_generator.py'
+
+  # Pull Request时触发
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'docs/**'
+      - '.docs-config.yaml'
+
+  # 定时执行 (每天凌晨2点)
+  schedule:
+    - cron: '0 2 * * *'
+
+  # 手动触发
+  workflow_dispatch:
+    inputs:
+      action:
+        description: '执行的操作'
+        required: true
+        default: 'generate'
+        type: choice
+        options:
+          - generate
+          - check
+          - sync
+      verbose:
+        description: '详细输出'
+        required: false
+        default: false
+        type: boolean
+
+# 环境变量
+env:
+  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '18'
+
+# 任务定义
+jobs:
+  # 文档自动化任务
+  docs-automation:
+    name: 📖 文档自动化处理
+    runs-on: ubuntu-latest
+
+    # 权限设置
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+
+    steps:
+      # 1. 检出代码
+      - name: 📥 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 获取完整历史记录
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # 2. 设置Python环境
+      - name: 🐍 设置Python环境
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      # 3. 安装Python依赖
+      - name: 📦 安装Python依赖
+        run: |
+          python -m pip install --upgrade pip
+          pip install jinja2 pyyaml markdown markdown-link-check
+
+      # 4. 设置Node.js环境 (用于其他工具)
+      - name: 📦 设置Node.js环境
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      # 5. 安装Node.js依赖
+      - name: 📦 安装Node.js依赖
+        run: |
+          npm install -g markdownlint-cli2
+
+      # 6. 创建必要的目录
+      - name: 📁 创建必要目录
+        run: |
+          mkdir -p .docs-templates
+          mkdir -p .docs-backup
+
+      # 7. 执行文档自动化
+      - name: 🤖 执行文档自动化
+        id: generate-docs
+        run: |
+          ACTION="${{ github.event.inputs.action || 'generate' }}"
+          VERBOSE="${{ github.event.inputs.verbose || false }}"
+
+          echo "🚀 执行操作: $ACTION"
+          echo "📝 详细输出: $VERBOSE"
+
+          if [ "$VERBOSE" = "true" ]; then
+            python .github/scripts/doc_generator.py --action $ACTION --project-root . --verbose
+          else
+            python .github/scripts/doc_generator.py --action $ACTION --project-root .
+          fi
+
+      # 8. 检查变更
+      - name: 🔍 检查文档变更
+        id: check-changes
+        run: |
+          if git diff --quiet docs/; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "📄 没有检测到文档变更"
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "📝 检测到文档变更:"
+            git diff --name-only docs/
+          fi
+
+      # 9. 文档质量检查
+      - name: 🔍 文档质量检查
+        run: |
+          echo "🔍 开始文档质量检查..."
+
+          # Markdown格式检查
+          echo "📝 检查Markdown格式..."
+          markdownlint-cli2 "docs/**/*.md" || true
+
+          # 链接有效性检查
+          echo "🔗 检查链接有效性..."
+          find docs/ -name "*.md" -exec markdown-link-check {} \; || true
+
+          # 文档大小检查
+          echo "📊 检查文档大小..."
+          find docs/ -name "*.md" -size +1M -exec ls -lh {} \; || echo "✅ 所有文档大小正常"
+
+      # 10. 生成自动化报告
+      - name: 📊 生成自动化报告
+        run: |
+          cat > docs/automation-report.md << 'EOF'
+          # 📖 文档自动化报告
+
+          ## 📋 执行信息
+
+          - **执行时间**: $(date '+%Y-%m-%d %H:%M:%S')
+          - **触发事件**: ${{ github.event_name }}
+          - **提交SHA**: ${{ github.sha }}
+          - **分支**: ${{ github.ref_name }}
+          - **操作类型**: ${{ github.event.inputs.action || 'generate' }}
+
+          ## 📊 执行结果
+
+          ### 📝 文档状态
+
+          EOF
+
+          # 添加文档统计信息
+          echo "#### 📄 文档统计" >> docs/automation-report.md
+          echo "" >> docs/automation-report.md
+          echo "- 总文档数: $(find docs/ -name "*.md" | wc -l)" >> docs/automation-report.md
+          echo "- PRD文档数: $(find docs/prd/ -name "*.md" 2>/dev/null | wc -l)" >> docs/automation-report.md
+          echo "- 架构文档数: $(find docs/architecture/ -name "*.md" 2>/dev/null | wc -l)" >> docs/automation-report.md
+          echo "- 用户故事数: $(find docs/stories/ -name "*.md" 2>/dev/null | wc -l)" >> docs/automation-report.md
+          echo "- QA文档数: $(find docs/qa/ -name "*.md" 2>/dev/null | wc -l)" >> docs/automation-report.md
+
+          echo "" >> docs/automation-report.md
+          echo "### 🔄 变更状态" >> docs/automation-report.md
+          echo "" >> docs/automation-report.md
+          if [ "${{ steps.check-changes.outputs.changed }}" = "true" ]; then
+            echo "✅ 检测到文档变更，已自动更新" >> docs/automation-report.md
+          else
+            echo "📄 没有检测到文档变更" >> docs/automation-report.md
+          fi
+
+          echo "" >> docs/automation-report.md
+          echo "---" >> docs/automation-report.md
+          echo "" >> docs/automation-report.md
+          echo "*🤖 本报告由文档自动化系统生成*" >> docs/automation-report.md
+          echo "*📅 生成时间: $(date '+%Y-%m-%d %H:%M:%S')*" >> docs/automation-report.md
+
+      # 11. 提交文档变更
+      - name: 📤 提交文档变更
+        if: steps.check-changes.outputs.changed == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+          # 添加变更的文档
+          git add docs/
+
+          # 提交变更
+          git commit -m "[docs] 自动更新文档 - $(date '+%Y-%m-%d %H:%M:%S')
+
+          📝 更新内容:
+          $(git diff --cached --name-only docs/ | sed 's/^/- /')
+
+          🤖 由文档自动化系统处理
+
+          - 执行操作: ${{ github.event.inputs.action || 'generate' }}
+          - 触发事件: ${{ github.event_name }}
+          - 提交SHA: ${{ github.sha }}" || echo "没有变更需要提交"
+
+          # 推送变更
+          git push
+
+      # 12. 创建Pull Request (可选)
+      - name: 🔀 创建Pull Request
+        if: steps.check-changes.outputs.changed == 'true' && github.ref != 'refs/heads/main'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "[docs] 自动更新文档"
+          title: "📖 自动文档更新"
+          body: |
+            ## 📖 文档自动化更新
+
+            此PR由文档自动化系统创建，包含以下更新:
+
+            ### 📝 更新内容
+            - 自动生成/更新文档索引
+            - 修复文档链接
+            - 更新文档统计信息
+
+            ### 🔧 执行信息
+            - **操作类型**: ${{ github.event.inputs.action || 'generate' }}
+            - **触发事件**: ${{ github.event_name }}
+            - **执行时间**: $(date '+%Y-%m-%d %H:%M:%S')
+
+            ---
+
+            *🤖 此PR由文档自动化系统创建*
+          branch: docs-auto-update
+          delete-branch: true
+
+      # 13. 部署文档站点 (仅main分支)
+      - name: 🌐 部署文档站点
+        if: github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
+          destination_dir: docs
+          keep_files: true
+          user_name: github-actions[bot]
+          user_email: github-actions[bot]@users.noreply.github.com
+
+      # 14. 发送通知
+      - name: 📢 发送通知
+        if: always()
+        run: |
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "✅ 文档自动化执行成功"
+
+            if [ "${{ steps.check-changes.outputs.changed }}" = "true" ]; then
+              echo "📝 文档已自动更新"
+            else
+              echo "📄 没有文档变更"
+            fi
+          else
+            echo "❌ 文档自动化执行失败"
+            echo "请检查工作流日志获取详细信息"
+          fi
+
+  # 文档质量检查任务 (单独运行)
+  quality-check:
+    name: 🔍 文档质量检查
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: 📥 检出代码
+        uses: actions/checkout@v4
+
+      - name: 🐍 设置Python环境
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: 📦 安装依赖
+        run: |
+          pip install markdown markdown-link-check
+          npm install -g markdownlint-cli2
+
+      - name: 🔍 运行质量检查
+        run: |
+          echo "🔍 开始文档质量检查..."
+
+          # Markdown格式检查
+          markdownlint-cli2 "docs/**/*.md"
+
+          # 链接检查
+          find docs/ -name "*.md" -exec markdown-link-check {} \;
+
+          echo "✅ 文档质量检查通过"
+
+      - name: 💬 添加PR评论
+        if: failure()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '## 🔍 文档质量检查结果\n\n❌ 文档质量检查未通过，请修复以下问题：\n\n- Markdown格式错误\n- 失效链接\n\n请查看详细的工作流日志获取具体信息。'
+            })
+
+  # 文档统计任务
+  stats:
+    name: 📊 文档统计
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+
+    steps:
+      - name: 📥 检出代码
+        uses: actions/checkout@v4
+
+      - name: 🐍 设置Python环境
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: 📊 生成文档统计
+        run: |
+          python .github/scripts/doc_generator.py --action generate --project-root .
+
+          # 生成统计报告
+          cat > docs/stats.md << 'EOF'
+          # 📊 文档统计报告
+
+          ## 📈 统计信息
+
+          - **生成时间**: $(date '+%Y-%m-%d %H:%M:%S')
+          - **总文档数**: $(find docs/ -name "*.md" | wc -l)
+          - **文档总大小**: $(du -sh docs/ | cut -f1)
+
+          ## 📂 分类统计
+
+          EOF
+
+          echo "### PRD文档" >> docs/stats.md
+          echo "- 文档数: $(find docs/prd/ -name "*.md" 2>/dev/null | wc -l)" >> docs/stats.md
+          echo "- 总大小: $(du -sh docs/prd/ 2>/dev/null | cut -f1 || echo '0B')" >> docs/stats.md
+
+          echo "### 架构文档" >> docs/stats.md
+          echo "- 文档数: $(find docs/architecture/ -name "*.md" 2>/dev/null | wc -l)" >> docs/stats.md
+          echo "- 总大小: $(du -sh docs/architecture/ 2>/dev/null | cut -f1 || echo '0B')" >> docs/stats.md
+
+          echo "### 其他文档" >> docs/stats.md
+          echo "- 文档数: $(find docs/ -maxdepth 1 -name "*.md" | wc -l)" >> docs/stats.md
+          echo "- 总大小: $(du -sh docs/*.md 2>/dev/null | awk '{sum+=$1} END {print sum "B"}' || echo '0B')" >> docs/stats.md
+
+          # 提交统计报告
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add docs/stats.md
+          git commit -m "[docs] 更新文档统计 - $(date '+%Y-%m-%d')" || echo "没有变更"
+          git push

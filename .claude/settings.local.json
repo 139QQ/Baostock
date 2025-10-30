@@ -28,7 +28,10 @@
       "Bash(git push:*)",
       "Bash(curl:*)",
       "Bash(md-tree explode:*)",
-      "Bash(taskkill:*)"
+      "Bash(taskkill:*)",
+      "Bash(test:*)",
+      "Bash(git rm:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []
