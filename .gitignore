@@ -281,5 +281,5 @@ yarn-error.log*
 *.sublime-workspace
 qa/
 test/
-lib/src/core/cache/enhanced_hive_cache_manager.dart
+
 test_cache_ui/
