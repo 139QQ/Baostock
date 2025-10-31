@@ -268,6 +268,11 @@ class IntelligentPreloadService {
     }
   }
 
+  /// 预加载常用数据（公共接口）
+  Future<void> preloadCommonData() async {
+    await _preloadCommonData();
+  }
+
   /// 预加载常用数据
   Future<void> _preloadCommonData() async {
     try {

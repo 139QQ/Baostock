@@ -48,6 +48,9 @@ class UnifiedCacheManager implements IUnifiedCacheService {
   // 状态管理
   bool _isInitialized = false;
   bool _isMonitoringEnabled = true;
+
+  /// 获取初始化状态
+  bool get isInitialized => _isInitialized;
   final Map<String, CacheEntry> _memoryCache = {};
   final Map<String, Timer> _expiryTimers = {};
 
@@ -74,6 +77,11 @@ class UnifiedCacheManager implements IUnifiedCacheService {
   // ============================================================================
 
   /// 初始化缓存管理器
+  Future<void> initialize() async {
+    await _initialize();
+  }
+
+  /// 私有初始化方法
   Future<void> _initialize() async {
     if (_isInitialized) return;
 

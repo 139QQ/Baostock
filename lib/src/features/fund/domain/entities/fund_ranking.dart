@@ -417,6 +417,9 @@ class PaginatedRankingResult extends Equatable {
   /// 是否有上一页
   final bool hasPreviousPage;
 
+  /// 是否有更多数据（兼容性字段）
+  final bool hasMore;
+
   const PaginatedRankingResult({
     required this.rankings,
     required this.currentPage,
@@ -425,6 +428,7 @@ class PaginatedRankingResult extends Equatable {
     required this.totalPages,
     required this.hasNextPage,
     required this.hasPreviousPage,
+    this.hasMore = false,
   });
 
   /// 从JSON创建PaginatedRankingResult实例
@@ -443,6 +447,7 @@ class PaginatedRankingResult extends Equatable {
         totalPages,
         hasNextPage,
         hasPreviousPage,
+        hasMore,
       ];
 
   @override

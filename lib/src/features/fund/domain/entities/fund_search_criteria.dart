@@ -48,8 +48,14 @@ class FundSearchCriteria extends Equatable {
   /// 基金类型筛选
   final String fundType;
 
+  /// 基金类型列表筛选（兼容性字段）
+  final List<String>? fundTypes;
+
   /// 基金公司筛选
   final String fundCompany;
+
+  /// 基金公司列表筛选（兼容性字段）
+  final List<String>? companies;
 
   /// 收益率范围筛选
   final String returnRange;
@@ -65,6 +71,9 @@ class FundSearchCriteria extends Equatable {
 
   /// 最小收益率
   final double? minReturn;
+
+  /// 最大收益率
+  final double? maxReturn;
 
   /// 最短成立年限
   final int? minYears;
@@ -84,12 +93,15 @@ class FundSearchCriteria extends Equatable {
   /// [includeInactive] 是否包含已停运基金，默认false
   /// [extendedFilters] 扩展筛选参数，默认为空Map
   /// [fundType] 基金类型筛选，默认为空
+  /// [fundTypes] 基金类型列表筛选，默认为null
   /// [fundCompany] 基金公司筛选，默认为空
+  /// [companies] 基金公司列表筛选，默认为null
   /// [returnRange] 收益率范围筛选，默认为空
   /// [navRange] 净值范围筛选，默认为空
   /// [minNav] 最小净值，默认为null
   /// [maxNav] 最大净值，默认为null
   /// [minReturn] 最小收益率，默认为null
+  /// [maxReturn] 最大收益率，默认为null
   /// [minYears] 最短成立年限，默认为null
   const FundSearchCriteria({
     this.keyword,
@@ -105,12 +117,15 @@ class FundSearchCriteria extends Equatable {
     this.includeInactive = false,
     this.extendedFilters = const {},
     this.fundType = '',
+    this.fundTypes,
     this.fundCompany = '',
+    this.companies,
     this.returnRange = '',
     this.navRange = '',
     this.minNav,
     this.maxNav,
     this.minReturn,
+    this.maxReturn,
     this.minYears,
   })  : assert(
           fuzzyThreshold >= 0.0 && fuzzyThreshold <= 1.0,
@@ -156,12 +171,15 @@ class FundSearchCriteria extends Equatable {
     bool? includeInactive,
     Map<String, dynamic>? extendedFilters,
     String? fundType,
+    List<String>? fundTypes,
     String? fundCompany,
+    List<String>? companies,
     String? returnRange,
     String? navRange,
     double? minNav,
     double? maxNav,
     double? minReturn,
+    double? maxReturn,
     int? minYears,
     bool clearKeyword = false,
     bool clearSearchFields = false,
@@ -183,12 +201,15 @@ class FundSearchCriteria extends Equatable {
       extendedFilters:
           clearExtendedFilters ? {} : (extendedFilters ?? this.extendedFilters),
       fundType: fundType ?? this.fundType,
+      fundTypes: fundTypes ?? this.fundTypes,
       fundCompany: fundCompany ?? this.fundCompany,
+      companies: companies ?? this.companies,
       returnRange: returnRange ?? this.returnRange,
       navRange: navRange ?? this.navRange,
       minNav: minNav ?? this.minNav,
       maxNav: maxNav ?? this.maxNav,
       minReturn: minReturn ?? this.minReturn,
+      maxReturn: maxReturn ?? this.maxReturn,
       minYears: minYears ?? this.minYears,
     );
   }

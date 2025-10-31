@@ -1,12 +1,15 @@
 /// 缓存适配器使用示例
 ///
 /// 展示如何正确使用各种缓存适配器
+// ignore_for_file: non_constant_identifier_names
+
 library adapter_examples;
 
 import 'cache_adapter_factory.dart';
 import '../unified_hive_cache_manager.dart';
 import '../interfaces/i_unified_cache_service.dart';
 
+// ignore: duplicate_ignore, duplicate_ignore
 /// 适配器使用示例
 class AdapterUsageExamples {
   /// 示例1：创建统一缓存适配器
@@ -59,6 +62,7 @@ class AdapterUsageExamples {
     }
   }
 
+  // ignore: non_constant_identifier_names
   /// 示例3：创建分层缓存适配器
   static Future<void> example3_LayeredCacheAdapter() async {
     print('=== 示例3：创建分层缓存适配器 ===');
