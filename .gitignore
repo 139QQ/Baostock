@@ -243,6 +243,9 @@ test/logs/
 # Test directory (exclude entire test folder from version control)
 test/
 
+# Documentation directory (exclude entire docs folder from version control)
+docs/
+
 # Local development files
 local.properties
 secrets.properties
