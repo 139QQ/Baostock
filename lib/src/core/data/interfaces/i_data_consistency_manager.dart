@@ -1,5 +1,6 @@
 import 'dart:async';
-import '../interfaces/i_unified_data_source.dart';
+import 'i_unified_data_source.dart';
+import 'i_data_router.dart';
 
 /// 数据一致性管理器接口
 ///
@@ -1805,4 +1806,42 @@ class RuleAction {
     required this.type,
     required this.parameters,
   });
+}
+
+/// 一致性趋势点
+class ConsistencyTrendPoint {
+  /// 时间戳
+  final DateTime timestamp;
+
+  /// 一致性率
+  final double consistencyRate;
+
+  /// 冲突数量
+  final int conflictCount;
+
+  /// 活跃数据源数量
+  final int activeDataSources;
+
+  const ConsistencyTrendPoint({
+    required this.timestamp,
+    required this.consistencyRate,
+    required this.conflictCount,
+    required this.activeDataSources,
+  });
+}
+
+/// 改进建议类型
+enum RecommendationType {
+  /// 性能优化
+  performance,
+  /// 可靠性提升
+  reliability,
+  /// 成本降低
+  cost,
+  /// 功能增强
+  feature,
+  /// 数据质量
+  dataQuality,
+  /// 同步优化
+  synchronization,
 }
