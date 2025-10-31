@@ -1,7 +1,12 @@
+<<<<<<< HEAD
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+=======
+import 'package:flutter_test/flutter_test.dart';
+import 'package:get_it/get_it.dart';
+>>>>>>> temp-dependency-injection
 
 import 'package:jisu_fund_analyzer/src/core/cache/interfaces/cache_service.dart';
 import 'package:jisu_fund_analyzer/src/core/config/cache_system_config.dart';
@@ -9,18 +14,25 @@ import 'package:jisu_fund_analyzer/src/core/di/injection_container.dart';
 import 'package:jisu_fund_analyzer/src/features/fund/shared/services/fund_data_service.dart';
 import 'package:jisu_fund_analyzer/src/features/fund/shared/services/data_validation_service.dart';
 import 'package:jisu_fund_analyzer/src/core/cache/adapters/unified_cache_adapter.dart';
+<<<<<<< HEAD
 import 'package:jisu_fund_analyzer/src/core/cache/unified_hive_cache_manager.dart';
+=======
+>>>>>>> temp-dependency-injection
 
 void main() {
   group('统一缓存系统集成测试', () {
     late GetIt testSl;
+<<<<<<< HEAD
     late String tempPath;
     late UnifiedHiveCacheManager cacheManager;
+=======
+>>>>>>> temp-dependency-injection
 
     setUpAll(() async {
       testSl = GetIt.instance;
       CacheSystemConfig.enableUnifiedCache();
 
+<<<<<<< HEAD
       // 初始化Hive用于测试
       try {
         // 简化Hive初始化，避免path_provider依赖
@@ -46,6 +58,10 @@ void main() {
 
       // 等待缓存系统完全初始化
       await Future.delayed(Duration(milliseconds: 1000));
+=======
+      // 只初始化一次依赖注入
+      await initDependencies();
+>>>>>>> temp-dependency-injection
     });
 
     setUp(() async {
@@ -53,8 +69,11 @@ void main() {
       try {
         final cacheService = testSl<CacheService>();
         await cacheService.clear();
+<<<<<<< HEAD
         // 同时清理缓存管理器
         await cacheManager.clear();
+=======
+>>>>>>> temp-dependency-injection
       } catch (e) {
         // 如果清理失败，记录但不影响测试
         print('测试前清理缓存失败: $e');
@@ -62,6 +81,7 @@ void main() {
     });
 
     tearDownAll(() async {
+<<<<<<< HEAD
       try {
         // 清理缓存（只有在cacheManager初始化成功的情况下）
         if (cacheManager != null) {
@@ -77,6 +97,9 @@ void main() {
       } catch (e) {
         print('清理测试环境失败: $e');
       }
+=======
+      await testSl.reset();
+>>>>>>> temp-dependency-injection
     });
 
     group('缓存服务集成测试', () {

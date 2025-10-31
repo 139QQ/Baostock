@@ -1,5 +1,9 @@
 import '../interfaces/cache_service.dart';
+<<<<<<< HEAD
 import '../unified_hive_cache_manager.dart';
+=======
+import '../hive_cache_manager.dart';
+>>>>>>> temp-dependency-injection
 import '../../../core/utils/logger.dart';
 
 /// 兼容性缓存适配器
@@ -7,7 +11,11 @@ import '../../../core/utils/logger.dart';
 /// 将原有的 HiveCacheManager 适配为 CacheService 接口
 /// 用于向后兼容，确保现有代码能够平滑迁移到统一缓存系统
 class LegacyCacheAdapter implements CacheService {
+<<<<<<< HEAD
   final UnifiedHiveCacheManager _manager;
+=======
+  final HiveCacheManager _manager;
+>>>>>>> temp-dependency-injection
   static const String _tag = 'LegacyCacheAdapter';
 
   /// 构造函数

@@ -3,8 +3,11 @@ import 'dart:io';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../utils/logger.dart';
 import 'l1_memory_cache.dart';
+<<<<<<< HEAD
 import 'cache_key_manager.dart';
 import 'cache_key_migration_adapter.dart';
+=======
+>>>>>>> temp-dependency-injection
 
 /// 缓存策略枚举
 enum CacheStrategy {
@@ -33,6 +36,7 @@ class UnifiedHiveCacheManager {
     return _instance!;
   }
 
+<<<<<<< HEAD
   UnifiedHiveCacheManager._() {
     // 立即初始化L1缓存，避免late初始化错误
     _l1Cache = L1MemoryCache(
@@ -40,6 +44,9 @@ class UnifiedHiveCacheManager {
       maxMemoryBytes: _maxMemoryBytes,
     );
   }
+=======
+  UnifiedHiveCacheManager._();
+>>>>>>> temp-dependency-injection
 
   // 核心缓存组件
   Box? _cacheBox; // 主缓存盒子
@@ -59,6 +66,7 @@ class UnifiedHiveCacheManager {
   Timer? _cleanupTimer;
   Timer? _preloadTimer;
 
+<<<<<<< HEAD
   // 配置常量 - 使用标准化缓存键
   String? _cacheBoxName;
   String? _metadataBoxName;
@@ -72,6 +80,15 @@ class UnifiedHiveCacheManager {
       CacheKeyMigrationAdapter.instance;
   bool _migrationEnabled = true;
 
+=======
+  // 配置常量
+  static const String _cacheBoxName = 'unified_fund_cache';
+  static const String _metadataBoxName = 'unified_fund_metadata';
+  static const String _indexBoxName = 'unified_fund_index';
+  static const int _maxMemorySize = 500;
+  static const int _maxMemoryBytes = 100 * 1024 * 1024; // 100MB
+
+>>>>>>> temp-dependency-injection
   /// 获取缓存大小
   int get size {
     if (!_isInitialized || _cacheBox == null) return 0;
@@ -102,6 +119,7 @@ class UnifiedHiveCacheManager {
     AppLogger.info('🚀 UnifiedHiveCacheManager: 开始初始化 (策略: $strategy)');
 
     try {
+<<<<<<< HEAD
       // 初始化缓存键管理器
       _initializeCacheBoxNames();
 
@@ -111,6 +129,13 @@ class UnifiedHiveCacheManager {
       }
 
       // L1内存缓存已在构造函数中初始化，跳过重复初始化
+=======
+      // 初始化L1内存缓存
+      _l1Cache = L1MemoryCache(
+        maxMemorySize: _maxMemorySize,
+        maxMemoryBytes: _maxMemoryBytes,
+      );
+>>>>>>> temp-dependency-injection
 
       // 异步初始化，使用超时保护
       await _initializeAsync(effectiveTimeout, strategy);
@@ -164,6 +189,7 @@ class UnifiedHiveCacheManager {
 
       // 并行打开所有盒子
       final futures = <Future<Box>>[];
+<<<<<<< HEAD
       if (_cacheBoxName != null)
         futures.add(Hive.openBox(_cacheBoxName!, crashRecovery: true));
       if (_metadataBoxName != null)
@@ -175,6 +201,16 @@ class UnifiedHiveCacheManager {
       if (boxes.isNotEmpty) _cacheBox = boxes[0];
       if (boxes.length > 1) _metadataBox = boxes[1];
       if (boxes.length > 2) _indexBox = boxes[2];
+=======
+      futures.add(Hive.openBox(_cacheBoxName, crashRecovery: true));
+      futures.add(Hive.openBox(_metadataBoxName, crashRecovery: true));
+      futures.add(Hive.openBox(_indexBoxName, crashRecovery: true));
+
+      final boxes = await Future.wait(futures);
+      _cacheBox = boxes[0];
+      _metadataBox = boxes[1];
+      _indexBox = boxes[2];
+>>>>>>> temp-dependency-injection
 
       _isInMemoryMode = false;
 
@@ -192,6 +228,7 @@ class UnifiedHiveCacheManager {
 
     try {
       await Hive.initFlutter(Directory.systemTemp.path);
+<<<<<<< HEAD
       if (_cacheBoxName != null)
         _cacheBox = await Hive.openBox(_cacheBoxName!, crashRecovery: true);
       if (_metadataBoxName != null)
@@ -199,6 +236,11 @@ class UnifiedHiveCacheManager {
             await Hive.openBox(_metadataBoxName!, crashRecovery: true);
       if (_indexBoxName != null)
         _indexBox = await Hive.openBox(_indexBoxName!, crashRecovery: true);
+=======
+      _cacheBox = await Hive.openBox(_cacheBoxName, crashRecovery: true);
+      _metadataBox = await Hive.openBox(_metadataBoxName, crashRecovery: true);
+      _indexBox = await Hive.openBox(_indexBoxName, crashRecovery: true);
+>>>>>>> temp-dependency-injection
     } catch (e) {
       AppLogger.warn('⚠️ 内存模式Hive初始化失败，使用纯内存缓存: $e');
     }
@@ -573,12 +615,17 @@ class UnifiedHiveCacheManager {
   /// 清空所有缓存
   Future<void> clear() async {
     try {
+<<<<<<< HEAD
       // 清空L1缓存 - 添加初始化检查
       if (_isInitialized) {
         _l1Cache.clear();
       } else {
         AppLogger.debug('⚠️ 缓存未初始化，跳过L1缓存清理');
       }
+=======
+      // 清空L1缓存
+      _l1Cache.clear();
+>>>>>>> temp-dependency-injection
 
       // 清空L2缓存
       if (_cacheBox != null && _cacheBox!.isOpen) {
@@ -682,6 +729,7 @@ class UnifiedHiveCacheManager {
     }
   }
 
+<<<<<<< HEAD
   /// 清理过期缓存
   Future<void> clearExpiredCache() async {
     try {
@@ -735,6 +783,8 @@ class UnifiedHiveCacheManager {
     }
   }
 
+=======
+>>>>>>> temp-dependency-injection
   /// 设置缓存项过期时间
   Future<void> setExpiration(String key, Duration expiration) async {
     try {
@@ -846,6 +896,7 @@ class UnifiedHiveCacheManager {
     }
   }
 
+<<<<<<< HEAD
   /// 获取缓存统计信息（同步版本）
   Map<String, dynamic> getStatsSync() {
     try {
@@ -909,6 +960,8 @@ class UnifiedHiveCacheManager {
     }
   }
 
+=======
+>>>>>>> temp-dependency-injection
   /// 关闭缓存管理器
   Future<void> dispose() async {
     try {
@@ -933,6 +986,7 @@ class UnifiedHiveCacheManager {
       AppLogger.error('❌ 关闭缓存管理器失败', e);
     }
   }
+<<<<<<< HEAD
 
   /// 初始化缓存盒子名称
   void _initializeCacheBoxNames() {
@@ -1124,6 +1178,8 @@ class UnifiedHiveCacheManager {
   CacheKeyInfo? parseCacheKey(String key) {
     return _keyManager.parseKey(key);
   }
+=======
+>>>>>>> temp-dependency-injection
 }
 
 /// 缓存项数据结构
@@ -1169,6 +1225,7 @@ class _CacheItem<T> {
   }
 }
 
+<<<<<<< HEAD
 /// 缓存迁移结果
 class MigrationResult {
   final bool success;
@@ -1187,6 +1244,8 @@ class MigrationResult {
   }
 }
 
+=======
+>>>>>>> temp-dependency-injection
 /// 性能统计类
 class _PerformanceStats {
   int readCount = 0;
