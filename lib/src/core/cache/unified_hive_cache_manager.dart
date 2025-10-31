@@ -3,11 +3,6 @@ import 'dart:io';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../utils/logger.dart';
 import 'l1_memory_cache.dart';
-<<<<<<< HEAD
-import 'cache_key_manager.dart';
-import 'cache_key_migration_adapter.dart';
-=======
->>>>>>> temp-dependency-injection
 
 /// 缓存策略枚举
 enum CacheStrategy {
@@ -36,7 +31,6 @@ class UnifiedHiveCacheManager {
     return _instance!;
   }
 
-<<<<<<< HEAD
   UnifiedHiveCacheManager._() {
     // 立即初始化L1缓存，避免late初始化错误
     _l1Cache = L1MemoryCache(
@@ -44,9 +38,6 @@ class UnifiedHiveCacheManager {
       maxMemoryBytes: _maxMemoryBytes,
     );
   }
-=======
-  UnifiedHiveCacheManager._();
->>>>>>> temp-dependency-injection
 
   // 核心缓存组件
   Box? _cacheBox; // 主缓存盒子
@@ -66,21 +57,6 @@ class UnifiedHiveCacheManager {
   Timer? _cleanupTimer;
   Timer? _preloadTimer;
 
-<<<<<<< HEAD
-  // 配置常量 - 使用标准化缓存键
-  String? _cacheBoxName;
-  String? _metadataBoxName;
-  String? _indexBoxName;
-  static const int _maxMemorySize = 500;
-  static const int _maxMemoryBytes = 100 * 1024 * 1024; // 100MB
-
-  // 缓存键管理组件
-  final CacheKeyManager _keyManager = CacheKeyManager.instance;
-  final CacheKeyMigrationAdapter _migrationAdapter =
-      CacheKeyMigrationAdapter.instance;
-  bool _migrationEnabled = true;
-
-=======
   // 配置常量
   static const String _cacheBoxName = 'unified_fund_cache';
   static const String _metadataBoxName = 'unified_fund_metadata';
@@ -88,7 +64,6 @@ class UnifiedHiveCacheManager {
   static const int _maxMemorySize = 500;
   static const int _maxMemoryBytes = 100 * 1024 * 1024; // 100MB
 
->>>>>>> temp-dependency-injection
   /// 获取缓存大小
   int get size {
     if (!_isInitialized || _cacheBox == null) return 0;
@@ -119,24 +94,6 @@ class UnifiedHiveCacheManager {
     AppLogger.info('🚀 UnifiedHiveCacheManager: 开始初始化 (策略: $strategy)');
 
     try {
-<<<<<<< HEAD
-      // 初始化缓存键管理器
-      _initializeCacheBoxNames();
-
-      // 初始化迁移适配器
-      if (_migrationEnabled) {
-        await _migrationAdapter.initialize();
-      }
-
-      // L1内存缓存已在构造函数中初始化，跳过重复初始化
-=======
-      // 初始化L1内存缓存
-      _l1Cache = L1MemoryCache(
-        maxMemorySize: _maxMemorySize,
-        maxMemoryBytes: _maxMemoryBytes,
-      );
->>>>>>> temp-dependency-injection
-
       // 异步初始化，使用超时保护
       await _initializeAsync(effectiveTimeout, strategy);
 
@@ -189,19 +146,6 @@ class UnifiedHiveCacheManager {
 
       // 并行打开所有盒子
       final futures = <Future<Box>>[];
-<<<<<<< HEAD
-      if (_cacheBoxName != null)
-        futures.add(Hive.openBox(_cacheBoxName!, crashRecovery: true));
-      if (_metadataBoxName != null)
-        futures.add(Hive.openBox(_metadataBoxName!, crashRecovery: true));
-      if (_indexBoxName != null)
-        futures.add(Hive.openBox(_indexBoxName!, crashRecovery: true));
-
-      final boxes = await Future.wait(futures);
-      if (boxes.isNotEmpty) _cacheBox = boxes[0];
-      if (boxes.length > 1) _metadataBox = boxes[1];
-      if (boxes.length > 2) _indexBox = boxes[2];
-=======
       futures.add(Hive.openBox(_cacheBoxName, crashRecovery: true));
       futures.add(Hive.openBox(_metadataBoxName, crashRecovery: true));
       futures.add(Hive.openBox(_indexBoxName, crashRecovery: true));
@@ -210,7 +154,6 @@ class UnifiedHiveCacheManager {
       _cacheBox = boxes[0];
       _metadataBox = boxes[1];
       _indexBox = boxes[2];
->>>>>>> temp-dependency-injection
 
       _isInMemoryMode = false;
 
@@ -228,19 +171,9 @@ class UnifiedHiveCacheManager {
 
     try {
       await Hive.initFlutter(Directory.systemTemp.path);
-<<<<<<< HEAD
-      if (_cacheBoxName != null)
-        _cacheBox = await Hive.openBox(_cacheBoxName!, crashRecovery: true);
-      if (_metadataBoxName != null)
-        _metadataBox =
-            await Hive.openBox(_metadataBoxName!, crashRecovery: true);
-      if (_indexBoxName != null)
-        _indexBox = await Hive.openBox(_indexBoxName!, crashRecovery: true);
-=======
       _cacheBox = await Hive.openBox(_cacheBoxName, crashRecovery: true);
       _metadataBox = await Hive.openBox(_metadataBoxName, crashRecovery: true);
       _indexBox = await Hive.openBox(_indexBoxName, crashRecovery: true);
->>>>>>> temp-dependency-injection
     } catch (e) {
       AppLogger.warn('⚠️ 内存模式Hive初始化失败，使用纯内存缓存: $e');
     }
@@ -615,17 +548,12 @@ class UnifiedHiveCacheManager {
   /// 清空所有缓存
   Future<void> clear() async {
     try {
-<<<<<<< HEAD
       // 清空L1缓存 - 添加初始化检查
       if (_isInitialized) {
         _l1Cache.clear();
       } else {
         AppLogger.debug('⚠️ 缓存未初始化，跳过L1缓存清理');
       }
-=======
-      // 清空L1缓存
-      _l1Cache.clear();
->>>>>>> temp-dependency-injection
 
       // 清空L2缓存
       if (_cacheBox != null && _cacheBox!.isOpen) {
@@ -703,33 +631,23 @@ class UnifiedHiveCacheManager {
       }
 
       return {
-        'total_keys': allKeys.length,
-        'l1_cache': {
-          'count': l1Stats['total_items'] ?? 0,
-          'hit_rate': l1Stats['hit_rate'] ?? 0.0,
-        },
-        'l2_cache': {
-          'count': l2Count,
-          'expired_count': l2ExpiredCount,
-        },
-        'strategy': _strategy.toString(),
-        'memory_mode': _isInMemoryMode,
-        'performance': {
-          'read_count': _stats.readCount,
-          'write_count': _stats.writeCount,
-          'error_count': _stats.errorCount,
-        },
+        'total_items': allKeys.length,
+        'totalSize': l1Stats['totalSize'] ?? 0,
+        'hitRate': l1Stats['hitRate'] ?? 0.0,
+        'l2_count': l2Count,
+        'l2_expired_count': l2ExpiredCount,
       };
     } catch (e) {
       AppLogger.error('❌ 获取缓存统计失败', e);
       return {
         'error': e.toString(),
-        'total_keys': 0,
+        'total_items': 0,
+        'totalSize': 0,
+        'hitRate': 0.0,
       };
     }
   }
 
-<<<<<<< HEAD
   /// 清理过期缓存
   Future<void> clearExpiredCache() async {
     try {
@@ -783,8 +701,6 @@ class UnifiedHiveCacheManager {
     }
   }
 
-=======
->>>>>>> temp-dependency-injection
   /// 设置缓存项过期时间
   Future<void> setExpiration(String key, Duration expiration) async {
     try {
@@ -896,7 +812,6 @@ class UnifiedHiveCacheManager {
     }
   }
 
-<<<<<<< HEAD
   /// 获取缓存统计信息（同步版本）
   Map<String, dynamic> getStatsSync() {
     try {
@@ -932,7 +847,7 @@ class UnifiedHiveCacheManager {
       }
 
       return {
-        'total_keys': l1Stats['total_items'] + l2Count,
+        'total_items': l1Stats['total_items'] + l2Count,
         'l1_cache': {
           'count': l1Stats['total_items'] ?? 0,
           'hit_rate': l1Stats['hit_rate'] ?? 0.0,
@@ -954,14 +869,12 @@ class UnifiedHiveCacheManager {
       AppLogger.error('❌ 获取缓存统计失败', e);
       return {
         'error': e.toString(),
-        'total_keys': 0,
+        'total_items': 0,
         'initialized': _isInitialized,
       };
     }
   }
 
-=======
->>>>>>> temp-dependency-injection
   /// 关闭缓存管理器
   Future<void> dispose() async {
     try {
@@ -986,200 +899,6 @@ class UnifiedHiveCacheManager {
       AppLogger.error('❌ 关闭缓存管理器失败', e);
     }
   }
-<<<<<<< HEAD
-
-  /// 初始化缓存盒子名称
-  void _initializeCacheBoxNames() {
-    _cacheBoxName = _keyManager
-        .generateKey(
-          CacheKeyType.fundData,
-          'primary_cache',
-        )
-        .replaceAll('@latest', ''); // 移除版本号用于盒子名称
-
-    _metadataBoxName = _keyManager
-        .generateKey(
-          CacheKeyType.metadata,
-          'primary_metadata',
-        )
-        .replaceAll('@latest', '');
-
-    _indexBoxName = _keyManager
-        .generateKey(
-          CacheKeyType.searchIndex,
-          'primary_index',
-        )
-        .replaceAll('@latest', '');
-
-    AppLogger.debug(
-        '🔑 缓存盒子名称已初始化: $_cacheBoxName, $_metadataBoxName, $_indexBoxName');
-  }
-
-  /// 使用标准化缓存键存储数据
-  Future<void> putWithStandardKey<T>(
-    CacheKeyType type,
-    String identifier,
-    T value, {
-    CacheKeyVersion version = CacheKeyVersion.latest,
-    Duration? expiration,
-    CachePriority priority = CachePriority.normal,
-    List<String>? params,
-  }) async {
-    final key = _keyManager.generateKey(
-      type,
-      identifier,
-      version: version,
-      params: params,
-    );
-
-    await put<T>(key, value, expiration: expiration, priority: priority);
-  }
-
-  /// 使用标准化缓存键获取数据
-  T? getWithStandardKey<T>(
-    CacheKeyType type,
-    String identifier, {
-    CacheKeyVersion version = CacheKeyVersion.latest,
-    List<String>? params,
-  }) {
-    final key = _keyManager.generateKey(
-      type,
-      identifier,
-      version: version,
-      params: params,
-    );
-
-    return get<T>(key);
-  }
-
-  /// 批量存储基金数据（使用标准化键）
-  Future<void> putFundDataBatch(
-    Map<String, dynamic> fundData, {
-    Duration? expiration,
-  }) async {
-    final batchKeys = <String, dynamic>{};
-
-    fundData.forEach((fundCode, data) {
-      final key = _keyManager.fundDataKey(fundCode);
-      batchKeys[key] = data;
-    });
-
-    await putAll(batchKeys, expiration: expiration);
-  }
-
-  /// 批量获取基金数据（支持迁移）
-  Future<Map<String, T?>> getFundDataBatch<T>(List<String> fundCodes) async {
-    final results = <String, T?>{};
-
-    for (final fundCode in fundCodes) {
-      // 1. 尝试新格式键
-      final standardKey = _keyManager.fundDataKey(fundCode);
-      var value = get<T>(standardKey);
-
-      // 2. 如果未找到，尝试迁移旧键
-      if (value == null && _migrationEnabled) {
-        final oldKey = 'fund_$fundCode'; // 假设的旧键格式
-        final migratedKey = await _migrationAdapter.migrateKey(oldKey);
-
-        if (migratedKey != null) {
-          value = get<T>(migratedKey);
-          // 如果在迁移键中找到数据，复制到新键
-          if (value != null) {
-            await put(standardKey, value);
-          }
-        }
-      }
-
-      results[fundCode] = value;
-    }
-
-    return results;
-  }
-
-  /// 迁移现有缓存到新格式
-  Future<MigrationResult> migrateExistingCache() async {
-    if (!_migrationEnabled) {
-      return MigrationResult(
-        success: false,
-        message: '缓存迁移已禁用',
-        migratedCount: 0,
-      );
-    }
-
-    try {
-      AppLogger.info('🔄 开始迁移现有缓存到新格式...');
-
-      int totalMigrated = 0;
-
-      // 迁移主缓存盒子
-      if (_cacheBox != null) {
-        final cacheResult =
-            await _migrationAdapter.scanAndMigrateCache(_cacheBox!);
-        totalMigrated += cacheResult.values.where((v) => v != null).length;
-      }
-
-      // 迁移元数据盒子
-      if (_metadataBox != null) {
-        final metadataResult =
-            await _migrationAdapter.scanAndMigrateCache(_metadataBox!);
-        totalMigrated += metadataResult.values.where((v) => v != null).length;
-      }
-
-      // 迁移索引盒子
-      if (_indexBox != null) {
-        final indexResult =
-            await _migrationAdapter.scanAndMigrateCache(_indexBox!);
-        totalMigrated += indexResult.values.where((v) => v != null).length;
-      }
-
-      AppLogger.info('✅ 缓存迁移完成，共迁移 $totalMigrated 项');
-
-      return MigrationResult(
-        success: true,
-        message: '缓存迁移成功完成',
-        migratedCount: totalMigrated,
-      );
-    } catch (e) {
-      AppLogger.error('❌ 缓存迁移失败', e);
-      return MigrationResult(
-        success: false,
-        message: '缓存迁移失败: ${e.toString()}',
-        migratedCount: 0,
-      );
-    }
-  }
-
-  /// 获取缓存键管理统计信息
-  Map<String, dynamic> getKeyManagementStats() {
-    return {
-      'key_manager_enabled': true,
-      'migration_enabled': _migrationEnabled,
-      'standard_box_names': {
-        'cache': _cacheBoxName ?? 'unknown',
-        'metadata': _metadataBoxName ?? 'unknown',
-        'index': _indexBoxName ?? 'unknown',
-      },
-      'migration_stats': _migrationAdapter.getMigrationStats(),
-    };
-  }
-
-  /// 启用/禁用缓存迁移
-  void setMigrationEnabled(bool enabled) {
-    _migrationEnabled = enabled;
-    AppLogger.info('🔧 缓存迁移已${enabled ? '启用' : '禁用'}');
-  }
-
-  /// 验证缓存键格式
-  bool validateCacheKey(String key) {
-    return _keyManager.isValidKey(key);
-  }
-
-  /// 解析缓存键信息
-  CacheKeyInfo? parseCacheKey(String key) {
-    return _keyManager.parseKey(key);
-  }
-=======
->>>>>>> temp-dependency-injection
 }
 
 /// 缓存项数据结构
@@ -1225,27 +944,6 @@ class _CacheItem<T> {
   }
 }
 
-<<<<<<< HEAD
-/// 缓存迁移结果
-class MigrationResult {
-  final bool success;
-  final String message;
-  final int migratedCount;
-
-  MigrationResult({
-    required this.success,
-    required this.message,
-    required this.migratedCount,
-  });
-
-  @override
-  String toString() {
-    return 'MigrationResult(success: $success, message: $message, migratedCount: $migratedCount)';
-  }
-}
-
-=======
->>>>>>> temp-dependency-injection
 /// 性能统计类
 class _PerformanceStats {
   int readCount = 0;

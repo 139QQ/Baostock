@@ -1,51 +1,33 @@
-<<<<<<< HEAD
 import '../interfaces/i_unified_cache_service.dart';
 import '../interfaces/cache_service.dart';
 import '../unified_hive_cache_manager.dart';
 import '../l1_memory_cache.dart';
-=======
-import '../interfaces/cache_service.dart';
-import '../unified_hive_cache_manager.dart';
->>>>>>> temp-dependency-injection
 import '../../../core/utils/logger.dart';
 
 /// 统一缓存服务适配器
 ///
-<<<<<<< HEAD
 /// 将 UnifiedHiveCacheManager 适配为 IUnifiedCacheService 接口
 /// 提供标准的缓存操作接口，确保向后兼容性
 class UnifiedCacheAdapter implements IUnifiedCacheService {
-=======
-/// 将 UnifiedHiveCacheManager 适配为 CacheService 接口
-/// 提供标准的缓存操作接口，确保向后兼容性
-class UnifiedCacheAdapter implements CacheService {
->>>>>>> temp-dependency-injection
   final UnifiedHiveCacheManager _manager;
-  static const String _tag = 'UnifiedCacheAdapter';
+  static const String tag = 'UnifiedCacheAdapter';
 
   /// 构造函数
   UnifiedCacheAdapter(this._manager);
 
   @override
-<<<<<<< HEAD
   Future<T?> get<T>(String key, {Type? type}) async {
     try {
       return _manager.get<T>(key);
-=======
-  Future<T?> get<T>(String key) async {
-    try {
-      return await _manager.get<T>(key);
->>>>>>> temp-dependency-injection
     } catch (e, stackTrace) {
       AppLogger.error(
-          'Failed to get cache value for key: $key - $_tag', e, stackTrace);
+          'Failed to get cache value for key: $key - $tag', e, stackTrace);
       throw CacheServiceException('Failed to get cache value',
           key: key, originalError: e);
     }
   }
 
   @override
-<<<<<<< HEAD
   Future<void> put<T>(
     String key,
     T data, {
@@ -59,51 +41,11 @@ class UnifiedCacheAdapter implements CacheService {
         expiration: config?.ttl,
         priority: _convertPriorityToEnum(config?.priority ?? 5),
       );
-=======
-  Future<void> put<T>(String key, T value, {Duration? expiration}) async {
-    try {
-      await _manager.put(key, value, expiration: expiration);
->>>>>>> temp-dependency-injection
     } catch (e, stackTrace) {
       AppLogger.error(
-          'Failed to put cache value for key: $key - $_tag', e, stackTrace);
+          'Failed to put cache value for key: $key - $tag', e, stackTrace);
       throw CacheServiceException('Failed to put cache value',
           key: key, originalError: e);
-    }
-  }
-
-  @override
-<<<<<<< HEAD
-  Future<bool> isExpired(String key) async {
-    try {
-      // UnifiedHiveCacheManager 没有过期检查，返回false
-      return false;
-    } catch (e) {
-      AppLogger.error('Failed to check if key is expired: $key - $_tag', e);
-      throw CacheServiceException('Failed to check if key is expired',
-          key: key, originalError: e);
-    }
-  }
-
-  @override
-  Future<Map<String, T?>> getAll<T>(List<String> keys, {Type? type}) async {
-    try {
-      return _manager.getAll<T>(keys);
-    } catch (e) {
-      AppLogger.error('Failed to get multiple cache values - $_tag', e);
-      throw CacheServiceException('Failed to get multiple cache values',
-          originalError: e);
-    }
-  }
-
-  @override
-  Future<void> putAll<T>(Map<String, T> entries, {CacheConfig? config}) async {
-    try {
-      await _manager.putAll<T>(entries);
-    } catch (e) {
-      AppLogger.error('Failed to put multiple cache values - $_tag', e);
-      throw CacheServiceException('Failed to put multiple cache values',
-          originalError: e);
     }
   }
 
@@ -111,8 +53,9 @@ class UnifiedCacheAdapter implements CacheService {
   Future<bool> exists(String key) async {
     try {
       return _manager.containsKey(key);
-    } catch (e) {
-      AppLogger.error('Failed to check if key exists: $key - $_tag', e);
+    } catch (e, stackTrace) {
+      AppLogger.error(
+          'Failed to check if key exists: $key - $tag', e, stackTrace);
       throw CacheServiceException('Failed to check if key exists',
           key: key, originalError: e);
     }
@@ -123,23 +66,49 @@ class UnifiedCacheAdapter implements CacheService {
     try {
       await _manager.remove(key);
       return true;
-    } catch (e) {
-      AppLogger.error('Failed to remove cache value for key: $key - $_tag', e);
-=======
-  Future<void> remove(String key) async {
-    try {
-      await _manager.remove(key);
     } catch (e, stackTrace) {
       AppLogger.error(
-          'Failed to remove cache value for key: $key - $_tag', e, stackTrace);
->>>>>>> temp-dependency-injection
+          'Failed to remove cache value for key: $key - $tag', e, stackTrace);
       throw CacheServiceException('Failed to remove cache value',
           key: key, originalError: e);
     }
   }
 
   @override
-<<<<<<< HEAD
+  Future<void> clear() async {
+    try {
+      await _manager.clear();
+    } catch (e, stackTrace) {
+      AppLogger.error('Failed to clear cache - $tag', e, stackTrace);
+      throw CacheServiceException('Failed to clear cache', originalError: e);
+    }
+  }
+
+  @override
+  Future<Map<String, T?>> getAll<T>(List<String> keys, {Type? type}) async {
+    try {
+      return _manager.getAll<T>(keys);
+    } catch (e, stackTrace) {
+      AppLogger.error(
+          'Failed to get multiple cache values - $tag', e, stackTrace);
+      throw CacheServiceException('Failed to get multiple cache values',
+          originalError: e);
+    }
+  }
+
+  @override
+  Future<void> putAll<T>(Map<String, T> entries, {CacheConfig? config}) async {
+    try {
+      await _manager.putAll<T>(entries);
+    } catch (e, stackTrace) {
+      AppLogger.error(
+          'Failed to put multiple cache values - $tag', e, stackTrace);
+      throw CacheServiceException('Failed to put multiple cache values',
+          originalError: e);
+    }
+  }
+
+  @override
   Future<int> removeAll(Iterable<String> keys) async {
     try {
       int count = 0;
@@ -148,8 +117,9 @@ class UnifiedCacheAdapter implements CacheService {
         count++;
       }
       return count;
-    } catch (e) {
-      AppLogger.error('Failed to remove multiple cache values - $_tag', e);
+    } catch (e, stackTrace) {
+      AppLogger.error(
+          'Failed to remove multiple cache values - $tag', e, stackTrace);
       throw CacheServiceException('Failed to remove multiple cache values',
           originalError: e);
     }
@@ -169,30 +139,42 @@ class UnifiedCacheAdapter implements CacheService {
         count++;
       }
       return count;
-    } catch (e) {
-      AppLogger.error('Failed to remove by pattern: $pattern - $_tag', e);
+    } catch (e, stackTrace) {
+      AppLogger.error(
+          'Failed to remove by pattern: $pattern - $tag', e, stackTrace);
       throw CacheServiceException('Failed to remove by pattern',
           originalError: e);
     }
   }
 
   @override
-=======
->>>>>>> temp-dependency-injection
-  Future<void> clear() async {
+  Future<void> preload<T>(
+    List<String> keys,
+    Future<T> Function(String key) loader,
+  ) async {
     try {
-      await _manager.clear();
+      for (final key in keys) {
+        if (!await exists(key)) {
+          final value = await loader(key);
+          await put<T>(key, value);
+        }
+      }
     } catch (e, stackTrace) {
-      AppLogger.error('Failed to clear cache - $_tag', e, stackTrace);
-      throw CacheServiceException('Failed to clear cache', originalError: e);
+      AppLogger.error('Failed to preload cache values - $tag', e, stackTrace);
+      throw CacheServiceException('Failed to preload cache values',
+          originalError: e);
     }
   }
 
   @override
-<<<<<<< HEAD
-  Future<int> clearExpired() async {
-    // 简化实现
-    return 0;
+  Future<void> optimize() async {
+    try {
+      // 简化实现：如果管理器支持优化，则调用它
+      // 这里可以添加具体的优化逻辑
+    } catch (e, stackTrace) {
+      AppLogger.error('Failed to optimize cache - $tag', e, stackTrace);
+      throw CacheServiceException('Failed to optimize cache', originalError: e);
+    }
   }
 
   @override
@@ -211,79 +193,98 @@ class UnifiedCacheAdapter implements CacheService {
         missRate: 1.0 - ((stats['hitRate'] ?? 0.0) as double),
         averageResponseTime: 50.0,
       );
-    } catch (e) {
-      AppLogger.error('Failed to get cache stats - $_tag', e);
-=======
-  Future<bool> containsKey(String key) async {
-    try {
-      return await _manager.containsKey(key);
     } catch (e, stackTrace) {
-      AppLogger.error(
-          'Failed to check if key exists: $key - $_tag', e, stackTrace);
-      throw CacheServiceException('Failed to check if key exists',
-          key: key, originalError: e);
-    }
-  }
-
-  @override
-  Future<List<String>> getAllKeys() async {
-    try {
-      return await _manager.getAllKeys();
-    } catch (e, stackTrace) {
-      AppLogger.error('Failed to get all keys - $_tag', e, stackTrace);
-      throw CacheServiceException('Failed to get all keys', originalError: e);
-    }
-  }
-
-  @override
-  Future<Map<String, dynamic>> getStats() async {
-    try {
-      return await _manager.getStats();
-    } catch (e, stackTrace) {
-      AppLogger.error('Failed to get cache stats - $_tag', e, stackTrace);
->>>>>>> temp-dependency-injection
+      AppLogger.error('Failed to get cache stats - $tag', e, stackTrace);
       throw CacheServiceException('Failed to get cache stats',
           originalError: e);
     }
   }
 
   @override
-<<<<<<< HEAD
   Future<CacheConfig?> getConfig(String key) async {
-    return CacheConfig.defaultConfig();
+    try {
+      // 简化实现：返回默认配置
+      return CacheConfig.defaultConfig();
+    } catch (e, stackTrace) {
+      AppLogger.error(
+          'Failed to get cache config for key: $key - $tag', e, stackTrace);
+      throw CacheServiceException('Failed to get cache config',
+          key: key, originalError: e);
+    }
   }
 
   @override
   Future<bool> updateConfig(String key, CacheConfig config) async {
-    return false;
-  }
-
-  @override
-  Future<void> preload<T>(
-    List<String> keys,
-    Future<T> Function(String key) loader,
-  ) async {
-    // 简化实现
+    try {
+      // 简化实现：返回false表示不支持更新
+      return false;
+    } catch (e, stackTrace) {
+      AppLogger.error(
+          'Failed to update cache config for key: $key - $tag', e, stackTrace);
+      throw CacheServiceException('Failed to update cache config',
+          key: key, originalError: e);
+    }
   }
 
   @override
   CacheAccessStats getAccessStats() {
-    return CacheAccessStats();
+    try {
+      // 简化实现：返回空的访问统计
+      return CacheAccessStats();
+    } catch (e, stackTrace) {
+      AppLogger.error('Failed to get cache access stats - $tag', e, stackTrace);
+      throw CacheServiceException('Failed to get cache access stats',
+          originalError: e);
+    }
   }
 
   @override
   void resetAccessStats() {
-    // 简化实现
+    try {
+      // 简化实现：不做任何操作
+    } catch (e, stackTrace) {
+      AppLogger.error(
+          'Failed to reset cache access stats - $tag', e, stackTrace);
+      throw CacheServiceException('Failed to reset cache access stats',
+          originalError: e);
+    }
+  }
+
+  @override
+  Future<int> clearExpired() async {
+    try {
+      // 简化实现：返回0表示没有清理任何过期项
+      return 0;
+    } catch (e, stackTrace) {
+      AppLogger.error('Failed to clear expired cache - $tag', e, stackTrace);
+      throw CacheServiceException('Failed to clear expired cache',
+          originalError: e);
+    }
+  }
+
+  @override
+  Future<bool> isExpired(String key) async {
+    try {
+      // 简化实现：返回false表示不过期
+      return false;
+    } catch (e, stackTrace) {
+      AppLogger.error(
+          'Failed to check if key is expired: $key - $tag', e, stackTrace);
+      throw CacheServiceException('Failed to check if key is expired',
+          key: key, originalError: e);
+    }
   }
 
   @override
   void setMonitoringEnabled(bool enabled) {
-    // 简化实现
-  }
-
-  @override
-  Future<void> optimize() async {
-    // 简化实现
+    try {
+      // 简化实现：不做任何操作
+    } catch (e, stackTrace) {
+      AppLogger.error(
+          'Failed to set monitoring enabled: $enabled - $tag', e, stackTrace);
+      throw CacheServiceException('Failed to set monitoring enabled',
+          originalError: e);
+    }
   }
 
   // ============================================================================
@@ -304,66 +305,5 @@ class UnifiedCacheAdapter implements CacheService {
     if (priority <= 3) return CachePriority.low;
     if (priority >= 8) return CachePriority.high;
     return CachePriority.normal;
-=======
-  Future<Map<String, dynamic?>> getAll(List<String> keys) async {
-    try {
-      final result = <String, dynamic?>{};
-      for (final key in keys) {
-        result[key] = await get(key);
-      }
-      return result;
-    } catch (e) {
-      AppLogger.error('Failed to get multiple cache values - $_tag', e);
-      throw CacheServiceException('Failed to get multiple cache values',
-          originalError: e);
-    }
-  }
-
-  @override
-  Future<void> putAll(Map<String, dynamic> keyValuePairs,
-      {Duration? expiration}) async {
-    try {
-      await _manager.putAll(keyValuePairs, expiration: expiration);
-    } catch (e) {
-      AppLogger.error('Failed to put multiple cache values - $_tag', e);
-      throw CacheServiceException('Failed to put multiple cache values',
-          originalError: e);
-    }
-  }
-
-  @override
-  Future<void> removeAll(List<String> keys) async {
-    try {
-      for (final key in keys) {
-        await remove(key);
-      }
-    } catch (e) {
-      AppLogger.error('Failed to remove multiple cache values - $_tag', e);
-      throw CacheServiceException('Failed to remove multiple cache values',
-          originalError: e);
-    }
-  }
-
-  @override
-  Future<void> setExpiration(String key, Duration expiration) async {
-    try {
-      await _manager.setExpiration(key, expiration);
-    } catch (e) {
-      AppLogger.error('Failed to set expiration for key: $key - $_tag', e);
-      throw CacheServiceException('Failed to set expiration',
-          key: key, originalError: e);
-    }
-  }
-
-  @override
-  Future<Duration?> getExpiration(String key) async {
-    try {
-      return await _manager.getExpiration(key);
-    } catch (e) {
-      AppLogger.error('Failed to get expiration for key: $key - $_tag', e);
-      throw CacheServiceException('Failed to get expiration',
-          key: key, originalError: e);
-    }
->>>>>>> temp-dependency-injection
   }
 }

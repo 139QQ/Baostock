@@ -39,9 +39,7 @@ class CacheAdapterFactory {
     CacheAdapterType? adapterType,
   }) {
     // 自动推断适配器类型
-    if (adapterType == null) {
-      adapterType = _inferAdapterType(service);
-    }
+    adapterType ??= _inferAdapterType(service);
 
     switch (adapterType) {
       case CacheAdapterType.unifiedHive:
@@ -221,7 +219,7 @@ class LayeredCacheAdapter implements IUnifiedCacheService {
       case CacheLayerStrategy.writeBack:
         // 先写入主缓存，异步写入次缓存
         await primary.put(key, value, config: config);
-        Future.delayed(Duration(milliseconds: 100), () {
+        Future.delayed(const Duration(milliseconds: 100), () {
           secondary.put(key, value, config: config);
         });
         break;
@@ -283,7 +281,7 @@ class LayeredCacheAdapter implements IUnifiedCacheService {
       if (strategy == CacheLayerStrategy.cacheAside) {
         for (final entry in secondaryResults.entries) {
           if (entry.value != null) {
-            primary.put(entry.key, entry.value!);
+            primary.put(entry.key, entry.value);
           }
         }
       }
@@ -303,7 +301,7 @@ class LayeredCacheAdapter implements IUnifiedCacheService {
         break;
       case CacheLayerStrategy.writeBack:
         await primary.putAll(entries, config: config);
-        Future.delayed(Duration(milliseconds: 100), () {
+        Future.delayed(const Duration(milliseconds: 100), () {
           secondary.putAll(entries, config: config);
         });
         break;
@@ -440,7 +438,7 @@ class LayeredCacheAdapter implements IUnifiedCacheService {
     ]);
     int totalCount = 0;
     for (final count in results) {
-      totalCount += count as int;
+      totalCount += count;
     }
     return totalCount;
   }

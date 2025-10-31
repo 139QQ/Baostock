@@ -180,12 +180,10 @@ class CacheBloc extends Bloc<CacheEvent, CacheState> {
     Emitter<CacheState> emit,
   ) async {
     try {
-<<<<<<< HEAD
       // UnifiedHiveCacheManager 支持过期缓存管理，当前使用全量清理
-=======
+
       // HiveCacheManager 目前没有 clearExpiredCache 方法，使用 clear() 作为替代
       // TODO: 如果需要过期缓存管理，需要在 HiveCacheManager 中实现相应功能
->>>>>>> temp-dependency-injection
       await _cacheManager.clear();
 
       emit(state.copyWith(
