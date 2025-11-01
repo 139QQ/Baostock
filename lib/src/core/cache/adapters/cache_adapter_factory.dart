@@ -172,6 +172,7 @@ class LayeredCacheAdapter implements IUnifiedCacheService {
   final IUnifiedCacheService primary;
   final IUnifiedCacheService secondary;
   final CacheLayerStrategy strategy;
+  bool _isInitialized = false;
 
   LayeredCacheAdapter({
     required this.primary,
@@ -457,5 +458,21 @@ class LayeredCacheAdapter implements IUnifiedCacheService {
     // 同时启用/禁用所有层的监控
     primary.setMonitoringEnabled(enabled);
     secondary.setMonitoringEnabled(enabled);
+  }
+
+  @override
+  bool get isInitialized => _isInitialized;
+
+  @override
+  Future<void> initialize() async {
+    if (_isInitialized) return;
+
+    // 初始化所有层
+    await Future.wait([
+      primary.initialize(),
+      secondary.initialize(),
+    ]);
+
+    _isInitialized = true;
   }
 }

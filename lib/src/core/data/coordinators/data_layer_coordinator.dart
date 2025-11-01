@@ -31,6 +31,9 @@ class DataLayerCoordinator {
 
   /// 获取初始化状态（测试用）
   bool get isInitialized => _isInitialized;
+
+  /// 获取初始化状态（公开访问，用于测试）
+  bool get isInitializedPublic => _isInitialized;
   final Map<String, StreamController> _eventControllers = {};
   Timer? _healthCheckTimer;
 

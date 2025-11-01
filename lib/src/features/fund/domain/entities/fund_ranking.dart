@@ -365,6 +365,19 @@ class RankingCriteria extends Equatable {
         pageSize,
       ];
 
+  /// 转换为JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'rankingType': rankingType.name,
+      'rankingPeriod': rankingPeriod.name,
+      'fundType': fundType,
+      'company': company,
+      'sortBy': sortBy.name,
+      'page': page,
+      'pageSize': pageSize,
+    };
+  }
+
   @override
   String toString() {
     return 'RankingCriteria{'

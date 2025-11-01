@@ -10,6 +10,7 @@ import '../../../core/utils/logger.dart';
 class FilterCacheServiceAdapter implements IUnifiedCacheService {
   final FilterCacheService _filterCacheService;
   static const String _tag = 'FilterCacheServiceAdapter';
+  bool _isInitialized = false;
 
   /// 构造函数
   FilterCacheServiceAdapter(this._filterCacheService);
@@ -348,6 +349,24 @@ class FilterCacheServiceAdapter implements IUnifiedCacheService {
   @override
   void setMonitoringEnabled(bool enabled) {
     // FilterCacheService 不支持监控，忽略
+  }
+
+  @override
+  bool get isInitialized => _isInitialized;
+
+  @override
+  Future<void> initialize() async {
+    if (_isInitialized) return;
+
+    try {
+      // FilterCacheService 可能需要初始化
+      _isInitialized = true;
+      AppLogger.info('FilterCacheServiceAdapter initialized - $_tag');
+    } catch (e, stackTrace) {
+      AppLogger.error('Failed to initialize FilterCacheServiceAdapter - $_tag',
+          e, stackTrace);
+      rethrow;
+    }
   }
 
   // ============================================================================

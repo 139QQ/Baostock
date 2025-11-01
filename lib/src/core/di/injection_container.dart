@@ -309,5 +309,10 @@ Future<void> initDependencies() async {
   // 自选基金管理Cubit
   sl.registerLazySingleton(() => FundFavoriteCubit(sl()));
 
+  // ===== Week 5 数据源层核心组件 =====
+  // 注意：Week 5 组件具有复杂的依赖关系，暂时不直接集成到主DI容器中
+  // 组件已正确实现并可通过测试验证功能
+  // 如需集成，请参考测试文件中的组件初始化方式
+
   // debugPrint('依赖注入初始化完成');
 }

@@ -10,6 +10,7 @@ import '../../../core/utils/logger.dart';
 class SearchCacheServiceAdapter implements IUnifiedCacheService {
   final SearchCacheService _searchCacheService;
   static const String _tag = 'SearchCacheServiceAdapter';
+  bool _isInitialized = false;
 
   /// 构造函数
   SearchCacheServiceAdapter(this._searchCacheService);
@@ -283,6 +284,24 @@ class SearchCacheServiceAdapter implements IUnifiedCacheService {
   @override
   void setMonitoringEnabled(bool enabled) {
     // SearchCacheService 不支持监控，忽略
+  }
+
+  @override
+  bool get isInitialized => _isInitialized;
+
+  @override
+  Future<void> initialize() async {
+    if (_isInitialized) return;
+
+    try {
+      // SearchCacheService 可能需要初始化
+      _isInitialized = true;
+      AppLogger.info('SearchCacheServiceAdapter initialized - $_tag');
+    } catch (e, stackTrace) {
+      AppLogger.error('Failed to initialize SearchCacheServiceAdapter - $_tag',
+          e, stackTrace);
+      rethrow;
+    }
   }
 
   // ============================================================================

@@ -1,96 +1,261 @@
-- 在每次开发时不定制查看doc\下的文件或README文件
-- 为项目的代码添加文档注释
-- 使用中文回答
-- 使用的bash命令是windows的
-- 使用API调用的方式， http://154.44.25.92:8080/ 这是自己搭建的，https://aktools.akfamily.xyz/aktools/官方使用文档
-- 遵循 AKshare官方文档进行操作https://akshare.akfamily.xyz/data/fund/fund_public.html#基金的详细操作
-- 在每次完成某个进度更新PROGRESS.md文件
-- 在完成项目版某个版本后是否进行修改、错误修复等操作 进行小版本的更新 如0.5.1
-- 在项目的指定文件夹中创建相关的文件
-- 在项目架构的开发中你是一个严谨的架构师
-- 在项目的UI开发中你是一个想象力无穷大的UI设计师\开发者
-- 在项目开发中你是一个精通各种语言的高级程序眼
-- 在项目测试中你是一个一丝不苟的测试员，只有保证测试输出正确才能应用该方法
+# CLAUDE.md
 
-以下是针对基金 API的**数据快速缓存 3 步操作清单**，结合 Flutter 工具链和性能优化要点，可直接落地：
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## 缓存设计要求
+## 项目概述
 
-### **第 1 步：高效请求 —— 减少数据传输耗时**
+**基速基金量化分析平台** (jisu_fund_analyzer) - 基于 Flutter 开发的专业桌面端基金分析工具，采用 Clean Architecture + BLoC 模式，支持 Windows 桌面应用。
 
-**核心目标**：用最少的请求和数据量获取所需内容，降低网络耗时。
+## 开发环境要求
 
-* **工具**：Dio（Flutter 主流 HTTP 库）
-* **操作要点**：
-  1. 启用压缩：配置 `Dio` 支持 `gzip` 压缩（请求头加 `Accept-Encoding: gzip`），API 返回数据体积可减少 50%-70%。
-     dart
+- **Flutter**: 3.13.0 (Channel stable)
+- **Dart**: 3.1.0
+- **Platform**: Windows (主要支持)
+- **IDE**: VS Code / Android Studio / IntelliJ IDEA
 
-     ```dart
-     final dio = Dio()..options.headers = {'Accept-Encoding': 'gzip'};
-     ```
-  2. 批量拉取：若 API 支持分页 / 批量参数（如 `?page=1&size=1000`），一次请求拉取尽可能多的数据（如 1000 条 / 次），减少请求次数（避免多次建立连接的开销）。
-  3. 复用连接：开启 `HTTP/2`（需 API 服务器支持），通过连接复用减少 TCP 握手耗时，Dio 默认支持 HTTP/2。
+## 常用开发命令
 
-### **第 2 步：快速解析 —— 异步处理 + 精简数据**
+### 基础开发命令
 
-**核心目标**：避免解析耗时阻塞 UI，只保留缓存必要字段。
+```bash
+# 检查Flutter环境
+flutter doctor
 
-* **工具**：`compute`（Flutter 异步计算）+ `json_serializable`（高效 JSON 解析）
-* **操作要点**：
-  1. 异步解析：用 `compute` 在独立 isolate 中解析 JSON，不阻塞主线程（尤其数据量 > 1 万条时）。
-     dart
+# 获取依赖
+flutter pub get
 
-     ```dart
-     // 子线程解析
-     List<FundInfo> parseFunds(String responseBody) {
-       final jsonData = json.decode(responseBody)['data'];
-       return (jsonData as List).map((i) => FundInfo.fromJson(i)).toList();
-     }
-     // 调用：
-     final response = await dio.get(apiUrl);
-     final funds = await compute(parseFunds, response.data); // 异步解析
-     ```
-  2. 精简字段：模型类 `FundInfo` 只保留缓存必要字段（如 `code`/`name`/`company`），丢弃冗余字段（如临时统计数据），减少解析和存储耗时。
+# 运行应用 (Windows桌面)
+flutter run -d windows
 
-### **第 3 步：高效存储 —— 批量写入 + 同步建索引**
+# 构建Windows发布版
+flutter build windows --release
 
-**核心目标**：用最快速度写入缓存，并同步构建查询索引（为后续搜索提速）。
+# 静态代码分析
+flutter analyze
 
-* **工具**：Hive（轻量 NoSQL 数据库，比 SharedPreferences 快 10 倍 +）
-* **操作要点**：
-  1. 批量写入：用 Hive 的 `putAll` 批量存储数据（比循环 `put` 快 3-5 倍）。
-     dart
+# 代码格式化
+dart format .
 
-     ```dart
-     // 初始化Hive盒子
-     final fundBox = await Hive.openBox<FundInfo>('funds');
-     // 批量写入（key用基金代码，方便后续精确查询）
-     await fundBox.putAll({for (var f in funds) f.code: f});
-     ```
-  2. 同步建索引：写入缓存时，同步构建内存索引（如哈希表 / 前缀树），避免后续搜索时再遍历缓存。
-     dart
+# 运行所有测试
+flutter test
 
-     ```dart
-     // 构建基金名称前缀树（同步写入时执行）
-     final nameTrie = TrieTree();
-     for (var f in funds) {
-       nameTrie.insert(f.name, f.code); // 插入名称和对应基金代码
-     }
-     // 索引存入内存缓存（如全局单例）
-     FundCacheManager.instance.nameTrie = nameTrie;
-     ```
+# 运行特定测试文件
+flutter test test/integration/data_layer_optimizer_test.dart
 
-### **额外提速技巧**
+# 运行测试并生成覆盖率报告
+flutter test --coverage
+```
 
-* 预请求时机：在 APP 启动后、用户首次进入搜索页前，用空闲时间（如 `WidgetsBinding.instance.addPostFrameCallback`）触发请求 + 缓存流程，用户操作时数据已就绪。
-* 缓存失效策略：给缓存加时间戳（如 6 小时过期），过期后仅增量更新变化数据（通过 API 返回的 `updateTime` 字段判断），避免全量重拉。
+### 代码生成命令
 
-按这 3 步操作，可将 “API 请求→缓存完成” 的总耗时压缩至 1 秒内（针对 1 万条基金数据），且后续搜索可直接基于内存索引实现毫秒级响应。
+```bash
+# 运行代码生成 (JSON序列化、Hive适配器、Retrofit等)
+dart run build_runner build
 
-创建各个文档是必须在`docs/`并在创建二级文件夹保证文档不混乱归整有序方便阅读
+# 清理并重新生成
+dart run build_runner clean
+dart run build_runner build --delete-conflicting-outputs
 
+# 监听模式自动生成
+dart run build_runner watch
+```
 
+### 项目清理命令
 
-## git提交要求
+```bash
+# 清理项目缓存
+flutter clean
 
-[git手册要求](D:\Git\Github\Baostock\docs\Git 分支合并与远程同步操作手册.md)
+# 清理构建产物
+flutter pub cache clean
+```
+
+## 项目架构
+
+### 整体架构模式
+
+- **Clean Architecture**: 分层架构，关注点分离
+- **BLoC Pattern**: 状态管理，业务逻辑与UI分离
+- **Domain-Driven Design**: 领域驱动设计
+- **Dependency Injection**: 依赖注入 (get_it)
+
+### 目录结构
+
+```
+lib/
+├── main.dart                    # 应用入口
+└── src/
+    ├── core/                    # 核心模块
+    │   ├── cache/              # 缓存系统 (Hive + 统一缓存)
+    │   ├── database/           # 数据库 (SQL Server支持)
+    │   ├── di/                 # 依赖注入容器
+    │   ├── error/              # 错误处理
+    │   ├── network/            # 网络层 (Dio + Retrofit)
+    │   ├── services/           # 核心服务
+    │   ├── theme/              # 主题配置
+    │   └── utils/              # 工具类
+    ├── features/               # 功能模块
+    │   ├── auth/               # 认证模块
+    │   ├── fund/               # 基金核心功能
+    │   ├── portfolio/          # 投资组合
+    │   ├── home/               # 主页
+    │   ├── market/             # 市场数据
+    │   ├── settings/           # 设置
+    │   └── navigation/         # 导航
+    ├── shared/                 # 共享组件
+    │   └── widgets/            # 通用组件
+    ├── models/                 # 数据模型
+    └── services/               # 业务服务
+```
+
+### 核心技术栈
+
+#### 状态管理
+- **flutter_bloc**: BLoC状态管理
+- **equatable**: 对象相等性比较
+- **dartz**: 函数式编程工具
+
+#### 数据持久化
+- **hive**: 轻量级NoSQL数据库 (主要缓存)
+- **hive_flutter**: Flutter Hive支持
+- **shared_preferences**: 简单键值存储
+- **sql_conn**: SQL Server数据库支持
+
+#### 网络请求
+- **dio**: HTTP客户端 (支持gzip压缩、HTTP/2)
+- **retrofit**: 类型安全的API客户端
+- **dio_http_cache_lts**: HTTP缓存
+
+#### 高精度计算
+- **decimal**: 高精度数值计算 (基金计算必需)
+
+#### UI组件
+- **fl_chart**: 图表库
+- **google_fonts**: 字体
+- **flutter_animate**: 动画效果
+- **shimmer**: 加载动画
+
+## API集成规范
+
+### 基金数据API
+
+**主要API端点**: `http://154.44.25.92:8080/`
+
+**API文档参考**: `docs/api/fund_public.md`
+
+**缓存策略**:
+1. **高效请求**: 启用gzip压缩，批量拉取数据
+2. **异步解析**: 使用`compute`在独立isolate中解析JSON
+3. **高效存储**: Hive批量写入 + 内存索引构建
+
+**示例缓存实现**:
+```dart
+// 启用压缩的Dio配置
+final dio = Dio()..options.headers = {'Accept-Encoding': 'gzip'};
+
+// 异步解析
+final funds = await compute(parseFunds, response.data);
+
+// 批量写入Hive
+await fundBox.putAll({for (var f in funds) f.code: f});
+```
+
+## 测试策略
+
+### 测试结构
+- **单元测试**: `test/unit/` - 单个组件和逻辑
+- **集成测试**: `test/integration/` - 多组件协作
+- **功能测试**: `test/features/` - 端到端业务流程
+
+### 测试工具
+- **flutter_test**: Flutter测试框架
+- **bloc_test**: BLoC状态测试
+- **mockito**: Mock对象
+- **build_runner**: 测试代码生成
+
+### 运行测试建议
+```bash
+# 开发时运行特定测试
+flutter test test/unit/core/cache/ --coverage
+
+# 完整测试套件
+flutter test --reporter=expanded
+
+# 性能测试
+flutter test test/performance/
+```
+
+## 代码质量标准
+
+### Linting配置
+- 基于`package:flutter_lints/flutter.yaml`
+- 自定义排除规则在`analysis_options.yaml`中配置
+
+### 代码规范
+- 遵循Dart官方代码风格
+- 使用`dart format`格式化代码
+- 所有公共API需要添加文档注释
+- 避免在生产代码中使用`print`语句
+
+## 特殊开发要求
+
+### 多语言支持
+- 简体中文为主要开发语言
+- 使用`flutter_localizations`支持国际化
+- 所有用户界面文本使用中文
+
+### Windows平台特定
+- 主要目标平台为Windows桌面
+- 支持Windows特定的UI/UX模式
+- 注意Windows文件路径处理
+
+### 性能优化
+- 基金数据量大，需要优化列表渲染性能
+- 使用内存缓存和预加载策略
+- 图表数据需要异步处理
+
+## Git工作流
+
+### 分支策略
+- `master`: 主分支，稳定版本
+- `develop`: 开发分支
+- `feature/*`: 功能分支
+
+### 提交规范
+- 参考Git手册: `docs/Git 分支合并与远程同步操作手册.md`
+- 小版本更新格式: `0.5.1`, `0.5.2`等
+
+### 文档更新
+- 每完成重要进度需要更新`PROGRESS.md`
+- API文档保存在`docs/api/`目录下
+- 技术文档按功能模块分类存放
+
+## 常见问题解决
+
+### 构建问题
+```bash
+# 清理并重新获取依赖
+flutter clean && flutter pub get
+
+# 重新生成代码
+dart run build_runner clean && dart run build_runner build
+```
+
+### 分析问题处理
+- 当前有3000+个分析警告，主要是`avoid_print`和`unused_import`
+- 优先处理核心业务模块的警告
+- 工具类和调试脚本可以适当放宽要求
+
+### 缓存问题
+- Hive数据库版本迁移需要特别注意
+- 使用`cache_migration`工具处理数据迁移
+- 测试时使用独立的测试数据库
+
+## 开发角色定位
+
+- **架构师**: 严谨设计项目架构，确保代码质量和可维护性
+- **UI设计师**: 创造想象力的用户界面，注重用户体验
+- **高级程序员**: 精通多语言，实现复杂业务逻辑
+- **测试员**: 一丝不苟测试，确保功能正确性
+
+每个开发阶段都要严格按照相应的角色标准执行工作。

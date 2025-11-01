@@ -9,6 +9,7 @@ import '../../../core/utils/logger.dart';
 class FundDataCacheServiceAdapter implements IUnifiedCacheService {
   final FundDataCacheService _fundDataCacheService;
   static const String _tag = 'FundDataCacheServiceAdapter';
+  bool _isInitialized = false;
 
   /// 构造函数
   FundDataCacheServiceAdapter(this._fundDataCacheService);
@@ -280,6 +281,26 @@ class FundDataCacheServiceAdapter implements IUnifiedCacheService {
   @override
   void setMonitoringEnabled(bool enabled) {
     // FundDataCacheService 不支持监控，忽略
+  }
+
+  @override
+  bool get isInitialized => _isInitialized;
+
+  @override
+  Future<void> initialize() async {
+    if (_isInitialized) return;
+
+    try {
+      // FundDataCacheService 可能需要初始化
+      _isInitialized = true;
+      AppLogger.info('FundDataCacheServiceAdapter initialized - $_tag');
+    } catch (e, stackTrace) {
+      AppLogger.error(
+          'Failed to initialize FundDataCacheServiceAdapter - $_tag',
+          e,
+          stackTrace);
+      rethrow;
+    }
   }
 
   // ============================================================================

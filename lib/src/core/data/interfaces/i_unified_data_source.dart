@@ -3,6 +3,7 @@ import '../../../features/fund/domain/entities/fund.dart';
 import '../../../features/fund/domain/entities/fund_search_criteria.dart';
 import '../../../features/fund/domain/entities/fund_ranking.dart';
 import '../../../features/fund/domain/entities/fund_filter_criteria.dart';
+import '../../cache/interfaces/i_unified_cache_service.dart';
 
 /// 统一数据源接口
 ///
@@ -171,48 +172,6 @@ enum PreloadPriority {
 }
 
 /// 缓存统计信息
-class CacheStatistics {
-  /// 总缓存项数
-  final int totalCount;
-
-  /// 有效缓存项数
-  final int validCount;
-
-  /// 过期缓存项数
-  final int expiredCount;
-
-  /// 缓存总大小（字节）
-  final int totalSize;
-
-  /// 压缩节省的大小（字节）
-  final int compressedSavings;
-
-  /// 命中率
-  final double hitRate;
-
-  /// 未命中率
-  final double missRate;
-
-  /// 平均响应时间（毫秒）
-  final double averageResponseTime;
-
-  const CacheStatistics({
-    required this.totalCount,
-    required this.validCount,
-    required this.expiredCount,
-    required this.totalSize,
-    required this.compressedSavings,
-    required this.hitRate,
-    required this.missRate,
-    required this.averageResponseTime,
-  });
-
-  /// 缓存使用效率
-  double get efficiency => validCount / totalCount;
-
-  /// 缓存压缩率
-  double get compressionRate => compressedSavings / totalSize;
-}
 
 /// 数据同步结果
 class DataSyncResult {

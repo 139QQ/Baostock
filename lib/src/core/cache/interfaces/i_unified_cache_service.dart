@@ -104,6 +104,12 @@ abstract class IUnifiedCacheService {
   /// 返回缓存统计信息，包括项数、大小等
   Future<CacheStatistics> getStatistics();
 
+  /// 检查服务是否已初始化
+  bool get isInitialized;
+
+  /// 初始化缓存服务
+  Future<void> initialize();
+
   /// 获取缓存配置信息
   ///
   /// [key] 缓存键

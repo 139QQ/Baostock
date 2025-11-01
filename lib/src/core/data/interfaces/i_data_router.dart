@@ -6,6 +6,14 @@ import '../interfaces/i_unified_data_source.dart';
 /// 负责智能选择最佳数据源，处理故障转移，优化数据访问性能
 /// 支持基于质量、性能、可用性的多维度路由决策
 abstract class IDataRouter {
+  // ===== 生命周期管理接口 =====
+
+  /// 初始化数据路由器
+  Future<void> initialize();
+
+  /// 释放资源
+  Future<void> dispose();
+
   // ===== 数据源选择接口 =====
 
   /// 选择最佳数据源

@@ -11,6 +11,7 @@ import '../../../core/utils/logger.dart';
 class UnifiedCacheAdapter implements IUnifiedCacheService {
   final UnifiedHiveCacheManager _manager;
   static const String tag = 'UnifiedCacheAdapter';
+  bool _isInitialized = false;
 
   /// 构造函数
   UnifiedCacheAdapter(this._manager);
@@ -284,6 +285,24 @@ class UnifiedCacheAdapter implements IUnifiedCacheService {
           'Failed to set monitoring enabled: $enabled - $tag', e, stackTrace);
       throw CacheServiceException('Failed to set monitoring enabled',
           originalError: e);
+    }
+  }
+
+  @override
+  bool get isInitialized => _isInitialized;
+
+  @override
+  Future<void> initialize() async {
+    if (_isInitialized) return;
+
+    try {
+      // UnifiedHiveCacheManager 可能需要初始化
+      _isInitialized = true;
+      AppLogger.info('UnifiedCacheAdapter initialized - $tag');
+    } catch (e, stackTrace) {
+      AppLogger.error(
+          'Failed to initialize UnifiedCacheAdapter - $tag', e, stackTrace);
+      rethrow;
     }
   }
 

@@ -7,6 +7,14 @@ import 'i_data_router.dart';
 /// 负责维护多数据源之间的数据一致性，处理冲突检测和解决
 /// 支持版本控制、增量同步和数据验证
 abstract class IDataConsistencyManager {
+  // ===== 生命周期管理接口 =====
+
+  /// 初始化一致性管理器
+  Future<void> initialize();
+
+  /// 释放资源
+  Future<void> dispose();
+
   // ===== 一致性验证接口 =====
 
   /// 验证数据一致性
@@ -1834,14 +1842,19 @@ class ConsistencyTrendPoint {
 enum RecommendationType {
   /// 性能优化
   performance,
+
   /// 可靠性提升
   reliability,
+
   /// 成本降低
   cost,
+
   /// 功能增强
   feature,
+
   /// 数据质量
   dataQuality,
+
   /// 同步优化
   synchronization,
 }

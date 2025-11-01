@@ -35,5 +35,6 @@
     ],
     "deny": [],
     "ask": []
-  }
+  },
+  "outputStyle": "engineer-professional"
 }

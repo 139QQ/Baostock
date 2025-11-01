@@ -11,8 +11,8 @@ library intelligent_cache_manager;
 import 'dart:async';
 import 'dart:math' as math;
 import '../interfaces/i_unified_cache_service.dart';
-import '../strategies/cache_strategies.dart';
 import '../config/cache_config_manager.dart';
+import '../../../core/utils/logger.dart';
 
 // ============================================================================
 // 智能缓存管理器
@@ -49,6 +49,9 @@ class IntelligentCacheManager implements IUnifiedCacheService {
   // 监控定时器
   Timer? _monitoringTimer;
 
+  // 初始化状态
+  bool _isInitialized = false;
+
   IntelligentCacheManager(
     this._baseCacheService,
     this._configManager, {
@@ -62,7 +65,7 @@ class IntelligentCacheManager implements IUnifiedCacheService {
         _preloadManager = preloadManager ?? PreloadManager(),
         _memoryMonitor = memoryMonitor ?? MemoryPressureMonitor(),
         _strategyManager = strategyManager ?? IntelligentStrategyManager() {
-    _initializeIntelligentFeatures();
+    // 注意：构造函数中不再自动初始化，等待显式调用 initialize()
   }
 
   // ============================================================================
@@ -366,12 +369,35 @@ class IntelligentCacheManager implements IUnifiedCacheService {
     }
   }
 
+  @override
+  bool get isInitialized => _isInitialized;
+
+  @override
+  Future<void> initialize() async {
+    if (_isInitialized) return;
+
+    try {
+      // 首先初始化底层缓存服务
+      await _baseCacheService.initialize();
+
+      // 然后初始化智能功能
+      await _initializeIntelligentFeatures();
+
+      _isInitialized = true;
+      AppLogger.info('IntelligentCacheManager initialized successfully');
+    } catch (e, stackTrace) {
+      AppLogger.error(
+          'Failed to initialize IntelligentCacheManager', e, stackTrace);
+      rethrow;
+    }
+  }
+
   // ============================================================================
   // 智能功能实现
   // ============================================================================
 
   /// 初始化智能功能
-  void _initializeIntelligentFeatures() {
+  Future<void> _initializeIntelligentFeatures() async {
     _startIntelligentMonitoring();
     _preloadManager.start();
     _memoryMonitor.start();
@@ -379,7 +405,7 @@ class IntelligentCacheManager implements IUnifiedCacheService {
 
   /// 启动智能监控
   void _startIntelligentMonitoring() {
-    _monitoringTimer = Timer.periodic(Duration(minutes: 5), (_) {
+    _monitoringTimer = Timer.periodic(const Duration(minutes: 5), (_) {
       _performIntelligentMonitoring();
     });
   }
@@ -408,7 +434,7 @@ class IntelligentCacheManager implements IUnifiedCacheService {
       // 清理低效缓存
       await _cleanupInefficientCache();
     } catch (e) {
-      print('Intelligent monitoring error: $e');
+      AppLogger.warn('Intelligent monitoring error: $e');
     }
   }
 
@@ -497,7 +523,7 @@ class IntelligentCacheManager implements IUnifiedCacheService {
     final preloadKeys = _preloadManager.getPreloadKeys(key);
     if (preloadKeys.isNotEmpty) {
       // 延迟执行预加载，避免影响当前请求
-      Timer(Duration(milliseconds: 100), () {
+      Timer(const Duration(milliseconds: 100), () {
         _preloadManager.schedulePreload(preloadKeys, type);
       });
     }
@@ -591,7 +617,7 @@ class IntelligentCacheManager implements IUnifiedCacheService {
   Future<CompressionStats> _analyzeCompressionEffectiveness() async {
     // 这里需要实际的压缩统计实现
     // 简化实现，返回默认值
-    return CompressionStats(
+    return const CompressionStats(
       originalSize: 1000000,
       compressedSize: 300000,
       savingsRatio: 0.7,
@@ -680,7 +706,6 @@ class CachePerformanceMonitor {
   int _hits = 0;
   int _misses = 0;
   int _totalResponseTime = 0;
-  int _errors = 0;
 
   void recordAccess(String key, bool hit, int responseTimeMicros) {
     _totalAccesses++;
@@ -740,7 +765,6 @@ class CachePerformanceMonitor {
   }
 
   void recordError(String key, dynamic error) {
-    _errors++;
     _records.add(PerformanceRecord(
       key: key,
       timestamp: DateTime.now(),
@@ -772,7 +796,6 @@ class CachePerformanceMonitor {
     _hits = 0;
     _misses = 0;
     _totalResponseTime = 0;
-    _errors = 0;
   }
 }
 
@@ -917,7 +940,7 @@ class PatternData {
   ConfigAdjustment? getConfigAdjustment() {
     // 基于分析结果返回配置调整建议
     if (isInefficient) {
-      return ConfigAdjustment(
+      return const ConfigAdjustment(
         ttlMultiplier: 0.5,
         priorityAdjustment: -2,
       );
@@ -980,16 +1003,15 @@ class PreloadManager {
 
 /// 内存压力监控器
 class MemoryPressureMonitor {
-  Timer? _timer;
   double _currentPressure = 0.0;
 
   void start() {
-    _timer = Timer.periodic(Duration(seconds: 30), (_) {
-      _updatePressure();
-    });
+    // 在简化实现中，我们不需要定时更新压力
+    // 可以在需要时按需计算
   }
 
   Future<double> getCurrentPressure() async {
+    _updatePressure();
     return _currentPressure;
   }
 

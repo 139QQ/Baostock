@@ -10,6 +10,7 @@ import '../../../core/utils/logger.dart';
 class LegacyCacheAdapter implements IUnifiedCacheService {
   final HiveCacheManager _manager;
   static const String _tag = 'LegacyCacheAdapter';
+  bool _isInitialized = false;
 
   /// 构造函数
   LegacyCacheAdapter(this._manager);
@@ -285,6 +286,24 @@ class LegacyCacheAdapter implements IUnifiedCacheService {
           'Failed to set monitoring enabled: $enabled - $_tag', e, stackTrace);
       throw CacheServiceException('Failed to set monitoring enabled',
           originalError: e);
+    }
+  }
+
+  @override
+  bool get isInitialized => _isInitialized;
+
+  @override
+  Future<void> initialize() async {
+    if (_isInitialized) return;
+
+    try {
+      // HiveCacheManager 可能需要初始化
+      _isInitialized = true;
+      AppLogger.info('LegacyCacheAdapter initialized - $_tag');
+    } catch (e, stackTrace) {
+      AppLogger.error(
+          'Failed to initialize LegacyCacheAdapter - $_tag', e, stackTrace);
+      rethrow;
     }
   }
 }
