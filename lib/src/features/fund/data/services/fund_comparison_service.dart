@@ -76,7 +76,7 @@ class FundComparisonService {
       AppLogger.error(_tag, '计算对比结果失败: $e');
       return ComparisonResult(
         criteria: criteria,
-        fundData: [],
+        fundData: const [],
         statistics: ComparisonStatistics(
           averageReturn: 0.0,
           maxReturn: 0.0,
@@ -86,7 +86,7 @@ class FundComparisonService {
           maxVolatility: 0.0,
           minVolatility: 0.0,
           averageSharpeRatio: 0.0,
-          correlationMatrix: {},
+          correlationMatrix: const {},
           updatedAt: DateTime.now(),
         ),
         calculatedAt: DateTime.now(),
@@ -347,7 +347,7 @@ class FundComparisonService {
         maxVolatility: 0.0,
         minVolatility: 0.0,
         averageSharpeRatio: 0.0,
-        correlationMatrix: {},
+        correlationMatrix: const {},
         updatedAt: DateTime.now(),
       );
     }
@@ -542,8 +542,9 @@ class FundComparisonService {
       for (final period in periods) {
         try {
           final periodStr = _periodToString(period);
-          final historicalData =
-              await FundApiClient.getFundHistoricalData(fundCode, periodStr);
+          final historicalData = await FundApiClient.getFundHistoricalData(
+              fundCode,
+              period: periodStr);
 
           // 处理历史数据，提取关键指标
           fundData[period.name] =

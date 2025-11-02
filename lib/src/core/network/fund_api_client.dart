@@ -199,10 +199,9 @@ class FundApiClient {
 
   /// 获取基金排行榜数据
   static Future<Map<String, dynamic>> getFundRanking(
-      String rankingType, String period) async {
+      {String symbol = "全部"}) async {
     try {
-      final endpoint =
-          '/api/public/fund_rank_em?ranking_type=$rankingType&period=$period';
+      final endpoint = '/api/public/fund_open_fund_rank_em?symbol=$symbol';
       return await get(endpoint);
     } catch (e) {
       AppLogger.error('获取基金排行榜失败', e);
@@ -213,7 +212,8 @@ class FundApiClient {
   /// 获取基金基本信息
   static Future<Map<String, dynamic>> getFundInfo(String fundCode) async {
     try {
-      final endpoint = '/api/public/fund_info_em?symbol=$fundCode';
+      final endpoint =
+          '/api/public/fund_open_fund_info_em?symbol=$fundCode&indicator=单位净值走势';
       return await get(endpoint);
     } catch (e) {
       AppLogger.error('获取基金基本信息失败', e);
@@ -222,13 +222,11 @@ class FundApiClient {
   }
 
   /// 获取基金历史数据
-  static Future<Map<String, dynamic>> getFundHistory(
-      String fundCode, String period) async {
+  static Future<Map<String, dynamic>> getFundHistory(String fundCode,
+      {String period = "成立来"}) async {
     try {
-      // 使用正确的API接口获取净值数据
-      // 根据我们的修复方案，使用indicator参数
       final endpoint =
-          '/api/public/fund_open_fund_info_em?symbol=$fundCode&indicator=单位净值走势';
+          '/api/public/fund_open_fund_info_em?symbol=$fundCode&indicator=累计收益率走势&period=$period';
       return await get(endpoint);
     } catch (e) {
       AppLogger.error('获取基金历史数据失败', e);
@@ -253,9 +251,12 @@ class FundApiClient {
   }
 
   /// 获取基金持仓数据
-  static Future<Map<String, dynamic>> getFundPortfolio(String fundCode) async {
+  static Future<Map<String, dynamic>> getFundPortfolio(String fundCode,
+      {String? date}) async {
     try {
-      final endpoint = '/api/public/fund_portfolio_em?symbol=$fundCode';
+      final currentDate = date ?? DateTime.now().year.toString();
+      final endpoint =
+          '/api/public/fund_portfolio_hold_em?symbol=$fundCode&date=$currentDate';
       return await get(endpoint);
     } catch (e) {
       AppLogger.error('获取基金持仓数据失败', e);
@@ -267,8 +268,14 @@ class FundApiClient {
   static Future<Map<String, dynamic>> getFundsForComparison(
       List<String> fundCodes) async {
     try {
-      final queryParams = fundCodes.map((code) => 'symbol=$code').join('&');
-      final endpoint = '/api/public/fund_portfolio_em?$queryParams';
+      // 基金对比需要分别获取每只基金的信息，然后合并结果
+      // 这里暂时返回第一个基金的信息，实际应用中需要合并多个基金数据
+      if (fundCodes.isEmpty) {
+        return {};
+      }
+      final firstFundCode = fundCodes.first;
+      final endpoint =
+          '/api/public/fund_open_fund_info_em?symbol=$firstFundCode&indicator=单位净值走势';
       return await get(endpoint);
     } catch (e) {
       AppLogger.error('获取基金对比数据失败', e);
@@ -277,11 +284,11 @@ class FundApiClient {
   }
 
   /// 获取基金历史数据用于多时间段对比
-  static Future<Map<String, dynamic>> getFundHistoricalData(
-      String fundCode, String period) async {
+  static Future<Map<String, dynamic>> getFundHistoricalData(String fundCode,
+      {String period = "成立来"}) async {
     try {
       final endpoint =
-          '/api/public/fund_history_info_em?symbol=$fundCode&period=$period';
+          '/api/public/fund_open_fund_info_em?symbol=$fundCode&indicator=累计净值走势&period=$period';
       return await get(endpoint);
     } catch (e) {
       AppLogger.error('获取基金历史数据失败', e);
@@ -293,8 +300,9 @@ class FundApiClient {
   static Future<Map<String, dynamic>> searchFunds(String keyword,
       {int limit = 20}) async {
     try {
-      final endpoint =
-          '/api/public/fund_search_em?keyword=$keyword&limit=$limit';
+      // 基金搜索功能需要先获取所有基金列表，然后在客户端进行过滤
+      // 因为API文档中没有提供专门的搜索接口
+      final endpoint = '/api/public/fund_name_em';
       return await get(endpoint);
     } catch (e) {
       AppLogger.error('搜索基金失败', e);
@@ -305,7 +313,7 @@ class FundApiClient {
   /// 获取基金公司列表
   static Future<Map<String, dynamic>> getFundCompanies() async {
     try {
-      const endpoint = '/api/public/fund_company_em';
+      const endpoint = '/api/public/fund_aum_em';
       return await get(endpoint);
     } catch (e) {
       AppLogger.error('获取基金公司列表失败', e);
@@ -316,10 +324,75 @@ class FundApiClient {
   /// 获取基金类型列表
   static Future<Map<String, dynamic>> getFundTypes() async {
     try {
-      const endpoint = '/api/public/fund_type_em';
+      // 使用基金排行接口获取不同类型的基金
+      // 该接口支持按基金类型筛选: "全部", "股票型", "混合型", "债券型", "指数型", "QDII", "FOF"
+      const endpoint = '/api/public/fund_open_fund_rank_em?symbol=全部';
       return await get(endpoint);
     } catch (e) {
       AppLogger.error('获取基金类型列表失败', e);
+      rethrow;
+    }
+  }
+
+  /// 获取指定类型的基金列表
+  static Future<Map<String, dynamic>> getFundsByType(String fundType) async {
+    try {
+      // 支持的类型: "全部", "股票型", "混合型", "债券型", "指数型", "QDII", "FOF"
+      final endpoint = '/api/public/fund_open_fund_rank_em?symbol=$fundType';
+      return await get(endpoint);
+    } catch (e) {
+      AppLogger.error('获取指定类型基金列表失败', e);
+      rethrow;
+    }
+  }
+
+  /// 获取货币型基金实时数据
+  static Future<Map<String, dynamic>> getMoneyFundsDaily() async {
+    try {
+      const endpoint = '/api/public/fund_money_fund_daily_em';
+      return await get(endpoint);
+    } catch (e) {
+      AppLogger.error('获取货币型基金实时数据失败', e);
+      rethrow;
+    }
+  }
+
+  /// 获取指数型基金信息
+  static Future<Map<String, dynamic>> getIndexFunds(
+      {String symbol = "全部", String indicator = "全部"}) async {
+    try {
+      // symbol选项: "全部", "沪深指数", "行业主题", "大盘指数", "中盘指数", "小盘指数", "股票指数", "债券指数"
+      // indicator选项: "全部", "被动指数型", "增强指数型"
+      final endpoint =
+          '/api/public/fund_info_index_em?symbol=$symbol&indicator=$indicator';
+      return await get(endpoint);
+    } catch (e) {
+      AppLogger.error('获取指数型基金信息失败', e);
+      rethrow;
+    }
+  }
+
+  /// 获取ETF基金分类信息
+  static Future<Map<String, dynamic>> getEtfCategory(String symbol) async {
+    try {
+      // symbol选项: "封闭式基金", "ETF基金", "LOF基金"
+      final endpoint = '/api/public/fund_etf_category_sina?symbol=$symbol';
+      return await get(endpoint);
+    } catch (e) {
+      AppLogger.error('获取ETF基金分类信息失败', e);
+      rethrow;
+    }
+  }
+
+  /// 获取基金估值数据（按类型）
+  static Future<Map<String, dynamic>> getFundValueEstimation(
+      {String symbol = "全部"}) async {
+    try {
+      // symbol选项: '全部', '股票型', '混合型', '债券型', '指数型', 'QDII', 'ETF联接', 'LOF', '场内交易基金'
+      final endpoint = '/api/public/fund_value_estimation_em?symbol=$symbol';
+      return await get(endpoint);
+    } catch (e) {
+      AppLogger.error('获取基金估值数据失败', e);
       rethrow;
     }
   }

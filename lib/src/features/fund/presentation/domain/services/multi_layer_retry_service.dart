@@ -134,8 +134,8 @@ class MultiLayerRetryService {
 
         // 使用增强的超时配置
         final timeout = Duration(seconds: timeoutSeconds + (attempt - 1) * 15);
-        final response = await FundApiClient.getFundRanking('overall', '1Y')
-            .timeout(timeout);
+        final response =
+            await FundApiClient.getFundRanking(symbol: "全部").timeout(timeout);
         final rawData = response['data'] as List<dynamic>? ?? [];
 
         if (rawData.isNotEmpty) {

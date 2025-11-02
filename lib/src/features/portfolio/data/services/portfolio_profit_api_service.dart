@@ -70,8 +70,8 @@ class PortfolioProfitApiService {
         // 如果新API没有数据，fallback到旧API
         AppLogger.warn(
             'No data from FundNavApiService, falling back to FundApiClient');
-        final data = await FundApiClient.getFundHistory(
-            fundCode, _formatPeriod(startDate, endDate));
+        final data = await FundApiClient.getFundHistory(fundCode,
+            period: _convertToApiPeriod(_formatPeriod(startDate, endDate)));
         final fallbackNavHistory = _parseNavHistoryData(data, fundCode);
         AppLogger.info(
             'Retrieved ${fallbackNavHistory.length} NAV data points from fallback');
@@ -80,8 +80,8 @@ class PortfolioProfitApiService {
         AppLogger.warn('FundNavApiService failed, trying fallback', e);
         // Fallback到旧的API客户端
         try {
-          final data = await FundApiClient.getFundHistory(
-              fundCode, _formatPeriod(startDate, endDate));
+          final data = await FundApiClient.getFundHistory(fundCode,
+              period: _convertToApiPeriod(_formatPeriod(startDate, endDate)));
           final navHistory = _parseNavHistoryData(data, fundCode);
           AppLogger.info(
               'Retrieved ${navHistory.length} NAV data points from fallback');
@@ -347,6 +347,28 @@ class PortfolioProfitApiService {
     if (days <= 365) return '1Y';
     if (days <= 1095) return '3Y';
     return 'YTD';
+  }
+
+  /// 将内部时间格式转换为API文档中的period参数格式
+  String _convertToApiPeriod(String internalFormat) {
+    switch (internalFormat) {
+      case '1W':
+        return '1月';
+      case '1M':
+        return '3月';
+      case '3M':
+        return '3月';
+      case '6M':
+        return '6月';
+      case '1Y':
+        return '1年';
+      case '3Y':
+        return '3年';
+      case 'YTD':
+        return '今年来';
+      default:
+        return '成立来';
+    }
   }
 
   /// 解析净值历史数据

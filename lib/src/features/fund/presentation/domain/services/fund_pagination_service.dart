@@ -375,7 +375,7 @@ class FundPaginationService {
             'Pagination');
 
         // 请求API
-        final response = await FundApiClient.getFundRanking('overall', '1Y')
+        final response = await FundApiClient.getFundRanking(symbol: "全部")
             .timeout(Duration(seconds: 45 + retryCount * 15)); // 递增超时时间
         final rawData = response['data'] as List<dynamic>? ?? [];
 

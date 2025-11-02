@@ -34,7 +34,7 @@ class FundRemoteDataSourceImpl implements FundRemoteDataSource {
   Future<List<Fund>> getFundRankings(String symbol,
       {bool forceRefresh = false}) async {
     try {
-      final response = await FundApiClient.getFundRanking('overall', '1Y');
+      final response = await FundApiClient.getFundRanking(symbol: "全部");
       final dataList = response['data'] as List<dynamic>? ?? [];
       return dataList
           .map((json) =>

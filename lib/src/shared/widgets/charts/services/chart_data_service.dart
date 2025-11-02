@@ -135,7 +135,8 @@ class ChartDataService {
     try {
       debugPrint('🔄 ChartDataService: 获取基金排行榜数据，symbol=$symbol, topN=$topN');
 
-      final response = await FundApiClient.getFundRanking('overall', '1Y');
+      final response = await FundApiClient.getFundRanking(
+          symbol: symbol.isEmpty ? "全部" : symbol);
       final data = response['data'] as List<dynamic>? ?? [];
 
       if (data.isNotEmpty) {
@@ -166,7 +167,8 @@ class ChartDataService {
     try {
       debugPrint('🔄 ChartDataService: 获取基金收益率分布数据，symbol=$symbol');
 
-      final response = await FundApiClient.getFundRanking('overall', '1Y');
+      final response = await FundApiClient.getFundRanking(
+          symbol: symbol.isEmpty ? "全部" : symbol);
       final data = response['data'] as List<dynamic>? ?? [];
 
       if (data.isNotEmpty) {
