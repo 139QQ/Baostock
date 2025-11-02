@@ -35,6 +35,17 @@ class FundInfo extends HiveObject {
     required this.pinyinFull,
   });
 
+  /// 创建空的FundInfo对象 - 用于错误处理
+  factory FundInfo.empty() {
+    return FundInfo(
+      code: '',
+      name: '',
+      type: '',
+      pinyinAbbr: '',
+      pinyinFull: '',
+    );
+  }
+
   /// 从JSON创建对象
   factory FundInfo.fromJson(Map<String, dynamic> json) =>
       _$FundInfoFromJson(json);
