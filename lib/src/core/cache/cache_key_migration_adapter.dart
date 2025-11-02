@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'cache_key_manager.dart';
 import '../utils/logger.dart';
-import '../config/cache_key_config.dart';
 
 /// 缓存键迁移记录
 class CacheMigrationRecord {

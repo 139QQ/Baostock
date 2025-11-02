@@ -107,9 +107,9 @@ class CacheServiceAdapter extends CacheService {
   }
 
   @override
-  Future<Map<String, dynamic?>> getAll(List<String> keys) async {
+  Future<Map<String, dynamic>> getAll(List<String> keys) async {
     try {
-      final result = <String, dynamic?>{};
+      final result = <String, dynamic>{};
       final values = await _unifiedService.getAll(keys);
       result.addAll(values);
       return result;

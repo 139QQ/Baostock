@@ -33,6 +33,9 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
   // 搜索防抖定时器
   Timer? _searchDebounce;
 
+  // Cubit是否已关闭标志
+  bool _isClosed = false;
+
   FundExplorationCubit({
     required FundDataService fundDataService,
     required SearchService searchService,
@@ -47,6 +50,15 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
     }
   }
 
+  /// 安全的emit方法，防止在Cubit关闭后发射状态
+  void _safeEmit(FundExplorationState newState) {
+    if (!_isClosed && !isClosed) {
+      emit(newState);
+    } else {
+      AppLogger.debug('⚠️ FundExplorationCubit: Cubit已关闭，跳过状态发射');
+    }
+  }
+
   /// 初始化状态管理器
   Future<void> _initialize() async {
     AppLogger.debug('🔄 FundExplorationCubit: 初始化');
@@ -58,6 +70,12 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
     String symbol = '', // 基金排行API不需要参数
     bool forceRefresh = false,
   }) async {
+    // 检查Cubit是否已关闭
+    if (_isClosed || isClosed) {
+      AppLogger.debug('⚠️ FundExplorationCubit: Cubit已关闭，取消加载操作');
+      return;
+    }
+
     if (!forceRefresh && state.isLoading) {
       AppLogger.debug('⏭️ FundExplorationCubit: 正在加载中，跳过重复请求');
       return;
@@ -66,7 +84,7 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
     AppLogger.debug(
         '🔄 FundExplorationCubit: 开始加载基金排行数据 (forceRefresh: $forceRefresh)');
 
-    emit(state.copyWith(
+    _safeEmit(state.copyWith(
       status: FundExplorationStatus.loading,
       isLoading: true,
       errorMessage: null,
@@ -77,9 +95,16 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
         symbol: symbol,
         forceRefresh: forceRefresh,
         onProgress: (progress) {
-          emit(state.copyWith(loadProgress: progress));
+          // 安全地发射进度状态
+          _safeEmit(state.copyWith(loadProgress: progress));
         },
       );
+
+      // 检查Cubit是否在异步操作过程中被关闭
+      if (_isClosed || isClosed) {
+        AppLogger.debug('⚠️ FundExplorationCubit: Cubit在数据加载过程中被关闭，取消状态更新');
+        return;
+      }
 
       if (result.isSuccess) {
         final rankings = result.data!;
@@ -93,7 +118,7 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
         AppLogger.debug(
             '✅ FundExplorationCubit: 数据加载成功 (${rankings.length}条, isRealData: $isRealData)');
 
-        emit(state.copyWith(
+        _safeEmit(state.copyWith(
           status: FundExplorationStatus.loaded,
           isLoading: false,
           fundRankings: rankings,
@@ -104,7 +129,7 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
           loadProgress: 1.0,
         ));
       } else {
-        emit(state.copyWith(
+        _safeEmit(state.copyWith(
           status: FundExplorationStatus.error,
           isLoading: false,
           errorMessage: result.errorMessage,
@@ -114,7 +139,7 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
       final errorMsg = '加载失败: $e';
       AppLogger.error('❌ FundExplorationCubit: $errorMsg', e);
       AppLogger.debug('🔄 FundExplorationCubit: 发射错误状态');
-      emit(state.copyWith(
+      _safeEmit(state.copyWith(
         status: FundExplorationStatus.error,
         isLoading: false,
         errorMessage: errorMsg,
@@ -819,6 +844,8 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
 
   @override
   Future<void> close() {
+    AppLogger.debug('🔄 FundExplorationCubit: 正在关闭Cubit');
+    _isClosed = true;
     _searchDebounce?.cancel();
     return super.close();
   }

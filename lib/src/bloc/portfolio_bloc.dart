@@ -233,7 +233,6 @@ class PortfolioError extends PortfolioState {
 class PortfolioBloc extends Bloc<PortfolioEvent, PortfolioState> {
   final PortfolioAnalysisService _portfolioService;
   final FundAnalysisService _analysisService;
-  final HighPerformanceFundService _fundService;
 
   List<Portfolio> _portfolios = [];
   List<FundRecommendation> _recommendedFunds = [];
@@ -244,7 +243,6 @@ class PortfolioBloc extends Bloc<PortfolioEvent, PortfolioState> {
     required HighPerformanceFundService fundService,
   })  : _portfolioService = portfolioService,
         _analysisService = analysisService,
-        _fundService = fundService,
         super(PortfolioInitial()) {
     on<LoadPortfolios>(_onLoadPortfolios);
     on<CreatePortfolio>(_onCreatePortfolio);

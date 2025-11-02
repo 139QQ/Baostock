@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
+import '../utils/logger.dart';
 
 /// 懒加载任务
 class LoadingTask {
@@ -161,6 +163,12 @@ class LazyLoadingManager {
   bool _isLoading = false;
   Timer? _cacheCleanupTimer;
 
+  // Week 10 性能优化
+  final List<Duration> _loadTimes = [];
+  int _totalTasksLoaded = 0;
+  int _totalTasksFailed = 0;
+  Timer? _performanceReportTimer;
+
   // 回调函数
   final List<Function(String, dynamic)> _onLoadCallbacks = [];
   final List<Function(String, dynamic)> _onErrorCallbacks = [];
@@ -173,11 +181,17 @@ class LazyLoadingManager {
 
     // 清理可能存在的旧定时器
     _cacheCleanupTimer?.cancel();
+    _performanceReportTimer?.cancel();
 
     // 启动缓存清理定时器
-    _cacheCleanupTimer = Timer.periodic(Duration(minutes: 5), (_) => _cleanupExpiredCache());
+    _cacheCleanupTimer =
+        Timer.periodic(Duration(minutes: 5), (_) => _cleanupExpiredCache());
 
-    _logger.i('✅ 懒加载管理器初始化成功');
+    // Week 10 性能优化: 启动性能报告定时器
+    _performanceReportTimer = Timer.periodic(
+        Duration(minutes: 2), (_) => _generatePerformanceReport());
+
+    AppLogger.info('✅ 懒加载管理器初始化成功（含性能监控）');
   }
 
   /// 添加加载任务
@@ -240,7 +254,8 @@ class LazyLoadingManager {
   }
 
   /// 预加载策略
-  Future<void> preloadData(List<String> keys, Future<dynamic> Function(String) loader) async {
+  Future<void> preloadData(
+      List<String> keys, Future<dynamic> Function(String) loader) async {
     _logger.d('🚀 开始预加载 ${keys.length} 个数据项');
 
     // 创建任务并获取它们的ID
@@ -287,7 +302,8 @@ class LazyLoadingManager {
   }
 
   /// 智能预加载（基于使用模式）
-  Future<void> smartPreload(List<String> frequentKeys, Future<dynamic> Function(String) loader) async {
+  Future<void> smartPreload(List<String> frequentKeys,
+      Future<dynamic> Function(String) loader) async {
     // 分析使用频率，决定预加载策略
     final topKeys = frequentKeys.take(10).toList();
 
@@ -387,13 +403,16 @@ class LazyLoadingManager {
 
   /// 处理加载队列
   Future<void> _processQueue() async {
-    if (_isLoading || _loadingQueue.isEmpty || _activeTasks.length >= _maxConcurrentTasks) {
+    if (_isLoading ||
+        _loadingQueue.isEmpty ||
+        _activeTasks.length >= _maxConcurrentTasks) {
       return;
     }
 
     _isLoading = true;
 
-    while (_loadingQueue.isNotEmpty && _activeTasks.length < _maxConcurrentTasks) {
+    while (
+        _loadingQueue.isNotEmpty && _activeTasks.length < _maxConcurrentTasks) {
       final task = _loadingQueue.removeFirst();
       _activeTasks[task.key] = task;
 
@@ -614,10 +633,104 @@ class LazyLoadingManager {
     _isLoading = false;
   }
 
+  /// Week 10 性能优化: 生成性能报告
+  void _generatePerformanceReport() {
+    if (_loadTimes.isEmpty) return;
+
+    final avgLoadTime =
+        _loadTimes.map((d) => d.inMilliseconds).reduce((a, b) => a + b) /
+            _loadTimes.length;
+
+    final maxLoadTime =
+        _loadTimes.map((d) => d.inMilliseconds).reduce((a, b) => a > b ? a : b);
+
+    final minLoadTime =
+        _loadTimes.map((d) => d.inMilliseconds).reduce((a, b) => a < b ? a : b);
+
+    final successRate = _totalTasksLoaded + _totalTasksFailed > 0
+        ? (_totalTasksLoaded / (_totalTasksLoaded + _totalTasksFailed) * 100)
+        : 0.0;
+
+    AppLogger.info('📊 懒加载性能报告:');
+    AppLogger.info('  平均加载时间: ${avgLoadTime.toStringAsFixed(2)}ms');
+    AppLogger.info('  最大加载时间: ${maxLoadTime}ms');
+    AppLogger.info('  最小加载时间: ${minLoadTime}ms');
+    AppLogger.info('  成功任务数: $_totalTasksLoaded');
+    AppLogger.info('  失败任务数: $_totalTasksFailed');
+    AppLogger.info('  成功率: ${successRate.toStringAsFixed(1)}%');
+    AppLogger.info(
+        '  缓存命中率: ${(_loadedCache.length / _totalTasksLoaded * 100).toStringAsFixed(1)}%');
+
+    // 在调试模式下输出到开发者控制台
+    if (kDebugMode) {
+      developer.log(
+          '懒加载性能报告: 平均${avgLoadTime.toStringAsFixed(2)}ms, 成功率${successRate.toStringAsFixed(1)}%',
+          name: 'LazyLoadingPerformance');
+    }
+
+    // 清理旧的性能数据，保持最近100条记录
+    if (_loadTimes.length > 100) {
+      _loadTimes.removeRange(0, _loadTimes.length - 100);
+    }
+  }
+
+  /// Week 10 性能优化: 记录任务加载时间
+  void _recordLoadTime(Duration loadTime, bool success) {
+    _loadTimes.add(loadTime);
+    if (success) {
+      _totalTasksLoaded++;
+    } else {
+      _totalTasksFailed++;
+    }
+  }
+
+  /// 获取性能统计信息
+  Map<String, dynamic> getPerformanceStats() {
+    if (_loadTimes.isEmpty) {
+      return {
+        'avgLoadTime': 0,
+        'maxLoadTime': 0,
+        'minLoadTime': 0,
+        'totalTasksLoaded': _totalTasksLoaded,
+        'totalTasksFailed': _totalTasksFailed,
+        'successRate': 0.0,
+        'cacheHitRate': 0.0,
+      };
+    }
+
+    final avgLoadTime =
+        _loadTimes.map((d) => d.inMilliseconds).reduce((a, b) => a + b) /
+            _loadTimes.length;
+
+    final maxLoadTime =
+        _loadTimes.map((d) => d.inMilliseconds).reduce((a, b) => a > b ? a : b);
+
+    final minLoadTime =
+        _loadTimes.map((d) => d.inMilliseconds).reduce((a, b) => a < b ? a : b);
+
+    final successRate = _totalTasksLoaded + _totalTasksFailed > 0
+        ? (_totalTasksLoaded / (_totalTasksLoaded + _totalTasksFailed) * 100)
+        : 0.0;
+
+    return {
+      'avgLoadTime': avgLoadTime,
+      'maxLoadTime': maxLoadTime,
+      'minLoadTime': minLoadTime,
+      'totalTasksLoaded': _totalTasksLoaded,
+      'totalTasksFailed': _totalTasksFailed,
+      'successRate': successRate,
+      'cacheHitRate': _totalTasksLoaded > 0
+          ? (_loadedCache.length / _totalTasksLoaded * 100)
+          : 0.0,
+    };
+  }
+
   /// 销毁管理器
   void dispose() {
     _cacheCleanupTimer?.cancel();
+    _performanceReportTimer?.cancel();
     _cacheCleanupTimer = null;
+    _performanceReportTimer = null;
 
     clearQueue();
     clearCache();
@@ -625,6 +738,6 @@ class LazyLoadingManager {
     _onErrorCallbacks.clear();
     _onQueueEmptyCallbacks.clear();
 
-    _logger.i('🗑️ 懒加载管理器已销毁');
+    AppLogger.info('🗑️ 懒加载管理器已销毁');
   }
 }

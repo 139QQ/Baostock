@@ -1,8 +1,7 @@
-import 'dart:convert';
-import 'dart:isolate';
+import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
 import '../../domain/entities/fund.dart';
-import '../../../../models/fund_info.dart';
+import '../../../../core/utils/logger.dart';
 
 /// 优化后的基金API响应数据模型 - Week 9实施
 ///
@@ -40,8 +39,18 @@ class OptimizedFundApiResponse {
 
   // 高频使用字段 - 优化访问性能
   static const Set<String> _highFrequencyFields = {
-    '基金代码', '基金简称', '单位净值', '累计净值', '日增长率'
+    '基金代码',
+    '基金简称',
+    '单位净值',
+    '累计净值',
+    '日增长率'
   };
+
+  // Week 10 性能优化 - API解析性能监控
+  static int _totalParseOperations = 0;
+  static int _totalRecordsProcessed = 0;
+  static final List<Duration> _parseTimes = [];
+  static int _parseErrors = 0;
 
   /// 将API原始数据转换为基金实体列表 - 主入口方法
   ///
@@ -53,9 +62,10 @@ class OptimizedFundApiResponse {
   static List<Fund> fromRankingApi(List<Map<String, dynamic>> apiData) {
     if (apiData.isEmpty) return [];
 
-    try {
-      final stopwatch = Stopwatch()..start();
+    final stopwatch = Stopwatch()..start();
+    _totalParseOperations++;
 
+    try {
       final funds = apiData
           .where(_isValidFundItem)
           .map((item) => _convertRankingItemToFund(item))
@@ -64,36 +74,44 @@ class OptimizedFundApiResponse {
 
       stopwatch.stop();
 
+      // Week 10 性能优化: 记录解析性能
+      _totalRecordsProcessed += apiData.length;
+      _parseTimes.add(stopwatch.elapsed);
+
       // 性能日志（仅在调试模式下）
-      if (stopwatch.elapsedMilliseconds > 100) {
-        print('⚠️ API数据转换耗时: ${stopwatch.elapsedMilliseconds}ms, 处理${funds.length}条记录');
+      if (kDebugMode && stopwatch.elapsedMilliseconds > 100) {
+        AppLogger.info(
+            '⚠️ API数据转换耗时: ${stopwatch.elapsedMilliseconds}ms, 处理${funds.length}条记录');
       }
 
       return funds;
     } catch (e) {
-      print('❌ API数据转换失败: $e');
+      _parseErrors++;
+      AppLogger.error('❌ API数据转换失败: $e', e);
       return [];
     }
   }
 
   /// compute异步解析入口 - 用于大数据量处理
-  static Future<List<Fund>> fromRankingApiCompute(List<Map<String, dynamic>> apiData) {
+  static Future<List<Fund>> fromRankingApiCompute(
+      List<Map<String, dynamic>> apiData) {
     return compute(_parseFundsInBackground, apiData);
   }
 
   /// 后台Isolate解析函数
-  static List<Fund> _parseFundsInBackground(List<Map<String, dynamic>> apiData) {
+  static List<Fund> _parseFundsInBackground(
+      List<Map<String, dynamic>> apiData) {
     return fromRankingApi(apiData);
   }
 
   /// 验证基金数据项是否有效
   static bool _isValidFundItem(Map<String, dynamic> item) {
     return item.isNotEmpty &&
-           item.containsKey('基金代码') &&
-           item.containsKey('基金简称') &&
-           item['基金代码'] != null &&
-           item['基金简称'] != null &&
-           item['基金代码'].toString().trim().isNotEmpty;
+        item.containsKey('基金代码') &&
+        item.containsKey('基金简称') &&
+        item['基金代码'] != null &&
+        item['基金简称'] != null &&
+        item['基金代码'].toString().trim().isNotEmpty;
   }
 
   /// 转换单个基金排行数据项 - 优化版本
@@ -149,7 +167,7 @@ class OptimizedFundApiResponse {
         lastUpdate: DateTime.now(),
       );
     } catch (e) {
-      print('❌ 基金数据转换失败: $e, 数据: $item');
+      AppLogger.error('❌ 基金数据转换失败: $e, 数据: $item', e);
       return _createEmptyFund();
     }
   }
@@ -203,19 +221,6 @@ class OptimizedFundApiResponse {
     return null;
   }
 
-  /// 工具方法：解析手续费 (字符串版本)
-  static String _parseFee(String? feeStr) {
-    if (feeStr == null || feeStr.isEmpty) return '0.00%';
-
-    // 提取数字和百分号
-    final match = RegExp(r'[\d.]+%?').firstMatch(feeStr);
-    if (match != null) {
-      return match.group(0)!.contains('%') ? match.group(0)! : '${match.group(0)}%';
-    }
-
-    return '0.00%';
-  }
-
   /// 工具方法：解析手续费 (数值版本)
   static double _parseFeeToDouble(String? feeStr) {
     if (feeStr == null || feeStr.isEmpty) return 0.0;
@@ -257,11 +262,41 @@ class OptimizedFundApiResponse {
   static String _extractCompanyName(String fundName) {
     // 常见基金公司前缀模式
     final companyPrefixes = [
-      '易方达', '华夏', '南方', '嘉实', '博时', '广发', '富国', '汇添富',
-      '国泰', '华安', '银华', '大成', '鹏华', '长盛', '融通', '建信',
-      '工银瑞信', '招商', '中银', '兴业', '平安', '景顺长城', '中欧',
-      '交银施罗德', '华泰柏瑞', '诺安', '海富通', '万家', '德邦',
-      '华商', '上投摩根', '中信保诚', '前海开源', '中融', '民生加银',
+      '易方达',
+      '华夏',
+      '南方',
+      '嘉实',
+      '博时',
+      '广发',
+      '富国',
+      '汇添富',
+      '国泰',
+      '华安',
+      '银华',
+      '大成',
+      '鹏华',
+      '长盛',
+      '融通',
+      '建信',
+      '工银瑞信',
+      '招商',
+      '中银',
+      '兴业',
+      '平安',
+      '景顺长城',
+      '中欧',
+      '交银施罗德',
+      '华泰柏瑞',
+      '诺安',
+      '海富通',
+      '万家',
+      '德邦',
+      '华商',
+      '上投摩根',
+      '中信保诚',
+      '前海开源',
+      '中融',
+      '民生加银',
     ];
 
     for (var company in companyPrefixes) {
@@ -277,20 +312,40 @@ class OptimizedFundApiResponse {
   static Fund _createEmptyFund() {
     final now = DateTime.now();
     return Fund(
-      code: '', name: '', type: '', company: '', manager: '',
-      unitNav: 0.0, accumulatedNav: 0.0, dailyReturn: 0.0,
-      return1W: 0.0, return1M: 0.0, return3M: 0.0, return6M: 0.0,
-      return1Y: 0.0, return2Y: 0.0, return3Y: 0.0, returnYTD: 0.0,
-      returnSinceInception: 0.0, scale: 0.0, riskLevel: '', status: '',
-      date: now.toIso8601String(), fee: 0.0, rankingPosition: 0, totalCount: 0,
-      currentPrice: 0.0, dailyChange: 0.0, dailyChangePercent: 0.0,
+      code: '',
+      name: '',
+      type: '',
+      company: '',
+      manager: '',
+      unitNav: 0.0,
+      accumulatedNav: 0.0,
+      dailyReturn: 0.0,
+      return1W: 0.0,
+      return1M: 0.0,
+      return3M: 0.0,
+      return6M: 0.0,
+      return1Y: 0.0,
+      return2Y: 0.0,
+      return3Y: 0.0,
+      returnYTD: 0.0,
+      returnSinceInception: 0.0,
+      scale: 0.0,
+      riskLevel: '',
+      status: '',
+      date: now.toIso8601String(),
+      fee: 0.0,
+      rankingPosition: 0,
+      totalCount: 0,
+      currentPrice: 0.0,
+      dailyChange: 0.0,
+      dailyChangePercent: 0.0,
       lastUpdate: now,
     );
   }
 
   /// 字段使用率分析工具 - 用于持续优化
   static void analyzeFieldUsage(List<Map<String, dynamic>> sampleData) {
-    print('📊 API字段使用率分析:');
+    AppLogger.info('📊 API字段使用率分析:');
 
     final fieldUsage = <String, int>{};
     int totalRecords = sampleData.length;
@@ -308,15 +363,120 @@ class OptimizedFundApiResponse {
     for (var entry in sortedFields) {
       final percentage = (entry.value / totalRecords * 100).toStringAsFixed(1);
       final isHighFreq = _highFrequencyFields.contains(entry.key) ? ' ⚡' : '';
-      print('  ${entry.key}: ${percentage}%${isHighFreq}');
+      AppLogger.info('  ${entry.key}: $percentage%$isHighFreq');
     }
 
-    print('\n💡 建议: 使用率<30%的字段可考虑移除或按需加载');
+    AppLogger.info('\n💡 建议: 使用率<30%的字段可考虑移除或按需加载');
   }
 
   /// 获取字段映射表
-  static Map<String, String> get fieldMappings => Map.unmodifiable(_fieldMappings);
+  static Map<String, String> get fieldMappings =>
+      Map.unmodifiable(_fieldMappings);
 
   /// 获取高频字段列表
-  static Set<String> get highFrequencyFields => Set.unmodifiable(_highFrequencyFields);
+  static Set<String> get highFrequencyFields =>
+      Set.unmodifiable(_highFrequencyFields);
+
+  /// Week 10 性能优化: 生成API解析性能报告
+  static void generateParsePerformanceReport() {
+    if (_parseTimes.isEmpty) {
+      AppLogger.info('📊 API解析性能报告: 暂无解析记录');
+      return;
+    }
+
+    final avgParseTime =
+        _parseTimes.map((d) => d.inMicroseconds).reduce((a, b) => a + b) /
+            _parseTimes.length;
+
+    final maxParseTime = _parseTimes
+        .map((d) => d.inMicroseconds)
+        .reduce((a, b) => a > b ? a : b);
+
+    final minParseTime = _parseTimes
+        .map((d) => d.inMicroseconds)
+        .reduce((a, b) => a < b ? a : b);
+
+    final avgRecordsPerOperation = _totalParseOperations > 0
+        ? _totalRecordsProcessed / _totalParseOperations
+        : 0.0;
+
+    final errorRate = _totalParseOperations > 0
+        ? (_parseErrors / _totalParseOperations * 100)
+        : 0.0;
+
+    AppLogger.info('📊 API解析性能报告:');
+    AppLogger.info('  总解析操作数: $_totalParseOperations');
+    AppLogger.info('  总处理记录数: $_totalRecordsProcessed');
+    AppLogger.info('  平均解析时间: ${(avgParseTime / 1000).toStringAsFixed(2)}ms');
+    AppLogger.info('  最大解析时间: ${(maxParseTime / 1000).toStringAsFixed(2)}ms');
+    AppLogger.info('  最小解析时间: ${(minParseTime / 1000).toStringAsFixed(2)}ms');
+    AppLogger.info('  平均记录数/操作: ${avgRecordsPerOperation.toStringAsFixed(1)}');
+    AppLogger.info('  解析错误数: $_parseErrors');
+    AppLogger.info('  错误率: ${errorRate.toStringAsFixed(2)}%');
+
+    // 在调试模式下输出到开发者控制台
+    if (kDebugMode) {
+      developer.log(
+          'API解析性能报告: 平均${(avgParseTime / 1000).toStringAsFixed(2)}ms, '
+          '错误率${errorRate.toStringAsFixed(2)}%',
+          name: 'APIParsePerformance');
+    }
+
+    // 清理旧的性能数据，保持最近100条记录
+    if (_parseTimes.length > 100) {
+      _parseTimes.removeRange(0, _parseTimes.length - 100);
+    }
+  }
+
+  /// Week 10 性能优化: 获取API解析统计信息
+  static Map<String, dynamic> getParseStats() {
+    if (_parseTimes.isEmpty) {
+      return {
+        'totalParseOperations': _totalParseOperations,
+        'totalRecordsProcessed': _totalRecordsProcessed,
+        'avgParseTime': 0.0,
+        'maxParseTime': 0.0,
+        'minParseTime': 0.0,
+        'avgRecordsPerOperation': 0.0,
+        'parseErrors': _parseErrors,
+        'errorRate': 0.0,
+      };
+    }
+
+    final avgParseTime =
+        _parseTimes.map((d) => d.inMicroseconds).reduce((a, b) => a + b) /
+            _parseTimes.length;
+
+    final maxParseTime = _parseTimes
+        .map((d) => d.inMicroseconds)
+        .reduce((a, b) => a > b ? a : b);
+
+    final minParseTime = _parseTimes
+        .map((d) => d.inMicroseconds)
+        .reduce((a, b) => a < b ? a : b);
+
+    return {
+      'totalParseOperations': _totalParseOperations,
+      'totalRecordsProcessed': _totalRecordsProcessed,
+      'avgParseTime': avgParseTime / 1000, // 转换为毫秒
+      'maxParseTime': maxParseTime / 1000, // 转换为毫秒
+      'minParseTime': minParseTime / 1000, // 转换为毫秒
+      'avgRecordsPerOperation': _totalParseOperations > 0
+          ? _totalRecordsProcessed / _totalParseOperations
+          : 0.0,
+      'parseErrors': _parseErrors,
+      'errorRate': _totalParseOperations > 0
+          ? (_parseErrors / _totalParseOperations * 100)
+          : 0.0,
+    };
+  }
+
+  /// Week 10 性能优化: 重置性能统计
+  static void resetPerformanceStats() {
+    _totalParseOperations = 0;
+    _totalRecordsProcessed = 0;
+    _parseTimes.clear();
+    _parseErrors = 0;
+    AppLogger.info('📊 API解析性能统计已重置');
+  }
 }

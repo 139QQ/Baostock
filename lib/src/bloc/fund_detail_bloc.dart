@@ -175,7 +175,7 @@ class FundDetailNotFound extends FundDetailState {
 class FundDetailBloc extends Bloc<FundDetailEvent, FundDetailState> {
   final FundAnalysisService _analysisService;
 
-  Set<String> _favoriteFunds = <String>{};
+  final Set<String> _favoriteFunds = <String>{};
 
   FundDetailBloc({
     required FundAnalysisService analysisService,

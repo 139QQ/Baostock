@@ -3,6 +3,7 @@ import 'dart:developer' as developer;
 import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
+import '../utils/logger.dart';
 
 /// 内存使用快照
 class MemorySnapshot {
@@ -45,9 +46,9 @@ class MemorySnapshot {
 
 /// 内存压力等级枚举
 enum MemoryPressureLevel {
-  low,      // < 50%
-  medium,   // 50-75%
-  high,     // 75-90%
+  low, // < 50%
+  medium, // 50-75%
+  high, // 75-90%
   critical, // >= 90%
 }
 
@@ -89,8 +90,8 @@ class MemoryUsageTracker {
       'currentObjects': _currentObjects,
       'peakObjects': _peakObjects,
       'lastReset': _lastReset.toIso8601String(),
-      'leakSuspected': _currentObjects > (_peakObjects * 0.8) &&
-                     _deallocationCount > 0,
+      'leakSuspected':
+          _currentObjects > (_peakObjects * 0.8) && _deallocationCount > 0,
     };
   }
 
@@ -207,6 +208,12 @@ class MemoryOptimizationManager {
   final List<Function(double)> _memoryPressureCallbacks = [];
   final List<Function()> _garbageCollectionCallbacks = [];
 
+  // Week 10 性能优化
+  int _totalCleanups = 0;
+  int _emergencyCleanups = 0;
+  final List<Duration> _cleanupTimes = [];
+  DateTime? _lastOptimizationTime;
+
   /// 初始化内存优化管理器
   Future<void> initialize() async {
     if (_isMonitoring) return;
@@ -238,7 +245,8 @@ class MemoryOptimizationManager {
     if (_isMonitoring) return;
 
     _isMonitoring = true;
-    _monitoringTimer = Timer.periodic(_monitoringInterval, (_) => _performMemoryCheck());
+    _monitoringTimer =
+        Timer.periodic(_monitoringInterval, (_) => _performMemoryCheck());
 
     // 立即执行一次检查
     await _performMemoryCheck();
@@ -274,11 +282,11 @@ class MemoryOptimizationManager {
       // 检测潜在内存泄漏
       _detectMemoryLeaks();
 
-      if (!kReleaseMode && snapshot.pressureLevel.index >= MemoryPressureLevel.high.index) {
+      if (!kReleaseMode &&
+          snapshot.pressureLevel.index >= MemoryPressureLevel.high.index) {
         developer.log(
-          '⚠️ 内存压力警告: ${snapshot.pressureLevel.name} (${snapshot.usagePercentage.toStringAsFixed(1)}%)',
-          name: 'MemoryManager'
-        );
+            '⚠️ 内存压力警告: ${snapshot.pressureLevel.name} (${snapshot.usagePercentage.toStringAsFixed(1)}%)',
+            name: 'MemoryManager');
       }
     } catch (e) {
       _logger.e('❌ 内存检查失败: $e');
@@ -314,7 +322,8 @@ class MemoryOptimizationManager {
     }
 
     final availableMemory = totalMemory - usedMemory;
-    final usagePercentage = totalMemory > 0 ? (usedMemory / totalMemory) * 100 : 0.0;
+    final usagePercentage =
+        totalMemory > 0 ? (usedMemory / totalMemory) * 100 : 0.0;
 
     return MemorySnapshot(
       timestamp: DateTime.now(),
@@ -353,7 +362,8 @@ class MemoryOptimizationManager {
   }
 
   /// 执行优化策略
-  Future<void> _executeOptimizationStrategies(MemoryPressureLevel pressureLevel) async {
+  Future<void> _executeOptimizationStrategies(
+      MemoryPressureLevel pressureLevel) async {
     final applicableStrategies = _strategies
         .where((strategy) => strategy.isApplicable(pressureLevel))
         .toList()
@@ -515,12 +525,11 @@ class MemoryOptimizationManager {
 
     final recentSnapshots = _memorySnapshots.take(10).toList();
     final currentUsage = recentSnapshots.first.usedMemoryMB;
-    final peakUsage = _memorySnapshots
-        .map((s) => s.usedMemoryMB)
-        .reduce(math.max);
-    final averageUsage = recentSnapshots
-        .map((s) => s.usedMemoryMB)
-        .reduce((a, b) => a + b) / recentSnapshots.length;
+    final peakUsage =
+        _memorySnapshots.map((s) => s.usedMemoryMB).reduce(math.max);
+    final averageUsage =
+        recentSnapshots.map((s) => s.usedMemoryMB).reduce((a, b) => a + b) /
+            recentSnapshots.length;
 
     return {
       'isMonitoring': _isMonitoring,
@@ -579,6 +588,102 @@ class MemoryOptimizationManager {
     return buffer.toString();
   }
 
+  /// Week 10 性能优化: 生成内存优化性能报告
+  void generatePerformanceReport() {
+    if (_cleanupTimes.isEmpty) {
+      AppLogger.info('📊 内存优化性能报告: 暂无优化记录');
+      return;
+    }
+
+    final avgCleanupTime =
+        _cleanupTimes.map((d) => d.inMilliseconds).reduce((a, b) => a + b) /
+            _cleanupTimes.length;
+
+    final maxCleanupTime = _cleanupTimes
+        .map((d) => d.inMilliseconds)
+        .reduce((a, b) => a > b ? a : b);
+
+    final minCleanupTime = _cleanupTimes
+        .map((d) => d.inMilliseconds)
+        .reduce((a, b) => a < b ? a : b);
+
+    AppLogger.info('📊 内存优化性能报告:');
+    AppLogger.info('  平均清理时间: ${avgCleanupTime.toStringAsFixed(2)}ms');
+    AppLogger.info('  最大清理时间: ${maxCleanupTime}ms');
+    AppLogger.info('  最小清理时间: ${minCleanupTime}ms');
+    AppLogger.info('  总清理次数: $_totalCleanups');
+    AppLogger.info('  紧急清理次数: $_emergencyCleanups');
+    AppLogger.info(
+        '  紧急清理比例: ${(_emergencyCleanups / _totalCleanups * 100).toStringAsFixed(1)}%');
+
+    if (_lastOptimizationTime != null) {
+      final timeSinceLastOptimization =
+          DateTime.now().difference(_lastOptimizationTime!);
+      AppLogger.info('  距离上次优化: ${timeSinceLastOptimization.inMinutes}分钟');
+    }
+
+    // 在调试模式下输出到开发者控制台
+    if (kDebugMode) {
+      developer.log(
+          '内存优化性能报告: 平均${avgCleanupTime.toStringAsFixed(2)}ms, 总清理$_totalCleanups次',
+          name: 'MemoryOptimizationPerformance');
+    }
+
+    // 清理旧的性能数据，保持最近50条记录
+    if (_cleanupTimes.length > 50) {
+      _cleanupTimes.removeRange(0, _cleanupTimes.length - 50);
+    }
+  }
+
+  /// Week 10 性能优化: 记录清理操作
+  void _recordCleanup(Duration cleanupTime, bool isEmergency) {
+    _cleanupTimes.add(cleanupTime);
+    _totalCleanups++;
+    if (isEmergency) {
+      _emergencyCleanups++;
+    }
+    _lastOptimizationTime = DateTime.now();
+  }
+
+  /// 获取内存优化性能统计
+  Map<String, dynamic> getOptimizationStats() {
+    if (_cleanupTimes.isEmpty) {
+      return {
+        'avgCleanupTime': 0,
+        'maxCleanupTime': 0,
+        'minCleanupTime': 0,
+        'totalCleanups': _totalCleanups,
+        'emergencyCleanups': _emergencyCleanups,
+        'emergencyCleanupRate': 0.0,
+        'lastOptimizationTime': _lastOptimizationTime?.toIso8601String(),
+      };
+    }
+
+    final avgCleanupTime =
+        _cleanupTimes.map((d) => d.inMilliseconds).reduce((a, b) => a + b) /
+            _cleanupTimes.length;
+
+    final maxCleanupTime = _cleanupTimes
+        .map((d) => d.inMilliseconds)
+        .reduce((a, b) => a > b ? a : b);
+
+    final minCleanupTime = _cleanupTimes
+        .map((d) => d.inMilliseconds)
+        .reduce((a, b) => a < b ? a : b);
+
+    return {
+      'avgCleanupTime': avgCleanupTime,
+      'maxCleanupTime': maxCleanupTime,
+      'minCleanupTime': minCleanupTime,
+      'totalCleanups': _totalCleanups,
+      'emergencyCleanups': _emergencyCleanups,
+      'emergencyCleanupRate': _totalCleanups > 0
+          ? (_emergencyCleanups / _totalCleanups * 100)
+          : 0.0,
+      'lastOptimizationTime': _lastOptimizationTime?.toIso8601String(),
+    };
+  }
+
   /// 清理资源
   void dispose() {
     stopMonitoring();
@@ -587,6 +692,6 @@ class MemoryOptimizationManager {
     _strategies.clear();
     _memoryPressureCallbacks.clear();
     _garbageCollectionCallbacks.clear();
-    _logger.i('🗑️ 内存优化管理器已清理');
+    AppLogger.info('🗑️ 内存优化管理器已清理');
   }
 }

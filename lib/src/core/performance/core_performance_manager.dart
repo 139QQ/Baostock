@@ -9,10 +9,10 @@ import '../../features/fund/data/models/optimized_fund_api_response.dart';
 
 /// 性能管理状态
 enum PerformanceStatus {
-  optimal,    // 最优状态
-  good,       // 良好状态
-  warning,    // 警告状态
-  critical,   // 危险状态
+  optimal, // 最优状态
+  good, // 良好状态
+  warning, // 警告状态
+  critical, // 危险状态
 }
 
 /// 性能监控指标
@@ -58,10 +58,10 @@ class PerformanceMetrics {
 
 /// 性能优化策略
 enum OptimizationStrategy {
-  aggressive,   // 激进优化
-  balanced,     // 平衡优化
+  aggressive, // 激进优化
+  balanced, // 平衡优化
   conservative, // 保守优化
-  adaptive,     // 自适应优化
+  adaptive, // 自适应优化
 }
 
 /// 核心性能管理器 - Week 9集成组件
@@ -73,7 +73,8 @@ enum OptimizationStrategy {
 ///
 /// 提供统一的性能监控、优化策略和资源管理
 class CorePerformanceManager {
-  static final CorePerformanceManager _instance = CorePerformanceManager._internal();
+  static final CorePerformanceManager _instance =
+      CorePerformanceManager._internal();
   factory CorePerformanceManager() => _instance;
   CorePerformanceManager._internal();
 
@@ -227,12 +228,9 @@ class CorePerformanceManager {
       await _adjustOptimizationStrategyIfNeeded(metrics);
 
       if (!kReleaseMode && status.index >= PerformanceStatus.warning.index) {
-        developer.log(
-          '⚠️ 性能状态: ${status.name} - $metrics',
-          name: 'CorePerformanceManager'
-        );
+        developer.log('⚠️ 性能状态: ${status.name} - $metrics',
+            name: 'CorePerformanceManager');
       }
-
     } catch (e) {
       _logger.e('❌ 性能指标收集完全失败，创建最小可用指标: $e');
 
@@ -308,7 +306,8 @@ class CorePerformanceManager {
   }
 
   /// 调整优化策略
-  Future<void> _adjustOptimizationStrategyIfNeeded(PerformanceMetrics metrics) async {
+  Future<void> _adjustOptimizationStrategyIfNeeded(
+      PerformanceMetrics metrics) async {
     final newStrategy = _determineOptimalStrategy(metrics);
 
     if (newStrategy != _currentStrategy) {
@@ -420,7 +419,8 @@ class CorePerformanceManager {
   /// 修剪历史记录
   void _trimHistory() {
     if (_performanceHistory.length > _maxHistorySize) {
-      _performanceHistory.removeRange(0, _performanceHistory.length - _maxHistorySize);
+      _performanceHistory.removeRange(
+          0, _performanceHistory.length - _maxHistorySize);
     }
   }
 
@@ -486,7 +486,11 @@ class CorePerformanceManager {
   /// 获取性能历史
   List<PerformanceMetrics> getPerformanceHistory({int? limit}) {
     if (limit != null && limit > 0) {
-      return _performanceHistory.reversed.take(limit).toList().reversed.toList();
+      return _performanceHistory.reversed
+          .take(limit)
+          .toList()
+          .reversed
+          .toList();
     }
     return List.unmodifiable(_performanceHistory);
   }
@@ -572,20 +576,26 @@ class CorePerformanceManager {
     final recentHistory = getPerformanceHistory(limit: 10);
     for (int i = 0; i < recentHistory.length; i++) {
       final metric = recentHistory[i];
-      buffer.writeln('${i + 1}. ${metric.timestamp.toIso8601String()} - ${metric.toString()}');
+      buffer.writeln(
+          '${i + 1}. ${metric.timestamp.toIso8601String()} - ${metric.toString()}');
     }
     buffer.writeln('');
 
     buffer.writeln('## 🔧 组件统计');
-    buffer.writeln('- 懒加载管理器: ${stats['lazyLoading']['queueStatus']['cachedItems']} 个缓存项');
-    buffer.writeln('- 内存管理器: ${stats['memoryManagement']['currentUsageMB']} MB 使用');
-    buffer.writeln('- API优化: ${stats['apiOptimization']['supportedFields']} 个高频字段');
+    buffer.writeln(
+        '- 懒加载管理器: ${stats['lazyLoading']['queueStatus']['cachedItems']} 个缓存项');
+    buffer.writeln(
+        '- 内存管理器: ${stats['memoryManagement']['currentUsageMB']} MB 使用');
+    buffer.writeln(
+        '- API优化: ${stats['apiOptimization']['supportedFields']} 个高频字段');
     buffer.writeln('');
 
     buffer.writeln('## 📋 回调统计');
     buffer.writeln('- 性能回调: ${stats['callbacks']['performanceCallbacks']} 个');
-    buffer.writeln('- 策略变更回调: ${stats['callbacks']['strategyChangeCallbacks']} 个');
-    buffer.writeln('- 危险状态回调: ${stats['callbacks']['criticalStateCallbacks']} 个');
+    buffer.writeln(
+        '- 策略变更回调: ${stats['callbacks']['strategyChangeCallbacks']} 个');
+    buffer
+        .writeln('- 危险状态回调: ${stats['callbacks']['criticalStateCallbacks']} 个');
 
     return buffer.toString();
   }

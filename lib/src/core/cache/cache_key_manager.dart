@@ -93,11 +93,11 @@ class CacheKeyManager {
     String baseKey = keyParts.join(_separator);
 
     // 添加版本信息
-    baseKey += '${_versionSeparator}${version.version}';
+    baseKey += '$_versionSeparator${version.version}';
 
     // 添加额外参数
     if (params != null && params.isNotEmpty) {
-      baseKey += '${_separator}${params.join(_separator)}';
+      baseKey += '$_separator${params.join(_separator)}';
     }
 
     final finalKey = baseKey;
@@ -293,12 +293,12 @@ class CacheKeyManager {
   /// 获取所有标准化的盒子名称
   List<String> getStandardBoxNames() {
     return [
-      '${_prefix}${_separator}${_fundPrefix}${_separator}${CacheKeyType.fundData.name}',
-      '${_prefix}${_separator}${_fundPrefix}${_separator}${CacheKeyType.searchIndex.name}',
-      '${_prefix}${_separator}${_fundPrefix}${_separator}${CacheKeyType.userPreference.name}',
-      '${_prefix}${_separator}${_fundPrefix}${_separator}${CacheKeyType.metadata.name}',
-      '${_prefix}${_separator}${_fundPrefix}${_separator}${CacheKeyType.temporary.name}',
-      '${_prefix}${_separator}${_fundPrefix}${_separator}${CacheKeyType.systemConfig.name}',
+      '$_prefix$_separator$_fundPrefix$_separator${CacheKeyType.fundData.name}',
+      '$_prefix$_separator$_fundPrefix$_separator${CacheKeyType.searchIndex.name}',
+      '$_prefix$_separator$_fundPrefix$_separator${CacheKeyType.userPreference.name}',
+      '$_prefix$_separator$_fundPrefix$_separator${CacheKeyType.metadata.name}',
+      '$_prefix$_separator$_fundPrefix$_separator${CacheKeyType.temporary.name}',
+      '$_prefix$_separator$_fundPrefix$_separator${CacheKeyType.systemConfig.name}',
     ];
   }
 }

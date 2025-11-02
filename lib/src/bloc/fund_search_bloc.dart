@@ -163,7 +163,7 @@ class FundSearchBloc extends Bloc<FundSearchEvent, FundSearchState> {
   final FundAnalysisService _analysisService;
 
   List<String> _searchHistory = [];
-  List<String> _popularSearches = [
+  final List<String> _popularSearches = [
     '易方达',
     '华夏',
     '南方',
@@ -310,7 +310,7 @@ class FundSearchBloc extends Bloc<FundSearchEvent, FundSearchState> {
     Emitter<FundSearchState> emit,
   ) async {
     try {
-      emit(FundSearchLoading(''));
+      emit(const FundSearchLoading(''));
 
       // 获取所有基金
       List<FundInfo> funds;
@@ -362,7 +362,7 @@ class FundSearchBloc extends Bloc<FundSearchEvent, FundSearchState> {
     Emitter<FundSearchState> emit,
   ) async {
     emit(FundSearchLoaded(
-      funds: [],
+      funds: const [],
       query: '',
       searchHistory: _searchHistory,
       popularSearches: _popularSearches,
