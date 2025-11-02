@@ -61,15 +61,45 @@ class JisuFundAnalyzerApp extends StatelessWidget {
         title: '基速基金分析器',
         theme: AppTheme.lightTheme,
         debugShowCheckedModeBanner: false,
-        home: AppLifecycleManager(
-          child: NavigationShell(
-            user: mockUser,
-            onLogout: () {
-              // 模拟登出操作 - 这里可以什么都不做
-              debugPrint('登出功能已暂时禁用');
-            },
-          ),
-        ),
+        routes: {
+          '/': (context) => AppLifecycleManager(
+                child: NavigationShell(
+                  user: mockUser,
+                  onLogout: () {
+                    // 模拟登出操作 - 这里可以什么都不做
+                    debugPrint('登出功能已暂时禁用');
+                  },
+                ),
+              ),
+        },
+        onUnknownRoute: (settings) {
+          // 处理未定义的路由，返回一个简单的页面
+          return MaterialPageRoute(
+            builder: (context) => Scaffold(
+              appBar: AppBar(
+                title: Text('页面未找到'),
+              ),
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.error_outline, size: 64, color: Colors.grey),
+                    SizedBox(height: 16),
+                    Text(
+                      '路由未定义: ${settings.name}',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text('返回'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

@@ -88,15 +88,7 @@ class _NavigationShellState extends State<NavigationShell> {
           value: sl<PortfolioAnalysisCubit>(),
           child: const PortfolioManager(),
         );
-      case 4: // Alerts
-        return const AlertsPage();
-      case 5: // Data Center
-        return const Scaffold(
-          body: Center(
-            child: Text('数据中心 - 开发中'),
-          ),
-        );
-      case 6: // Settings
+      case 4: // Settings
         return const SettingsPage();
       default:
         return const DashboardPage();
@@ -113,55 +105,42 @@ class _NavigationShellState extends State<NavigationShell> {
       backgroundColor: const Color(0xFFF8FAFC),
       elevation: 1,
       extended: false,
-      minWidth: 100, // 增加最小宽度以适应更多项目
-      // 移除leading以节省空间，或者使用更紧凑的leading
+      minWidth: 100,
       leading: null,
-      trailing: null, // 移除trailing组件以节省空间，防止溢出
-      groupAlignment: -0.85, // 调整垂直对齐
+      trailing: null,
+      groupAlignment: -0.85,
       destinations: [
         _buildDestination(
           icon: Icons.dashboard_outlined,
           selectedIcon: Icons.dashboard,
-          label: '市场概览',
-          tooltip: '查看市场实时数据',
+          label: '概览',
+          tooltip: '市场概览',
         ),
         _buildDestination(
           icon: Icons.filter_alt_outlined,
           selectedIcon: Icons.filter_alt,
-          label: '基金筛选',
-          tooltip: '智能筛选基金',
+          label: '筛选',
+          tooltip: '基金筛选',
         ),
         _buildDestination(
           icon: Icons.star_outline,
           selectedIcon: Icons.star,
-          label: '🌟 自选基金',
-          tooltip: '管理关注基金',
-          isHighlighted: true, // 标记为高亮路由
+          label: '自选',
+          tooltip: '自选基金',
+          isHighlighted: true,
         ),
         _buildDestination(
           icon: Icons.analytics_outlined,
           selectedIcon: Icons.analytics,
-          label: '📊 持仓分析',
-          tooltip: '分析投资组合',
-          isHighlighted: true, // 标记为高亮路由
-        ),
-        _buildDestination(
-          icon: Icons.notifications_outlined,
-          selectedIcon: Icons.notifications,
-          label: '行情预警',
-          tooltip: '设置价格提醒',
-        ),
-        _buildDestination(
-          icon: Icons.data_usage_outlined,
-          selectedIcon: Icons.data_usage,
-          label: '数据中心',
-          tooltip: '查看深度数据',
+          label: '分析',
+          tooltip: '持仓分析',
+          isHighlighted: true,
         ),
         _buildDestination(
           icon: Icons.settings_outlined,
           selectedIcon: Icons.settings,
-          label: '系统设置',
-          tooltip: '配置应用参数',
+          label: '设置',
+          tooltip: '系统设置',
         ),
       ],
     );

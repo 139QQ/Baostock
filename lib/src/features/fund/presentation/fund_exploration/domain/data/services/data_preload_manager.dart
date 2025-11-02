@@ -68,8 +68,8 @@ class DataPreloadManager {
       id: 'fund_rankings_all_critical',
       type: PreloadType.critical,
       priority: 100,
-      params: {'symbol': '全部', 'pageSize': 20},
-      task: () => _preloadFundRankings('全部', 20),
+      params: {'symbol': '', 'pageSize': 20}, // 基金排行API不需要参数
+      task: () => _preloadFundRankings('', 20),
     );
 
     // 重要数据 - 高优先级
@@ -77,8 +77,8 @@ class DataPreloadManager {
       id: 'fund_rankings_stock_important',
       type: PreloadType.important,
       priority: 80,
-      params: {'symbol': '股票型', 'pageSize': 15},
-      task: () => _preloadFundRankings('股票型', 15),
+      params: {'symbol': '', 'pageSize': 15}, // API不支持筛选，获取全部数据
+      task: () => _preloadFundRankings('', 15),
     );
 
     await addPreloadTask(
@@ -337,8 +337,8 @@ class DataPreloadManager {
         id: 'background_sync_rankings',
         type: PreloadType.background,
         priority: 20,
-        params: {'symbol': '全部', 'pageSize': 25},
-        task: () => _preloadFundRankings('全部', 25),
+        params: {'symbol': '', 'pageSize': 25}, // 基金排行API不需要参数
+        task: () => _preloadFundRankings('', 25),
       );
 
       _startPreloading();

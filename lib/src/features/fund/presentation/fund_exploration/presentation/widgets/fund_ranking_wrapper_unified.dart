@@ -21,6 +21,23 @@ class FundRankingWrapperUnified extends StatelessWidget {
   }
 
   Widget _buildContent(BuildContext context, FundExplorationState state) {
+    // 调试信息
+    print('🔍 FundRankingWrapperUnified: _buildContent');
+    print('   Status: ${state.status}');
+    print('   IsLoading: ${state.isLoading}');
+    print('   ShowErrorView: ${state.showErrorView}');
+    print('   ShowDataView: ${state.showDataView}');
+    print('   FundRankings count: ${state.fundRankings.length}');
+    print('   CurrentData count: ${state.currentData.length}');
+    print('   LastUpdateTime: ${state.lastUpdateTime}');
+    print('   ErrorMessage: ${state.errorMessage}');
+
+    // 临时修复：如果状态是loading但isLoading为false，强制显示错误状态
+    if (state.status == FundExplorationStatus.loading && !state.isLoading) {
+      print('⚠️ 检测到状态不一致，强制显示错误状态');
+      return _buildForceErrorWidget(context);
+    }
+
     // 加载状态
     if (state.isLoading) {
       return _buildLoadingWidget();
@@ -31,9 +48,16 @@ class FundRankingWrapperUnified extends StatelessWidget {
       return _buildErrorWidget(context, state);
     }
 
-    // 数据展示状态
-    if (state.showDataView) {
+    // 数据展示状态 - 修复逻辑，直接检查是否有数据和状态
+    if (state.status == FundExplorationStatus.loaded &&
+        state.fundRankings.isNotEmpty) {
       return _buildDataWidget(context, state);
+    }
+
+    // 特殊处理：状态是loaded但没有数据，可能是API返回空数据
+    if (state.status == FundExplorationStatus.loaded &&
+        state.fundRankings.isEmpty) {
+      return _buildNoDataWidget(context, state);
     }
 
     // 空状态
@@ -84,12 +108,28 @@ class FundRankingWrapperUnified extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: () {
-                context.read<FundExplorationCubit>().refreshData();
-              },
-              icon: const Icon(Icons.refresh),
-              label: const Text('重试'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () {
+                    context.read<FundExplorationCubit>().refreshData();
+                  },
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('重试'),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    context.read<FundExplorationCubit>().forceReloadData();
+                  },
+                  icon: const Icon(Icons.cached),
+                  label: const Text('强制刷新'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -129,16 +169,132 @@ class FundRankingWrapperUnified extends StatelessWidget {
     );
   }
 
+  Widget _buildNoDataWidget(BuildContext context, FundExplorationState state) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.cloud_off,
+              size: 64,
+              color: Colors.orange[400],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              '无法获取基金数据',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.orange[700],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '服务器可能暂时无法访问，请稍后重试',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.orange[600],
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () {
+                    context.read<FundExplorationCubit>().refreshData();
+                  },
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('重试'),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    context.read<FundExplorationCubit>().forceReloadData();
+                  },
+                  icon: const Icon(Icons.cached),
+                  label: const Text('强制刷新'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildForceErrorWidget(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 64,
+              color: Colors.red[400],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              '状态不一致错误',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.red[700],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '检测到加载状态不一致，请重试',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.red[600],
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: () {
+                context.read<FundExplorationCubit>().forceReloadData();
+              },
+              icon: const Icon(Icons.refresh),
+              label: const Text('强制重试'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildDataWidget(BuildContext context, FundExplorationState state) {
     final rankings = state.currentData;
 
+    // 调试日志
+    print('🔍 FundRankingWrapperUnified: _buildDataWidget called');
+    print('   State status: ${state.status}');
+    print('   Data count: ${rankings.length}');
+    print('   Is real data: ${state.isRealData}');
+    print('   Current view: ${state.activeView}');
+
     if (rankings.isEmpty) {
+      print('⚠️ FundRankingWrapperUnified: No data to display');
       return _buildEmptyWidget();
     }
 
     return Column(
       children: [
-        // 数据统计信息
+        // 数据统计信息和刷新按钮
         _buildStatisticsHeader(state),
 
         // 基金列表
@@ -155,6 +311,9 @@ class FundRankingWrapperUnified extends StatelessWidget {
 
         // 加载更多按钮
         if (state.hasMoreData) _buildLoadMoreButton(context),
+
+        // 手动刷新按钮
+        _buildRefreshButton(context),
       ],
     );
   }
@@ -422,5 +581,39 @@ class FundRankingWrapperUnified extends StatelessWidget {
     } else {
       return '${dateTime.month}-${dateTime.day} ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
     }
+  }
+
+  Widget _buildRefreshButton(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          ElevatedButton.icon(
+            onPressed: () {
+              context.read<FundExplorationCubit>().refreshData();
+            },
+            icon: const Icon(Icons.refresh),
+            label: const Text('刷新数据'),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
+          ),
+          const SizedBox(width: 16),
+          ElevatedButton.icon(
+            onPressed: () {
+              context.read<FundExplorationCubit>().forceReloadData();
+            },
+            icon: const Icon(Icons.cached),
+            label: const Text('强制刷新'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.orange,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

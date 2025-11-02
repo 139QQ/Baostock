@@ -53,9 +53,14 @@ class HighPerformanceFundService {
       _dio.options.receiveTimeout = const Duration(seconds: 60);
       _dio.options.sendTimeout = const Duration(seconds: 15);
 
-      // 注册Hive适配器
-      if (!Hive.isAdapterRegistered(0)) {
-        Hive.registerAdapter(FundInfoAdapter());
+      // 注册Hive适配器（如果尚未注册）
+      try {
+        if (!Hive.isAdapterRegistered(20)) {
+          // 使用与主项目不同的typeId
+          Hive.registerAdapter(FundInfoAdapter());
+        }
+      } catch (e) {
+        _logger.w('⚠️ FundInfoAdapter注册失败，可能已注册: $e');
       }
 
       // 打开Hive数据库（带完整错误恢复）

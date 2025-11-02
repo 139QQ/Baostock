@@ -217,6 +217,7 @@ dist/
 
 # Documentation build artifacts
 docs/.claude/
+docs/.bmad-core/
 docs/.spec-workflow/
 docs/build/
 docs/_site/

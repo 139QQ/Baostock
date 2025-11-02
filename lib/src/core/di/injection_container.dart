@@ -4,7 +4,9 @@ import '../network/fund_api_client.dart';
 import '../network/api_service.dart';
 // 统一缓存系统导入
 import '../cache/interfaces/i_unified_cache_service.dart';
+import '../cache/interfaces/cache_service.dart';
 import '../cache/unified_hive_cache_manager.dart';
+import '../cache/adapters/cache_service_adapter.dart';
 import '../config/cache_system_config.dart';
 import '../../services/optimized_cache_manager_v3.dart';
 import '../services/secure_storage_service.dart';
@@ -53,6 +55,10 @@ import '../../features/portfolio/data/services/fund_favorite_service.dart';
 import '../../features/portfolio/presentation/cubit/portfolio_analysis_cubit.dart';
 import '../../features/portfolio/presentation/cubit/fund_favorite_cubit.dart';
 import 'package:hive/hive.dart';
+// Week 6 服务导入
+import '../../services/fund_analysis_service.dart';
+import '../../services/portfolio_analysis_service.dart';
+import '../../services/high_performance_fund_service.dart';
 
 final GetIt sl = GetIt.instance;
 
@@ -77,6 +83,13 @@ Future<void> initDependencies() async {
   if (!sl.isRegistered<IUnifiedCacheService>()) {
     sl.registerLazySingleton<IUnifiedCacheService>(
         () => CacheSystemConfig.getCacheService(sl: sl));
+  }
+
+  // 基础缓存服务（向后兼容）
+  if (!sl.isRegistered<CacheService>()) {
+    sl.registerLazySingleton<CacheService>(() => CacheServiceAdapter(
+          sl<IUnifiedCacheService>(),
+        ));
   }
 
   // ===== 统一缓存系统 =====
@@ -162,6 +175,19 @@ Future<void> initDependencies() async {
         searchService: sl(),
         moneyFundService: sl(),
       ));
+
+  // ===== Week 6 相关依赖 =====
+
+  // 高性能基金服务
+  sl.registerLazySingleton<HighPerformanceFundService>(
+      () => HighPerformanceFundService());
+
+  // 基金分析服务
+  sl.registerLazySingleton<FundAnalysisService>(() => FundAnalysisService());
+
+  // 投资组合分析服务
+  sl.registerLazySingleton<PortfolioAnalysisService>(
+      () => PortfolioAnalysisService());
 
   // ===== 基金对比相关依赖 =====
 

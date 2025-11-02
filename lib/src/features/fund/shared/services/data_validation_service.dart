@@ -427,8 +427,10 @@ class DataValidationService {
         }
       }
 
-      // 策略2：尝试从API重新获取数据
-      AppLogger.info('🌐 DataValidationService: 尝试从API重新获取数据');
+      // 策略2：暂时禁用从API重新获取数据以避免无限循环
+      AppLogger.warn('⚠️ DataValidationService: 跳过API重新获取以避免无限循环');
+      // TODO: 实现独立的数据获取机制，避免循环调用
+      /*
       final result = await _fundDataService.getFundRankings(forceRefresh: true);
 
       if (result.isSuccess && result.data!.isNotEmpty) {
@@ -436,6 +438,7 @@ class DataValidationService {
             '✅ DataValidationService: 从API恢复数据成功 (${result.data!.length}条)');
         return result.data;
       }
+      */
 
       // 策略3：尝试修复现有数据
       AppLogger.info('🔧 DataValidationService: 尝试修复现有数据');

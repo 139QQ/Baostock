@@ -312,8 +312,9 @@ class _HotFundsSectionState extends State<HotFundsSection> {
     return Center(
       child: TextButton(
         onPressed: () {
-          // 导航到完整的热门基金页面
-          Navigator.pushNamed(context, '/hot-funds');
+          // 由于没有独立的hot-funds页面，这里什么都不做
+          // 或者可以导航到基金探索页面的第一个tab
+          debugPrint('查看更多热门基金功能暂未实现');
         },
         child: const Text(
           '查看更多',

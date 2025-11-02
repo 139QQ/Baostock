@@ -46,6 +46,12 @@ flutter test test/integration/data_layer_optimizer_test.dart
 flutter test --coverage
 ```
 
+### 在运行测试文件时
+
+当测试文件出现报错时，检查测试文件或程序代码
+
+积极修复测试文件或程序代码，在测试文件多次出现报错时，不要创建测试文件简化版本积极分析报错内容进行错误的修复
+
 ### 代码生成命令
 
 ```bash
@@ -77,33 +83,63 @@ flutter pub cache clean
 - **Clean Architecture**: 分层架构，关注点分离
 - **BLoC Pattern**: 状态管理，业务逻辑与UI分离
 - **Domain-Driven Design**: 领域驱动设计
-- **Dependency Injection**: 依赖注入 (get_it)
+- **Dependency Injection**: 依赖注入 (GetIt)
+
+### 核心架构组件
+
+**NavigationShell**: 应用的主要导航容器，集成全局导航栏和左侧导航栏，管理页面路由
+
+**GlobalCubitManager**: 全局状态管理器，确保跨页面的状态持久化
+
+**UnifiedHiveCacheManager**: 统一缓存管理器，处理所有数据的缓存策略和生命周期
+
+**FundApiClient & ApiService**: 网络层抽象，基于Dio和Retrofit，支持HTTP缓存和压缩
+
+### 关键服务架构
+
+**基金服务层次结构**:
+- `HighPerformanceFundService`: 高性能基金数据服务，三步优化策略
+- `FundAnalysisService`: 基金分析服务，提供风险评估和推荐
+- `FundDataService`: 基金数据服务，封装数据获取和缓存
+
+**投资组合服务层次结构**:
+- `PortfolioAnalysisService`: 投资组合分析服务
+- `PortfolioBloc`: 投资组合状态管理
+- `PortfolioProfitCalculationEngine`: 收益计算引擎
+
+**缓存系统层次结构**:
+- L1: 内存缓存 (毫秒级访问)
+- L2: Hive本地缓存 (快速持久化)
+- L3: SQL Server缓存 (企业级数据)
 
 ### 目录结构
 
 ```
 lib/
-├── main.dart                    # 应用入口
+├── main.dart                    # 应用入口，包含Hive初始化和错误处理
 └── src/
     ├── core/                    # 核心模块
-    │   ├── cache/              # 缓存系统 (Hive + 统一缓存)
-    │   ├── database/           # 数据库 (SQL Server支持)
-    │   ├── di/                 # 依赖注入容器
-    │   ├── error/              # 错误处理
+    │   ├── cache/              # 统一缓存系统 (Hive + 多级缓存)
+    │   ├── di/                 # 依赖注入容器 (GetIt)
     │   ├── network/            # 网络层 (Dio + Retrofit)
-    │   ├── services/           # 核心服务
-    │   ├── theme/              # 主题配置
+    │   ├── state/              # 全局状态管理
     │   └── utils/              # 工具类
-    ├── features/               # 功能模块
-    │   ├── auth/               # 认证模块
+    ├── features/               # 功能模块 (Clean Architecture)
+    │   ├── auth/               # 认证模块 (数据层、领域层、表现层)
     │   ├── fund/               # 基金核心功能
-    │   ├── portfolio/          # 投资组合
-    │   ├── home/               # 主页
-    │   ├── market/             # 市场数据
-    │   ├── settings/           # 设置
-    │   └── navigation/         # 导航
-    ├── shared/                 # 共享组件
-    │   └── widgets/            # 通用组件
+    │   │   ├── data/           # 数据层 (数据源、仓库实现)
+    │   │   ├── domain/         # 领域层 (实体、仓库接口、用例)
+    │   │   └── presentation/   # 表现层 (页面、Cubit、组件)
+    │   ├── portfolio/          # 投资组合模块
+    │   │   ├── data/           # 数据层、适配器、服务
+    │   │   ├── domain/         # 领域实体、业务逻辑
+    │   │   └── presentation/   # UI组件、页面
+    │   ├── navigation/         # 导航外壳
+    │   ├── alerts/             # 价格提醒
+    │   ├── data_center/        # 数据中心
+    │   ├── home/               # 主页和仪表板
+    │   └── settings/           # 设置页面
+    ├── bloc/                   # 全局BLoC (fund_search, fund_detail, portfolio)
     ├── models/                 # 数据模型
     └── services/               # 业务服务
 ```
@@ -178,12 +214,21 @@ await fundBox.putAll({for (var f in funds) f.code: f});
 # 开发时运行特定测试
 flutter test test/unit/core/cache/ --coverage
 
+# 运行投资组合模块测试
+flutter test test/features/portfolio/
+
 # 完整测试套件
 flutter test --reporter=expanded
 
 # 性能测试
 flutter test test/performance/
 ```
+
+### 测试失败处理
+- 当测试出现错误时，积极分析报错内容，不要创建简化版本
+- 优先修复程序代码错误，然后检查测试逻辑
+- 使用mock对象模拟服务依赖，避免实际网络调用
+- BLoC测试需要正确设置初始状态和事件流
 
 ## 代码质量标准
 
@@ -239,7 +284,19 @@ flutter clean && flutter pub get
 
 # 重新生成代码
 dart run build_runner clean && dart run build_runner build
+
+# Windows调试构建
+flutter build windows --debug
+
+# Windows发布构建
+flutter build windows --release
 ```
+
+### Windows平台特定问题
+- 主要目标平台为Windows桌面应用
+- 注意Windows文件路径格式（使用正斜杠或双反斜杠）
+- 某些包（如url_launcher）可能存在Windows兼容性问题
+- 需要Windows SDK进行桌面应用构建
 
 ### 分析问题处理
 - 当前有3000+个分析警告，主要是`avoid_print`和`unused_import`
@@ -250,6 +307,25 @@ dart run build_runner clean && dart run build_runner build
 - Hive数据库版本迁移需要特别注意
 - 使用`cache_migration`工具处理数据迁移
 - 测试时使用独立的测试数据库
+
+### Hive适配器注册
+应用启动时在main.dart中注册所有必要的Hive适配器：
+- FundInfoAdapter (typeId: 20)
+- FundFavoriteAdapter (typeId: 10)
+- PortfolioHoldingAdapter等投资组合相关适配器
+- 适配器ID冲突会导致应用启动失败，使用LegacyType230Adapter处理兼容性
+
+### 服务初始化顺序
+1. Hive初始化 → 适配器注册
+2. 依赖注入容器初始化
+3. 全局Cubit管理器初始化
+4. 应用启动
+
+### 优雅降级策略
+当Hive缓存初始化失败时，应用会启动FallbackApp：
+- 提供基本功能访问
+- 使用内存缓存替代Hive
+- 确保核心功能仍然可用
 
 ## 开发角色定位
 

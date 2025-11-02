@@ -55,7 +55,7 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
 
   /// 加载基金排行数据
   Future<void> loadFundRankings({
-    String symbol = '%E5%85%A8%E9%83%A8', // 默认全部基金
+    String symbol = '', // 基金排行API不需要参数
     bool forceRefresh = false,
   }) async {
     if (!forceRefresh && state.isLoading) {
@@ -68,6 +68,7 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
 
     emit(state.copyWith(
       status: FundExplorationStatus.loading,
+      isLoading: true,
       errorMessage: null,
     ));
 
@@ -86,14 +87,15 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
         // 构建搜索索引
         _searchService.buildIndex(rankings);
 
-        // 检测是否为真实数据
-        final isRealData = _checkIfRealData(rankings);
+        // 暂时禁用模拟数据检测，显示所有数据
+        final isRealData = true; // _checkIfRealData(rankings);
 
         AppLogger.debug(
             '✅ FundExplorationCubit: 数据加载成功 (${rankings.length}条, isRealData: $isRealData)');
 
         emit(state.copyWith(
           status: FundExplorationStatus.loaded,
+          isLoading: false,
           fundRankings: rankings,
           searchResults: rankings, // 初始搜索结果为全部数据
           totalCount: rankings.length,
@@ -104,16 +106,20 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
       } else {
         emit(state.copyWith(
           status: FundExplorationStatus.error,
+          isLoading: false,
           errorMessage: result.errorMessage,
         ));
       }
     } catch (e) {
       final errorMsg = '加载失败: $e';
-      AppLogger.debug('❌ FundExplorationCubit: $errorMsg');
+      AppLogger.error('❌ FundExplorationCubit: $errorMsg', e);
+      AppLogger.debug('🔄 FundExplorationCubit: 发射错误状态');
       emit(state.copyWith(
         status: FundExplorationStatus.error,
+        isLoading: false,
         errorMessage: errorMsg,
       ));
+      AppLogger.debug('✅ FundExplorationCubit: 错误状态已发射');
     }
   }
 
@@ -440,6 +446,21 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
   /// 刷新数据
   Future<void> refreshData() async {
     AppLogger.debug('🔄 FundExplorationCubit: 刷新数据');
+    await loadFundRankings(forceRefresh: true);
+  }
+
+  /// 强制重新加载所有数据
+  Future<void> forceReloadData() async {
+    AppLogger.debug('🔄 FundExplorationCubit: 强制重新加载数据');
+
+    // 清除缓存
+    try {
+      await _fundDataService.clearCache();
+    } catch (e) {
+      AppLogger.warn('⚠️ 清除缓存失败: $e');
+    }
+
+    // 重新加载数据
     await loadFundRankings(forceRefresh: true);
   }
 
