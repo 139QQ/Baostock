@@ -5,7 +5,8 @@ import 'src/core/di/injection_container.dart';
 import 'src/features/app/app.dart';
 import 'src/core/utils/logger.dart';
 import 'src/core/state/global_cubit_manager.dart';
-import 'src/core/cache/unified_hive_cache_manager.dart';
+import 'src/core/config/app_config.dart';
+import 'src/core/performance/unified_performance_monitor.dart';
 import 'src/models/fund_info.dart';
 import 'src/features/portfolio/data/adapters/fund_favorite_adapter.dart';
 
@@ -15,73 +16,101 @@ Future<void> main() async {
   AppLogger.debug('应用启动中...');
 
   try {
-    // 检测平台并初始化Hive缓存依赖注入（增强错误处理）
-    if (kIsWeb) {
-      AppLogger.debug('Web平台检测，跳过Hive初始化');
-      // Web平台使用内存缓存，跳过Hive
-    } else {
-      AppLogger.debug('桌面平台，尝试初始化Hive缓存');
-      try {
-        // 首先初始化Hive
-        await Hive.initFlutter();
+    // 1. 初始化环境配置（最先执行）
+    await AppConfig.initialize();
 
-        // 注册Hive适配器（关键修复）
-        if (!Hive.isAdapterRegistered(20)) {
-          Hive.registerAdapter(FundInfoAdapter());
-          AppLogger.debug('FundInfo适配器注册成功');
-        }
+    // 2. 打印配置摘要（开发模式）
+    AppConfig.instance.printConfigSummary();
 
-        // 注册自选基金适配器
-        if (!Hive.isAdapterRegistered(10)) {
-          Hive.registerAdapter(FundFavoriteAdapter());
-          AppLogger.debug('FundFavorite适配器注册成功');
-        }
-        if (!Hive.isAdapterRegistered(11)) {
-          Hive.registerAdapter(PriceAlertSettingsAdapter());
-          AppLogger.debug('PriceAlertSettings适配器注册成功');
-        }
-        if (!Hive.isAdapterRegistered(12)) {
-          Hive.registerAdapter(TargetPriceAlertAdapter());
-          AppLogger.debug('TargetPriceAlert适配器注册成功');
-        }
-        // 先注册基础适配器（被其他适配器依赖的）
-        if (!Hive.isAdapterRegistered(14)) {
-          Hive.registerAdapter(SortConfigurationAdapter());
-          AppLogger.debug('SortConfiguration适配器注册成功');
-        }
-        if (!Hive.isAdapterRegistered(15)) {
-          Hive.registerAdapter(FilterConfigurationAdapter());
-          AppLogger.debug('FilterConfiguration适配器注册成功');
-        }
-        if (!Hive.isAdapterRegistered(17)) {
-          Hive.registerAdapter(SyncConfigurationAdapter());
-          AppLogger.debug('SyncConfiguration适配器注册成功');
-        }
-        if (!Hive.isAdapterRegistered(18)) {
-          Hive.registerAdapter(ListStatisticsAdapter());
-          AppLogger.debug('ListStatistics适配器注册成功');
-        }
-        // 再注册依赖其他适配器的适配器
-        if (!Hive.isAdapterRegistered(13)) {
-          Hive.registerAdapter(FundFavoriteListAdapter());
-          AppLogger.debug('FundFavoriteList适配器注册成功');
-        }
+    // 3. 验证配置完整性
+    if (!AppConfig.instance.validateConfig()) {
+      AppLogger.error(
+          '❌ 应用配置验证失败，请检查环境配置文件', Exception('ConfigValidationError'));
+      return;
+    }
 
-        // 特殊处理：注册一个兼容性适配器来处理旧版本的typeId 230
-        // 暂时注释掉，测试其他适配器是否正常
-        // if (!Hive.isAdapterRegistered(230)) {
-        //   Hive.registerAdapter(LegacyType230Adapter());
-        //   AppLogger.debug('LegacyType230兼容性适配器注册成功');
-        // }
+    AppLogger.debug('✅ 环境配置初始化完成');
 
-        // Hive缓存适配器注册已完成，将在initDependencies中初始化缓存管理器
-        AppLogger.debug('Hive适配器注册完成');
-      } catch (e, stack) {
-        AppLogger.debug('Hive缓存初始化失败，使用内存缓存: $e');
-        AppLogger.debug('Hive错误堆栈: $stack');
-        // 失败时继续运行，使用内存缓存
-        // 不重新抛出异常，确保应用能正常启动
+    // 4. 初始化性能监控
+    try {
+      await UnifiedPerformanceMonitor().startMonitoring();
+      AppLogger.debug('✅ 性能监控启动成功');
+    } catch (e) {
+      AppLogger.error('⚠️ 性能监控启动失败，继续运行应用: $e', e);
+    }
+
+    try {
+      // 检测平台并初始化Hive缓存依赖注入（增强错误处理）
+      if (kIsWeb) {
+        AppLogger.debug('Web平台检测，跳过Hive初始化');
+        // Web平台使用内存缓存，跳过Hive
+      } else {
+        AppLogger.debug('桌面平台，尝试初始化Hive缓存');
+        try {
+          // 首先初始化Hive
+          await Hive.initFlutter();
+
+          // 注册Hive适配器（关键修复）
+          if (!Hive.isAdapterRegistered(20)) {
+            Hive.registerAdapter(FundInfoAdapter());
+            AppLogger.debug('FundInfo适配器注册成功');
+          }
+
+          // 注册自选基金适配器
+          if (!Hive.isAdapterRegistered(10)) {
+            Hive.registerAdapter(FundFavoriteAdapter());
+            AppLogger.debug('FundFavorite适配器注册成功');
+          }
+          if (!Hive.isAdapterRegistered(11)) {
+            Hive.registerAdapter(PriceAlertSettingsAdapter());
+            AppLogger.debug('PriceAlertSettings适配器注册成功');
+          }
+          if (!Hive.isAdapterRegistered(12)) {
+            Hive.registerAdapter(TargetPriceAlertAdapter());
+            AppLogger.debug('TargetPriceAlert适配器注册成功');
+          }
+          // 先注册基础适配器（被其他适配器依赖的）
+          if (!Hive.isAdapterRegistered(14)) {
+            Hive.registerAdapter(SortConfigurationAdapter());
+            AppLogger.debug('SortConfiguration适配器注册成功');
+          }
+          if (!Hive.isAdapterRegistered(15)) {
+            Hive.registerAdapter(FilterConfigurationAdapter());
+            AppLogger.debug('FilterConfiguration适配器注册成功');
+          }
+          if (!Hive.isAdapterRegistered(17)) {
+            Hive.registerAdapter(SyncConfigurationAdapter());
+            AppLogger.debug('SyncConfiguration适配器注册成功');
+          }
+          if (!Hive.isAdapterRegistered(18)) {
+            Hive.registerAdapter(ListStatisticsAdapter());
+            AppLogger.debug('ListStatistics适配器注册成功');
+          }
+          // 再注册依赖其他适配器的适配器
+          if (!Hive.isAdapterRegistered(13)) {
+            Hive.registerAdapter(FundFavoriteListAdapter());
+            AppLogger.debug('FundFavoriteList适配器注册成功');
+          }
+
+          // 特殊处理：注册一个兼容性适配器来处理旧版本的typeId 230
+          // 暂时注释掉，测试其他适配器是否正常
+          // if (!Hive.isAdapterRegistered(230)) {
+          //   Hive.registerAdapter(LegacyType230Adapter());
+          //   AppLogger.debug('LegacyType230兼容性适配器注册成功');
+          // }
+
+          // Hive缓存适配器注册已完成，将在initDependencies中初始化缓存管理器
+          AppLogger.debug('Hive适配器注册完成');
+        } catch (e, stack) {
+          AppLogger.debug('Hive缓存初始化失败，使用内存缓存: $e');
+          AppLogger.debug('Hive错误堆栈: $stack');
+          // 失败时继续运行，使用内存缓存
+          // 不重新抛出异常，确保应用能正常启动
+        }
       }
+    } catch (e, stack) {
+      AppLogger.debug('平台初始化失败: $e');
+      AppLogger.debug('平台初始化错误堆栈: $stack');
     }
 
     // 初始化依赖注入
@@ -103,63 +132,6 @@ Future<void> main() async {
     // 优雅降级：启动简化版应用
     AppLogger.debug('启动简化版应用');
     runApp(const FallbackApp());
-  }
-}
-
-/// 应用生命周期管理
-class AppLifecycleManager extends StatefulWidget {
-  final Widget child;
-
-  const AppLifecycleManager({super.key, required this.child});
-
-  @override
-  State<AppLifecycleManager> createState() => _AppLifecycleManagerState();
-}
-
-class _AppLifecycleManagerState extends State<AppLifecycleManager>
-    with WidgetsBindingObserver {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    switch (state) {
-      case AppLifecycleState.paused:
-        // 应用进入后台，清理过期缓存
-        // 通过GetIt获取缓存管理器清理过期缓存
-        _clearCacheInBackground();
-        break;
-      case AppLifecycleState.detached:
-        // 应用被关闭，清理资源
-        // 应用退出时Hive会自动清理
-        break;
-      default:
-        break;
-    }
-  }
-
-  /// 在后台清理缓存
-  void _clearCacheInBackground() async {
-    try {
-      final cacheManager = UnifiedHiveCacheManager.instance;
-      await cacheManager.clearExpiredCache();
-    } catch (e) {
-      AppLogger.debug('清理缓存时出错: $e');
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return widget.child;
   }
 }
 

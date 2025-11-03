@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../main.dart';
 import '../../core/di/injection_container.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/widgets/app_lifecycle_manager.dart';
 import '../auth/domain/entities/user.dart';
 import '../navigation/presentation/pages/navigation_shell.dart';
 import '../fund/presentation/fund_exploration/presentation/cubit/fund_exploration_cubit.dart';
@@ -77,22 +77,23 @@ class JisuFundAnalyzerApp extends StatelessWidget {
           return MaterialPageRoute(
             builder: (context) => Scaffold(
               appBar: AppBar(
-                title: Text('页面未找到'),
+                title: const Text('页面未找到'),
               ),
               body: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.error_outline, size: 64, color: Colors.grey),
-                    SizedBox(height: 16),
+                    const Icon(Icons.error_outline,
+                        size: 64, color: Colors.grey),
+                    const SizedBox(height: 16),
                     Text(
                       '路由未定义: ${settings.name}',
-                      style: TextStyle(fontSize: 16),
+                      style: const TextStyle(fontSize: 16),
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: () => Navigator.pop(context),
-                      child: Text('返回'),
+                      child: const Text('返回'),
                     ),
                   ],
                 ),

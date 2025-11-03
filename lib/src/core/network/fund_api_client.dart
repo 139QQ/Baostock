@@ -2,18 +2,22 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:dio/dio.dart';
 import '../utils/logger.dart';
+import '../config/app_config.dart';
 // import 'multi_source_api_config.dart'; // 暂时注释掉，避免循环依赖
 
 /// 基金API客户端 - 增强版本，支持重试和超时处理
 class FundApiClient {
-  static String baseUrl = 'http://154.44.25.92:8080';
-  // API超时配置 - 设置为120秒超时时间
-  // 连接超时：30秒，接收超时：120秒，发送超时：30秒
-  static Duration connectTimeout = const Duration(seconds: 30); // 连接超时：30秒
-  static Duration receiveTimeout = const Duration(seconds: 120); // 接收超时：120秒
-  static Duration sendTimeout = const Duration(seconds: 30); // 发送超时：30秒
-  static int maxRetries = 5; // 增加重试次数从3到5
-  static Duration retryDelay = const Duration(seconds: 2); // 增加重试间隔从1秒到2秒
+  // 从环境配置获取API配置
+  static String get baseUrl => AppConfig.instance.apiBaseUrl;
+  static Duration get connectTimeout =>
+      Duration(seconds: AppConfig.instance.apiConnectTimeout);
+  static Duration get receiveTimeout =>
+      Duration(seconds: AppConfig.instance.apiReceiveTimeout);
+  static Duration get sendTimeout =>
+      Duration(seconds: AppConfig.instance.apiSendTimeout);
+  static int get maxRetries => AppConfig.instance.apiMaxRetries;
+  static Duration get retryDelay =>
+      Duration(seconds: AppConfig.instance.apiRetryDelay);
 
   // Dio实例，用于更好的错误处理
   static final Dio _dio = Dio(BaseOptions(

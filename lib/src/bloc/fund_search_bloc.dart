@@ -2,7 +2,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import '../services/high_performance_fund_service.dart';
 import '../services/fund_analysis_service.dart';
+import '../services/unified_search_service/i_unified_search_service.dart';
+import '../services/unified_search_service/unified_search_service.dart';
+import '../services/unified_search_service/search_options_factory.dart';
 import '../models/fund_info.dart';
+import '../features/fund/domain/entities/fund_ranking.dart';
 
 // ========================================
 // Events
@@ -66,6 +70,33 @@ class FilterFunds extends FundSearchEvent {
 }
 
 class ClearSearch extends FundSearchEvent {}
+
+// ========================================
+// 统一搜索事件
+// ========================================
+
+class UnifiedSearchFunds extends FundSearchEvent {
+  final String query;
+  final UnifiedSearchOptions options;
+
+  const UnifiedSearchFunds(this.query,
+      {this.options = const UnifiedSearchOptions()});
+
+  @override
+  List<Object> get props => [query, options];
+}
+
+class GetUnifiedSearchSuggestions extends FundSearchEvent {
+  final String prefix;
+  final int limit;
+
+  const GetUnifiedSearchSuggestions(this.prefix, {this.limit = 10});
+
+  @override
+  List<Object> get props => [prefix, limit];
+}
+
+class ClearUnifiedSearchCache extends FundSearchEvent {}
 
 // ========================================
 // States
@@ -155,12 +186,70 @@ class FundSearchEmpty extends FundSearchState {
 }
 
 // ========================================
+// 统一搜索状态
+// ========================================
+
+class UnifiedSearchLoading extends FundSearchState {
+  final String query;
+
+  const UnifiedSearchLoading(this.query);
+
+  @override
+  List<Object> get props => [query];
+}
+
+class UnifiedSearchLoaded extends FundSearchState {
+  final List<dynamic> results; // 可以是FundRanking或FundInfo
+  final String query;
+  final bool useEnhancedEngine;
+  final int searchTimeMs;
+  final bool fromCache;
+
+  const UnifiedSearchLoaded({
+    required this.results,
+    required this.query,
+    required this.useEnhancedEngine,
+    required this.searchTimeMs,
+    this.fromCache = false,
+  });
+
+  @override
+  List<Object> get props => [
+        results,
+        query,
+        useEnhancedEngine,
+        searchTimeMs,
+        fromCache,
+      ];
+}
+
+class UnifiedSearchSuggestionsLoaded extends FundSearchState {
+  final List<String> suggestions;
+
+  const UnifiedSearchSuggestionsLoaded(this.suggestions);
+
+  @override
+  List<Object> get props => [suggestions];
+}
+
+class UnifiedSearchError extends FundSearchState {
+  final String message;
+  final String query;
+
+  const UnifiedSearchError(this.message, this.query);
+
+  @override
+  List<Object> get props => [message, query];
+}
+
+// ========================================
 // BLoC
 // ========================================
 
 class FundSearchBloc extends Bloc<FundSearchEvent, FundSearchState> {
   final HighPerformanceFundService _fundService;
   final FundAnalysisService _analysisService;
+  final IUnifiedSearchService _unifiedSearchService;
 
   List<String> _searchHistory = [];
   final List<String> _popularSearches = [
@@ -180,8 +269,10 @@ class FundSearchBloc extends Bloc<FundSearchEvent, FundSearchState> {
   FundSearchBloc({
     required HighPerformanceFundService fundService,
     required FundAnalysisService analysisService,
+    IUnifiedSearchService? unifiedSearchService,
   })  : _fundService = fundService,
         _analysisService = analysisService,
+        _unifiedSearchService = unifiedSearchService ?? UnifiedSearchService(),
         super(FundSearchInitial()) {
     on<SearchFunds>(_onSearchFunds);
     on<LoadSearchHistory>(_onLoadSearchHistory);
@@ -191,6 +282,11 @@ class FundSearchBloc extends Bloc<FundSearchEvent, FundSearchState> {
     on<LoadPopularSearches>(_onLoadPopularSearches);
     on<FilterFunds>(_onFilterFunds);
     on<ClearSearch>(_onClearSearch);
+
+    // 统一搜索事件处理器
+    on<UnifiedSearchFunds>(_onUnifiedSearchFunds);
+    on<GetUnifiedSearchSuggestions>(_onGetUnifiedSearchSuggestions);
+    on<ClearUnifiedSearchCache>(_onClearUnifiedSearchCache);
   }
 
   Future<void> _onSearchFunds(
@@ -449,4 +545,125 @@ class FundSearchBloc extends Bloc<FundSearchEvent, FundSearchState> {
 
   /// 提供对基金分析服务的访问
   FundAnalysisService get analysisService => _analysisService;
+
+  // ========================================
+  // 统一搜索事件处理器
+  // ========================================
+
+  Future<void> _onUnifiedSearchFunds(
+    UnifiedSearchFunds event,
+    Emitter<FundSearchState> emit,
+  ) async {
+    try {
+      emit(UnifiedSearchLoading(event.query));
+
+      // 执行统一搜索
+      final result = await _unifiedSearchService.search(
+        event.query,
+        options: event.options,
+      );
+
+      if (!result.isSuccess) {
+        emit(UnifiedSearchError(result.error ?? '搜索失败', event.query));
+        return;
+      }
+
+      if (result.results.isEmpty) {
+        // 转换为空搜索状态以保持兼容性
+        emit(FundSearchEmpty(event.query));
+      } else {
+        // 添加到搜索历史
+        if (event.query.isNotEmpty && !_searchHistory.contains(event.query)) {
+          _searchHistory.insert(0, event.query);
+          if (_searchHistory.length > 20) {
+            _searchHistory.removeLast();
+          }
+        }
+
+        emit(UnifiedSearchLoaded(
+          results: result.results,
+          query: result.query,
+          useEnhancedEngine: result.useEnhancedEngine,
+          searchTimeMs: result.searchTimeMs,
+          fromCache: result.fromCache,
+        ));
+      }
+    } catch (e) {
+      emit(UnifiedSearchError(e.toString(), event.query));
+    }
+  }
+
+  Future<void> _onGetUnifiedSearchSuggestions(
+    GetUnifiedSearchSuggestions event,
+    Emitter<FundSearchState> emit,
+  ) async {
+    try {
+      final suggestions = await _unifiedSearchService.getSuggestions(
+        event.prefix,
+        limit: event.limit,
+      );
+
+      emit(UnifiedSearchSuggestionsLoaded(suggestions));
+    } catch (e) {
+      // 建议获取失败时不影响主要搜索功能，只记录日志
+      print('获取搜索建议失败: $e');
+      // 保持当前状态不变
+    }
+  }
+
+  Future<void> _onClearUnifiedSearchCache(
+    ClearUnifiedSearchCache event,
+    Emitter<FundSearchState> emit,
+  ) async {
+    try {
+      await _unifiedSearchService.clearCache();
+      // 保持当前状态不变，这是一个后台操作
+    } catch (e) {
+      print('清除搜索缓存失败: $e');
+    }
+  }
+
+  // ========================================
+  // 统一搜索便利方法
+  // ========================================
+
+  /// 执行快速搜索
+  void quickSearch(String query) {
+    add(UnifiedSearchFunds(
+      query,
+      options: SearchOptionsFactory.quickSearch(),
+    ));
+  }
+
+  /// 执行精确搜索
+  void preciseSearch(String query) {
+    add(UnifiedSearchFunds(
+      query,
+      options: SearchOptionsFactory.preciseSearch(),
+    ));
+  }
+
+  /// 执行全面搜索
+  void comprehensiveSearch(String query) {
+    add(UnifiedSearchFunds(
+      query,
+      options: SearchOptionsFactory.comprehensiveSearch(),
+    ));
+  }
+
+  /// 自动优化搜索
+  void autoSearch(String query) {
+    add(UnifiedSearchFunds(
+      query,
+      options: SearchOptionsFactory.autoOptimizedSearch(query),
+    ));
+  }
+
+  /// 获取搜索建议
+  void getSuggestions(String prefix) {
+    add(GetUnifiedSearchSuggestions(prefix));
+  }
+
+  /// 提供对统一搜索服务的访问
+  IUnifiedSearchService get unifiedSearchService => _unifiedSearchService;
 }

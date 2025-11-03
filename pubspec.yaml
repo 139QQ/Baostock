@@ -66,6 +66,8 @@ dependencies:
   intl: ^0.18.1
   get_it: ^8.2.0
   crypto: ^3.0.3
+  # 环境配置管理
+  flutter_dotenv: ^5.1.0
 # url_launcher: ^6.2.4  # 暂时移除，存在Windows构建问题
   
   # 其他
@@ -98,6 +100,9 @@ flutter:
     - assets/images/
     - assets/icons/
     - assets/fonts/
+    - .env
+    - .env.development
+    - .env.production
     
   # fonts:
   #   - family: Inter

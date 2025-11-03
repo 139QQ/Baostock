@@ -45,6 +45,17 @@ class PortfolioProfitCacheService {
     required CacheService cacheService,
   }) : _cacheService = cacheService;
 
+  /// 默认构造函数（用于测试）
+  PortfolioProfitCacheService.defaultService()
+      : _cacheService = _createDefaultCacheService();
+
+  /// 创建默认缓存服务
+  static CacheService _createDefaultCacheService() {
+    // 这里需要创建一个简单的内存缓存服务作为默认实现
+    // 为了测试目的，我们创建一个基本的内存缓存
+    return _TestCacheService();
+  }
+
   /// 初始化缓存服务
   Future<void> initialize() async {
     try {
@@ -585,6 +596,17 @@ class PortfolioProfitCacheService {
       AppLogger.warn('清理组合缓存失败: $e');
     }
   }
+
+  /// 释放资源
+  Future<void> dispose() async {
+    try {
+      // 清理所有缓存数据
+      await clearPortfolioCache();
+      AppLogger.info('PortfolioProfitCacheService disposed successfully');
+    } catch (e) {
+      AppLogger.error('Error during PortfolioProfitCacheService disposal', e);
+    }
+  }
 }
 
 /// 缓存项通用类
@@ -656,5 +678,82 @@ class CacheItem<T> {
       'timestamp': timestamp.toIso8601String(),
       'expiryDate': expiryDate.toIso8601String(),
     };
+  }
+}
+
+/// 测试用简单内存缓存服务实现
+class _TestCacheService implements CacheService {
+  final Map<String, dynamic> _cache = {};
+
+  @override
+  Future<T?> get<T>(String key) async {
+    return _cache[key] as T?;
+  }
+
+  @override
+  Future<void> put<T>(String key, T value, {Duration? expiration}) async {
+    _cache[key] = value;
+  }
+
+  @override
+  Future<void> remove(String key) async {
+    _cache.remove(key);
+  }
+
+  @override
+  Future<void> clear() async {
+    _cache.clear();
+  }
+
+  @override
+  Future<bool> containsKey(String key) async {
+    return _cache.containsKey(key);
+  }
+
+  @override
+  Future<List<String>> getAllKeys() async {
+    return _cache.keys.toList();
+  }
+
+  @override
+  Future<Map<String, dynamic>> getStats() async {
+    return {
+      'totalItems': _cache.length,
+      'totalSize': _cache.toString().length,
+      'hitRate': 0.0,
+    };
+  }
+
+  @override
+  Future<Map<String, dynamic?>> getAll(List<String> keys) async {
+    final result = <String, dynamic?>{};
+    for (final key in keys) {
+      result[key] = _cache[key];
+    }
+    return result;
+  }
+
+  @override
+  Future<void> putAll(Map<String, dynamic> keyValuePairs,
+      {Duration? expiration}) async {
+    _cache.addAll(keyValuePairs);
+  }
+
+  @override
+  Future<void> removeAll(List<String> keys) async {
+    for (final key in keys) {
+      _cache.remove(key);
+    }
+  }
+
+  @override
+  Future<void> setExpiration(String key, Duration expiration) async {
+    // 简单实现，不处理过期
+  }
+
+  @override
+  Future<Duration?> getExpiration(String key) async {
+    // 简单实现，不过期处理
+    return null;
   }
 }

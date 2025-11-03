@@ -31,7 +31,9 @@
       "Bash(taskkill:*)",
       "Bash(test:*)",
       "Bash(git rm:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(python -c \"import os; print(os.path.relpath(''../../../../bloc'', ''.''))\")",
+      "Bash(python:*)"
     ],
     "deny": [],
     "ask": []

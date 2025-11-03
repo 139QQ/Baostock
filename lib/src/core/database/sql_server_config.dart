@@ -1,4 +1,6 @@
-/// SQL Server 数据库配置
+import '../config/app_config.dart';
+
+/// SQL Server 数据库配置 - 使用环境配置
 class SqlServerConfig {
   final String host;
   final int port;
@@ -20,28 +22,26 @@ class SqlServerConfig {
     this.enableMultipleActiveResultSets = true,
   });
 
-  /// 默认配置（开发环境）
-  factory SqlServerConfig.development() {
+  /// 从环境配置创建配置实例
+  factory SqlServerConfig.fromEnvironment() {
+    final config = AppConfig.instance;
     return SqlServerConfig(
-      host: '154.44.25.92',
-      port: 1433,
-      database: 'JiSuDB',
-      username: 'SA',
-      password: 'Miami@2024',
+      host: config.dbHost,
+      port: config.dbPort,
+      database: config.dbDatabase,
+      username: config.dbUsername,
+      password: config.dbPassword,
+      connectionTimeout: config.dbConnectionTimeout,
+      commandTimeout: config.dbCommandTimeout,
+      enableMultipleActiveResultSets: config.dbEnableMultipleActiveResultSets,
     );
   }
 
-  /// 生产环境配置
-  factory SqlServerConfig.production() {
-    return SqlServerConfig(
-      host: 'your-production-server.database.windows.net',
-      database: 'FundAnalyzerDB',
-      username: 'funduser',
-      password: 'YourProduction@Password123',
-      connectionTimeout: 60,
-      commandTimeout: 60,
-    );
-  }
+  /// 默认配置（开发环境）- 保持向后兼容
+  factory SqlServerConfig.development() => SqlServerConfig.fromEnvironment();
+
+  /// 生产环境配置 - 保持向后兼容
+  factory SqlServerConfig.production() => SqlServerConfig.fromEnvironment();
 
   /// 转换为连接字符串
   String toConnectionString() {

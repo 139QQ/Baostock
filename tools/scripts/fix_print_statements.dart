@@ -31,7 +31,6 @@ void main() async {
     print('\n🎉 修复完成! 总共修复了 $totalFixes 处print语句');
     print('\n建议运行以下命令验证修复效果:');
     print('flutter analyze | grep "avoid_print"');
-
   } catch (e) {
     print('❌ 修复过程中出现错误: $e');
   }
@@ -113,17 +112,20 @@ String _fixPrintStatement(String line, String filePath, int lineNumber) {
 /// 确定适当的logger调用
 String _determineLoggerCall(String printContent, String filePath) {
   // 如果包含错误关键词，使用error级别
-  if (_containsKeywords(printContent, ['error', 'Error', 'ERROR', '异常', '失败', 'exception'])) {
+  if (_containsKeywords(
+      printContent, ['error', 'Error', 'ERROR', '异常', '失败', 'exception'])) {
     return 'AppLogger.error(${_convertToLoggerFormat(printContent)});';
   }
 
   // 如果包含警告关键词，使用warn级别
-  if (_containsKeywords(printContent, ['warn', 'warning', 'Warning', '警告', '注意'])) {
+  if (_containsKeywords(
+      printContent, ['warn', 'warning', 'Warning', '警告', '注意'])) {
     return 'AppLogger.warn(${_convertToLoggerFormat(printContent)});';
   }
 
   // 如果包含调试关键词，使用debug级别
-  if (_containsKeywords(printContent, ['debug', 'Debug', 'DEBUG', '调试', 'Debug'])) {
+  if (_containsKeywords(
+      printContent, ['debug', 'Debug', 'DEBUG', '调试', 'Debug'])) {
     return 'AppLogger.debug(${_convertToLoggerFormat(printContent)});';
   }
 

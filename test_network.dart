@@ -25,8 +25,10 @@ void main() async {
     print('发送请求...');
     final stopwatch = Stopwatch()..start();
 
-    final streamedResponse = await request.send().timeout(Duration(seconds: 30));
-    final response = await http.Response.fromStream(streamedResponse).timeout(Duration(seconds: 30));
+    final streamedResponse =
+        await request.send().timeout(Duration(seconds: 30));
+    final response = await http.Response.fromStream(streamedResponse)
+        .timeout(Duration(seconds: 30));
 
     stopwatch.stop();
 
@@ -46,7 +48,8 @@ void main() async {
 
           // 检查必需字段
           final requiredFields = ['基金代码', '基金简称', '单位净值'];
-          final missingFields = requiredFields.where((field) => !(firstItem as Map).containsKey(field));
+          final missingFields = requiredFields
+              .where((field) => !(firstItem as Map).containsKey(field));
 
           if (missingFields.isEmpty) {
             print('✅ 必需字段验证通过');
@@ -58,13 +61,13 @@ void main() async {
         }
       } catch (e) {
         print('❌ JSON解析失败: $e');
-        print('原始数据前100字符: ${response.body.substring(0, response.body.length > 100 ? 100 : response.body.length)}');
+        print(
+            '原始数据前100字符: ${response.body.substring(0, response.body.length > 100 ? 100 : response.body.length)}');
       }
     } else {
       print('❌ HTTP错误: ${response.statusCode}');
       print('响应头: ${response.headers}');
     }
-
   } catch (e) {
     print('❌ 请求异常: $e');
     print('异常类型: ${e.runtimeType}');

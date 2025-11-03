@@ -24,6 +24,9 @@ import '../../features/fund/shared/services/fund_data_service.dart';
 import '../../features/fund/shared/services/search_service.dart';
 import '../../features/fund/shared/services/data_validation_service.dart';
 import '../../features/fund/shared/services/money_fund_service.dart';
+// 统一搜索服务导入
+import '../../services/unified_search_service/i_unified_search_service.dart';
+import '../../services/unified_search_service/unified_search_service.dart';
 // 基金对比相关导入
 import '../../features/fund/data/services/fund_comparison_service.dart';
 import '../../features/fund/domain/repositories/fund_comparison_repository.dart';
@@ -165,6 +168,16 @@ Future<void> initDependencies() async {
 
   // 搜索服务
   sl.registerLazySingleton<SearchService>(() => SearchService());
+
+  // 统一搜索服务 (Story 1.1)
+  sl.registerLazySingleton<IUnifiedSearchService>(() {
+    final service = UnifiedSearchService();
+    // 异步初始化，不阻塞依赖注入
+    service.initialize().catchError((e) {
+      AppLogger.debug('UnifiedSearchService initialization failed: $e');
+    });
+    return service;
+  });
 
   // 货币基金服务
   sl.registerLazySingleton<MoneyFundService>(() => MoneyFundService());

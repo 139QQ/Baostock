@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../widgets/fund_search_bar.dart';
+import '../../../widgets/fund_search_bar_adapter.dart';
 import '../widgets/fund_filter_panel.dart';
 import '../widgets/hot_funds_section.dart';
 import '../widgets/fund_ranking_wrapper_unified.dart';
@@ -119,6 +119,7 @@ class _FundExplorationPageContentState
 
   /// 处理搜索
   void _handleSearch(String query) {
+    _searchController.text = query;
     context.read<FundExplorationCubit>().searchFunds(query);
   }
 
@@ -251,13 +252,12 @@ class _FundExplorationPageContentState
             // 搜索栏
             Expanded(
               flex: 2,
-              child: FundSearchBar(
-                controller: _searchController,
+              child: FundSearchBarAdapter(
+                searchText: state.searchQuery,
                 onSearch: _handleSearch,
-                onAdvancedFilter: () {
-                  setState(() {
-                    _showFilterPanel = !_showFilterPanel;
-                  });
+                onClear: () {
+                  _searchController.clear();
+                  _handleSearch('');
                 },
               ),
             ),
@@ -271,6 +271,22 @@ class _FundExplorationPageContentState
 
             // 视图模式切换
             _buildViewModeToggle(),
+
+            const SizedBox(width: 16),
+
+            // 筛选按钮
+            IconButton(
+              onPressed: () {
+                setState(() {
+                  _showFilterPanel = !_showFilterPanel;
+                });
+              },
+              icon: Icon(
+                _showFilterPanel ? Icons.filter_list_off : Icons.filter_list,
+                color: _showFilterPanel ? const Color(0xFF1E40AF) : Colors.grey,
+              ),
+              tooltip: '筛选',
+            ),
 
             const SizedBox(width: 16),
 
@@ -300,13 +316,12 @@ class _FundExplorationPageContentState
           children: [
             // 搜索栏
             Expanded(
-              child: FundSearchBar(
-                controller: _searchController,
+              child: FundSearchBarAdapter(
+                searchText: state.searchQuery,
                 onSearch: _handleSearch,
-                onAdvancedFilter: () {
-                  setState(() {
-                    _showFilterPanel = !_showFilterPanel;
-                  });
+                onClear: () {
+                  _searchController.clear();
+                  _handleSearch('');
                 },
               ),
             ),
@@ -373,13 +388,12 @@ class _FundExplorationPageContentState
           children: [
             // 搜索栏
             Expanded(
-              child: FundSearchBar(
-                controller: _searchController,
+              child: FundSearchBarAdapter(
+                searchText: state.searchQuery,
                 onSearch: _handleSearch,
-                onAdvancedFilter: () {
-                  setState(() {
-                    _showFilterPanel = !_showFilterPanel;
-                  });
+                onClear: () {
+                  _searchController.clear();
+                  _handleSearch('');
                 },
               ),
             ),
