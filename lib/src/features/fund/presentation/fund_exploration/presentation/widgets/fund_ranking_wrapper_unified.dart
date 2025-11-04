@@ -15,7 +15,9 @@ class FundRankingWrapperUnified extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<FundExplorationCubit, FundExplorationState>(
       builder: (context, state) {
-        return _buildContent(context, state);
+        return IntrinsicHeight(
+          child: _buildContent(context, state),
+        );
       },
     );
   }
@@ -293,12 +295,14 @@ class FundRankingWrapperUnified extends StatelessWidget {
     }
 
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         // 数据统计信息和刷新按钮
         _buildStatisticsHeader(state),
 
-        // 基金列表
-        Expanded(
+        // 基金列表 - 使用SizedBox限制高度避免布局冲突
+        SizedBox(
+          height: 400, // 设置固定高度
           child: ListView.builder(
             padding: const EdgeInsets.all(16),
             itemCount: rankings.length,
