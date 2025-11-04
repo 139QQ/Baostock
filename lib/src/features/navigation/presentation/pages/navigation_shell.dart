@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../auth/domain/entities/user.dart';
 import '../../../home/presentation/pages/dashboard_page.dart';
 import '../../../fund/presentation/fund_exploration/presentation/pages/fund_exploration_page.dart';
+import '../../../fund/presentation/fund_exploration/presentation/pages/minimalist_fund_exploration_page.dart';
 import '../../../fund/presentation/pages/watchlist_page.dart';
 import '../../../portfolio/presentation/widgets/portfolio_manager.dart';
 import '../../../portfolio/presentation/cubit/portfolio_analysis_cubit.dart';
@@ -35,6 +36,7 @@ class NavigationShell extends StatefulWidget {
 
 class _NavigationShellState extends State<NavigationShell> {
   int _selectedIndex = 0;
+  bool _useMinimalistLayout = true; // 默认使用极简布局
 
   /// 导航到指定页面
   void navigateToPage(int index) {
@@ -54,23 +56,111 @@ class _NavigationShellState extends State<NavigationShell> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: GlobalNavigationBar(
-        user: widget.user,
-        onLogout: widget.onLogout,
-      ),
-      body: Row(
-        children: [
-          SizedBox(
-            width: 100, // 匹配NavigationRail的minWidth
-            child: _buildEnhancedNavigationRail(),
-          ),
-          const VerticalDivider(thickness: 1, width: 1),
-          Expanded(
-            child: _buildCurrentPage(),
-          ),
-        ],
-      ),
+    if (_useMinimalistLayout && _selectedIndex == 1) {
+      // 极简布局：仅用于基金探索页面，但保留导航功能
+      return Scaffold(
+        appBar: GlobalNavigationBar(
+          user: widget.user,
+          onLogout: widget.onLogout,
+          showLayoutToggle: true,
+          onToggleLayout: () {
+            setState(() {
+              _useMinimalistLayout = !_useMinimalistLayout;
+            });
+          },
+          isMinimalistLayout: _useMinimalistLayout,
+        ),
+        body: Row(
+          children: [
+            // 在极简布局下保留紧凑的导航栏
+            SizedBox(
+              width: 80, // 比传统布局更窄的导航栏
+              child: _buildMinimalistNavigationRail(),
+            ),
+            const VerticalDivider(thickness: 1, width: 1),
+            Expanded(
+              child: const MinimalistFundExplorationPage(),
+            ),
+          ],
+        ),
+      );
+    } else {
+      // 传统布局
+      return Scaffold(
+        appBar: GlobalNavigationBar(
+          user: widget.user,
+          onLogout: widget.onLogout,
+          showLayoutToggle: _selectedIndex == 1, // 只在基金探索页面显示切换按钮
+          onToggleLayout: () {
+            setState(() {
+              _useMinimalistLayout = !_useMinimalistLayout;
+            });
+          },
+          isMinimalistLayout: _useMinimalistLayout,
+        ),
+        body: Row(
+          children: [
+            SizedBox(
+              width: 100, // 匹配NavigationRail的minWidth
+              child: _buildEnhancedNavigationRail(),
+            ),
+            const VerticalDivider(thickness: 1, width: 1),
+            Expanded(
+              child: _buildCurrentPage(),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  /// 构建极简导航栏（在极简布局模式下使用）
+  Widget _buildMinimalistNavigationRail() {
+    return NavigationRail(
+      selectedIndex: _selectedIndex,
+      onDestinationSelected: (index) {
+        setState(() => _selectedIndex = index);
+      },
+      labelType: NavigationRailLabelType.selected, // 只显示选中项的标签
+      backgroundColor: const Color(0xFFF8FAFC),
+      elevation: 1,
+      extended: false,
+      minWidth: 80,
+      leading: null,
+      trailing: null,
+      groupAlignment: -0.85,
+      destinations: [
+        _buildMinimalistDestination(
+          icon: Icons.dashboard_outlined,
+          selectedIcon: Icons.dashboard,
+          label: '概览',
+          tooltip: '市场概览',
+        ),
+        _buildMinimalistDestination(
+          icon: Icons.filter_alt_outlined,
+          selectedIcon: Icons.filter_alt,
+          label: '筛选',
+          tooltip: '基金筛选',
+        ),
+        _buildMinimalistDestination(
+          icon: Icons.star_outline,
+          selectedIcon: Icons.star,
+          label: '自选',
+          tooltip: '自选基金',
+        ),
+        _buildMinimalistDestination(
+          icon: Icons.analytics_outlined,
+          selectedIcon: Icons.analytics,
+          label: '分析',
+          tooltip: '持仓分析',
+        ),
+        _buildMinimalistDestination(
+          icon: Icons.settings_outlined,
+          selectedIcon: Icons.settings,
+          label: '设置',
+          tooltip: '系统设置',
+        ),
+      ],
     );
   }
 
@@ -143,6 +233,42 @@ class _NavigationShellState extends State<NavigationShell> {
           tooltip: '系统设置',
         ),
       ],
+    );
+  }
+
+  /// 构建极简模式的导航目标
+  NavigationRailDestination _buildMinimalistDestination({
+    required IconData icon,
+    required IconData selectedIcon,
+    required String label,
+    required String tooltip,
+  }) {
+    return NavigationRailDestination(
+      icon: Tooltip(
+        message: tooltip,
+        child: Icon(
+          icon,
+          size: 16, // 极简模式下的图标尺寸
+        ),
+      ),
+      selectedIcon: Tooltip(
+        message: tooltip,
+        child: Icon(
+          selectedIcon,
+          size: 18, // 极简模式下的选中图标尺寸
+          color: Theme.of(context).primaryColor,
+        ),
+      ),
+      label: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 8, // 更小的字体以适应狭窄的导航栏
+          fontWeight: FontWeight.w500,
+        ),
+        textAlign: TextAlign.center,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
     );
   }
 
