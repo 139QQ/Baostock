@@ -10,6 +10,7 @@ import '../../../auth/domain/entities/user.dart';
 /// - 用户信息显示
 /// - 搜索功能
 /// - 登出功能
+/// - 布局切换功能
 class GlobalNavigationBar extends StatelessWidget
     implements PreferredSizeWidget {
   /// 当前登录用户
@@ -18,10 +19,22 @@ class GlobalNavigationBar extends StatelessWidget
   /// 登出回调函数
   final VoidCallback onLogout;
 
+  /// 是否显示布局切换按钮
+  final bool showLayoutToggle;
+
+  /// 布局切换回调函数
+  final VoidCallback? onToggleLayout;
+
+  /// 当前是否为极简布局
+  final bool isMinimalistLayout;
+
   const GlobalNavigationBar({
     super.key,
     required this.user,
     required this.onLogout,
+    this.showLayoutToggle = false,
+    this.onToggleLayout,
+    this.isMinimalistLayout = false,
   });
 
   @override
@@ -50,7 +63,7 @@ class GlobalNavigationBar extends StatelessWidget
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Row(
           children: [
             // 品牌Logo
@@ -65,6 +78,12 @@ class GlobalNavigationBar extends StatelessWidget
             // 搜索框
             _buildSearchBox(),
             const SizedBox(width: 16),
+
+            // 布局切换按钮（可选）
+            if (showLayoutToggle) ...[
+              _buildLayoutToggle(),
+              const SizedBox(width: 16),
+            ],
 
             // 用户信息
             _buildUserInfo(context),
@@ -192,6 +211,57 @@ class GlobalNavigationBar extends StatelessWidget
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// 构建布局切换按钮
+  Widget _buildLayoutToggle() {
+    return Container(
+      decoration: BoxDecoration(
+        color: isMinimalistLayout
+            ? const Color(0xFF2E7D32)
+            : const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isMinimalistLayout
+              ? const Color(0xFF2E7D32)
+              : const Color(0xFFE2E8F0),
+          width: 1,
+        ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onToggleLayout,
+          borderRadius: BorderRadius.circular(20),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  isMinimalistLayout ? Icons.view_compact : Icons.view_agenda,
+                  size: 16,
+                  color: isMinimalistLayout
+                      ? Colors.white
+                      : const Color(0xFF64748B),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  isMinimalistLayout ? '极简' : '传统',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: isMinimalistLayout
+                        ? Colors.white
+                        : const Color(0xFF64748B),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -62,6 +62,7 @@ import 'package:hive/hive.dart';
 import '../../services/fund_analysis_service.dart';
 import '../../services/portfolio_analysis_service.dart';
 import '../../services/high_performance_fund_service.dart';
+import '../../bloc/fund_search_bloc.dart';
 
 final GetIt sl = GetIt.instance;
 
@@ -187,6 +188,12 @@ Future<void> initDependencies() async {
         fundDataService: sl(),
         searchService: sl(),
         moneyFundService: sl(),
+      ));
+
+  // 基金搜索BLoC
+  sl.registerLazySingleton<FundSearchBloc>(() => FundSearchBloc(
+        fundService: sl(),
+        analysisService: sl(),
       ));
 
   // ===== Week 6 相关依赖 =====
