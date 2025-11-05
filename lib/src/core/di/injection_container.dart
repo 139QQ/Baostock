@@ -2,11 +2,17 @@ import 'package:get_it/get_it.dart';
 import 'package:dio/dio.dart';
 import '../network/fund_api_client.dart';
 import '../network/api_service.dart';
+import '../navigation/navigation_manager.dart';
 // 统一缓存系统导入
 import '../cache/interfaces/i_unified_cache_service.dart';
 import '../cache/interfaces/cache_service.dart';
 import '../cache/unified_hive_cache_manager.dart';
 import '../cache/adapters/cache_service_adapter.dart';
+import '../cache/adapters/unified_cache_adapter.dart';
+import '../cache/smart_cache_invalidation_manager.dart';
+import '../cache/cache_key_manager.dart';
+import '../cache/cache_performance_monitor.dart';
+import '../cache/cache_preheating_manager.dart';
 import '../config/cache_system_config.dart';
 import '../../services/optimized_cache_manager_v3.dart';
 import '../services/secure_storage_service.dart';
@@ -62,6 +68,7 @@ import 'package:hive/hive.dart';
 import '../../services/fund_analysis_service.dart';
 import '../../services/portfolio_analysis_service.dart';
 import '../../services/high_performance_fund_service.dart';
+import '../../services/smart_recommendation_service.dart';
 import '../../bloc/fund_search_bloc.dart';
 
 final GetIt sl = GetIt.instance;
@@ -83,10 +90,12 @@ Future<void> initDependencies() async {
     });
   }
 
-  // 统一缓存服务接口
+  // 统一缓存服务接口 - 直接注册适配器实例避免循环依赖
   if (!sl.isRegistered<IUnifiedCacheService>()) {
-    sl.registerLazySingleton<IUnifiedCacheService>(
-        () => CacheSystemConfig.getCacheService(sl: sl));
+    sl.registerLazySingleton<IUnifiedCacheService>(() {
+      final unifiedManager = sl<UnifiedHiveCacheManager>();
+      return UnifiedCacheAdapter(unifiedManager);
+    });
   }
 
   // 基础缓存服务（向后兼容）
@@ -94,6 +103,48 @@ Future<void> initDependencies() async {
     sl.registerLazySingleton<CacheService>(() => CacheServiceAdapter(
           sl<IUnifiedCacheService>(),
         ));
+  }
+
+  // 缓存键管理器
+  if (!sl.isRegistered<CacheKeyManager>()) {
+    sl.registerLazySingleton<CacheKeyManager>(() => CacheKeyManager.instance);
+  }
+
+  // 智能缓存失效管理器
+  if (!sl.isRegistered<SmartCacheInvalidationManager>()) {
+    sl.registerLazySingleton<SmartCacheInvalidationManager>(() {
+      final invalidationManager = SmartCacheInvalidationManager.instance;
+      // 异步初始化，不阻塞依赖注入过程
+      invalidationManager.initialize().catchError((e) {
+        AppLogger.debug(
+            'Smart cache invalidation manager initialization failed: $e');
+      });
+      return invalidationManager;
+    });
+  }
+
+  // 缓存性能监控器
+  if (!sl.isRegistered<CachePerformanceMonitor>()) {
+    sl.registerLazySingleton<CachePerformanceMonitor>(() {
+      final performanceMonitor = CachePerformanceMonitor.instance;
+      // 异步初始化，不阻塞依赖注入过程
+      performanceMonitor.initialize().catchError((e) {
+        AppLogger.debug('Cache performance monitor initialization failed: $e');
+      });
+      return performanceMonitor;
+    });
+  }
+
+  // 缓存预热管理器
+  if (!sl.isRegistered<CachePreheatingManager>()) {
+    sl.registerLazySingleton<CachePreheatingManager>(() {
+      final preheatingManager = CachePreheatingManager.instance;
+      // 异步初始化，不阻塞依赖注入过程
+      preheatingManager.initialize().catchError((e) {
+        AppLogger.debug('Cache preheating manager initialization failed: $e');
+      });
+      return preheatingManager;
+    });
   }
 
   // ===== 统一缓存系统 =====
@@ -112,6 +163,9 @@ Future<void> initDependencies() async {
       return cacheManager;
     });
   }
+
+  // 导航管理器 - 使用单例模式
+  sl.registerLazySingleton<NavigationManager>(() => NavigationManager.instance);
 
   // API客户端
   sl.registerLazySingleton(() => FundApiClient());
@@ -208,6 +262,13 @@ Future<void> initDependencies() async {
   // 投资组合分析服务
   sl.registerLazySingleton<PortfolioAnalysisService>(
       () => PortfolioAnalysisService());
+
+  // 智能推荐服务 (Story 1.4)
+  sl.registerLazySingleton<SmartRecommendationService>(
+      () => SmartRecommendationService(
+            fundDataService: sl(),
+            cacheManager: sl(),
+          ));
 
   // ===== 基金对比相关依赖 =====
 
