@@ -725,8 +725,8 @@ class _TestCacheService implements CacheService {
   }
 
   @override
-  Future<Map<String, dynamic?>> getAll(List<String> keys) async {
-    final result = <String, dynamic?>{};
+  Future<Map<String, dynamic>> getAll(List<String> keys) async {
+    final result = <String, dynamic>{};
     for (final key in keys) {
       result[key] = _cache[key];
     }

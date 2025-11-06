@@ -1,16 +1,16 @@
 /// 缓存级别枚举
 enum CacheLevel {
   /// L1 内存缓存
-  L1,
+  l1,
 
   /// L2 Hive缓存
-  L2,
+  l2,
 
   /// L3 网络缓存
-  L3,
+  l3,
 
   /// 全部层级
-  ALL;
+  all;
 }
 
 /// 缓存操作结果
@@ -39,7 +39,7 @@ class CacheResult<T> {
   }
 
   factory CacheResult.failure(String error,
-      {CacheLevel level = CacheLevel.L1}) {
+      {CacheLevel level = CacheLevel.l1}) {
     return CacheResult(
       hitLevel: level,
       success: false,

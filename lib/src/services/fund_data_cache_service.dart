@@ -106,7 +106,7 @@ class FundDataCacheService {
   /// 缓存数据结构
   Map<String, FundInfo> _fundCache = {};
   DateTime? _lastUpdateTime;
-  Duration _cacheExpiry = const Duration(hours: 24); // 24小时过期
+  final Duration _cacheExpiry = const Duration(hours: 24); // 24小时过期
 
   /// 是否正在加载数据
   bool _isLoading = false;

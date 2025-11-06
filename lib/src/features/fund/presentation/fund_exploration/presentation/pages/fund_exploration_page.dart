@@ -871,7 +871,7 @@ class _FundExplorationPageContentState
         const SizedBox(width: 16),
 
         // 中间主要内容 - 修复约束冲突
-        Expanded(
+        const Expanded(
           flex: 1,
           child: Column(
             children: [
@@ -880,14 +880,14 @@ class _FundExplorationPageContentState
                 flex: 1,
                 child: HotFundsSection(),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
 
               // 基金排行榜 - 使用独立状态管理
               Expanded(
                 flex: 1,
-                child: const FundRankingWrapperUnified(),
+                child: FundRankingWrapperUnified(),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
 
               // 市场动态
               Expanded(
@@ -927,15 +927,15 @@ class _FundExplorationPageContentState
         const SizedBox(width: 16),
 
         // 中间主要内容 - 修复平板端约束
-        Expanded(
+        const Expanded(
           flex: 3,
           child: Column(
             children: [
               Expanded(child: HotFundsSection()),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               // 基金排行榜 - 使用独立状态管理
-              Expanded(child: const FundRankingWrapperUnified()),
-              const SizedBox(height: 16),
+              Expanded(child: FundRankingWrapperUnified()),
+              SizedBox(height: 16),
               Expanded(child: MarketDynamicsSection()),
             ],
           ),
@@ -974,7 +974,7 @@ class _FundExplorationPageContentState
                     HotFundsSection(),
                     SizedBox(height: 16),
                     // 基金排行榜 - 使用独立状态管理
-                    const FundRankingWrapperUnified(),
+                    FundRankingWrapperUnified(),
                     SizedBox(height: 16),
                     MarketDynamicsSection(),
                     SizedBox(height: 80), // 为底部工具栏预留空间
@@ -1004,29 +1004,29 @@ class _FundExplorationPageContentState
             const SizedBox(height: 4),
 
             // 主要内容 - 垂直滚动
-            Expanded(
+            const Expanded(
               child: SingleChildScrollView(
-                physics: const ClampingScrollPhysics(),
+                physics: ClampingScrollPhysics(),
                 child: Column(
                   children: [
                     // 热门基金（紧凑版）
                     Padding(
-                      padding: const EdgeInsets.all(8),
+                      padding: EdgeInsets.all(8),
                       child: HotFundsSection(),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     // 基金排行榜（紧凑版）
                     Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: const FundRankingWrapperUnified(),
+                      padding: EdgeInsets.all(8),
+                      child: FundRankingWrapperUnified(),
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     // 市场动态（紧凑版）
                     Padding(
-                      padding: const EdgeInsets.all(8),
+                      padding: EdgeInsets.all(8),
                       child: MarketDynamicsSection(),
                     ),
-                    const SizedBox(height: 80), // 为底部工具栏预留空间
+                    SizedBox(height: 80), // 为底部工具栏预留空间
                   ],
                 ),
               ),
@@ -1049,7 +1049,7 @@ class _FundExplorationPageContentState
       itemCount: categories.length,
       itemBuilder: (context, index) {
         return Padding(
-          padding: EdgeInsets.only(right: 6),
+          padding: const EdgeInsets.only(right: 6),
           child: FilterChip(
             label: Text(
               categories[index],
@@ -1202,7 +1202,7 @@ class _FundExplorationPageContentState
       itemCount: categories.length,
       itemBuilder: (context, index) {
         return Padding(
-          padding: EdgeInsets.only(right: 8),
+          padding: const EdgeInsets.only(right: 8),
           child: ChoiceChip(
             label: Text(categories[index]),
             selected: index == 0,
@@ -1230,7 +1230,7 @@ class _FundExplorationPageContentState
         ),
         const SizedBox(height: 8),
         ...items.map((item) => Padding(
-              padding: EdgeInsets.only(bottom: 4),
+              padding: const EdgeInsets.only(bottom: 4),
               child: TextButton(
                 onPressed: () {
                   // 处理导航点击
@@ -1252,13 +1252,13 @@ class _FundExplorationPageContentState
 
   /// 构建右侧工具栏
   Widget _buildRightTools() {
-    return SingleChildScrollView(
+    return const SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           // 基金对比工具
           FundComparisonTool(),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
 
           // 定投计算器
           InvestmentCalculator(),
@@ -1269,25 +1269,25 @@ class _FundExplorationPageContentState
 
   /// 构建可折叠的右侧工具栏（用于平板端）
   Widget _buildCollapsibleRightTools() {
-    return Card(
+    return const Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 '工具箱',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
 
               // 基金对比工具
               FundComparisonTool(),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
 
               // 定投计算器
               InvestmentCalculator(),
@@ -1355,7 +1355,7 @@ class _FundExplorationPageContentState
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('基金对比'),
-        content: SingleChildScrollView(
+        content: const SingleChildScrollView(
           child: FundComparisonTool(),
         ),
         actions: [
@@ -1374,7 +1374,7 @@ class _FundExplorationPageContentState
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('定投计算器'),
-        content: SingleChildScrollView(
+        content: const SingleChildScrollView(
           child: InvestmentCalculator(),
         ),
         actions: [

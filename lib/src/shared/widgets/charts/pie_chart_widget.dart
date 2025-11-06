@@ -6,7 +6,6 @@ library pie_chart_widget;
 
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'base_chart_widget.dart';
 import 'models/chart_data.dart';
@@ -76,7 +75,7 @@ class PieChartWidget extends BaseChartWidget {
   const PieChartWidget({
     super.key,
     required this.data,
-    required ChartConfig config,
+    required super.config,
     this.onSectorSelected,
     this.onSectorHovered,
     this.showPercentageLabels = true,
@@ -89,7 +88,7 @@ class PieChartWidget extends BaseChartWidget {
     super.onInteraction,
     super.enableAnimation = true,
     super.customTheme,
-  }) : super(config: config);
+  });
 
   /// 饼图数据
   final List<PieChartDataItem> data;
@@ -384,7 +383,7 @@ class _PieChartWidgetState extends BaseChartWidgetState<PieChartWidget> {
                   final isHovered = index == _hoveredSectorIndex;
 
                   return _buildLegendItem(index, item, isSelected, isHovered);
-                }).toList(),
+                }),
               ],
             ),
           ),
@@ -454,7 +453,7 @@ class _PieChartWidgetState extends BaseChartWidgetState<PieChartWidget> {
               ),
               const SizedBox(width: 8),
               Text(
-                '${_sectors[index]?.percentage.toStringAsFixed(1) ?? 0.0}%',
+                '${_sectors[index].percentage.toStringAsFixed(1) ?? 0.0}%',
                 style: theme.legendStyle.copyWith(
                   color: isSelected
                       ? theme.primaryColor

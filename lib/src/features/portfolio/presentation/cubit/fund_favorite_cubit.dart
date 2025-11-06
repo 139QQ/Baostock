@@ -382,7 +382,7 @@ class FundFavoriteCubit extends Cubit<FundFavoriteState> {
   Future<void> addFavorite(FundFavorite favorite) async {
     try {
       if (state is! FundFavoriteLoaded) {
-        emit(FundFavoriteError('请先初始化'));
+        emit(const FundFavoriteError('请先初始化'));
         return;
       }
 
@@ -421,7 +421,7 @@ class FundFavoriteCubit extends Cubit<FundFavoriteState> {
   Future<void> updateFavorite(FundFavorite favorite) async {
     try {
       if (state is! FundFavoriteLoaded) {
-        emit(FundFavoriteError('请先初始化'));
+        emit(const FundFavoriteError('请先初始化'));
         return;
       }
 
@@ -448,7 +448,7 @@ class FundFavoriteCubit extends Cubit<FundFavoriteState> {
   Future<void> removeFavorite(String fundCode) async {
     try {
       if (state is! FundFavoriteLoaded) {
-        emit(FundFavoriteError('请先初始化'));
+        emit(const FundFavoriteError('请先初始化'));
         return;
       }
 
@@ -480,7 +480,7 @@ class FundFavoriteCubit extends Cubit<FundFavoriteState> {
   Future<void> removeMultipleFavorites(List<String> fundCodes) async {
     try {
       if (state is! FundFavoriteLoaded) {
-        emit(FundFavoriteError('请先初始化'));
+        emit(const FundFavoriteError('请先初始化'));
         return;
       }
 
@@ -513,7 +513,7 @@ class FundFavoriteCubit extends Cubit<FundFavoriteState> {
   /// 搜索自选基金
   Future<void> searchFavorites(String query) async {
     if (state is! FundFavoriteLoaded) {
-      emit(FundFavoriteError('请先初始化'));
+      emit(const FundFavoriteError('请先初始化'));
       return;
     }
 
@@ -537,7 +537,7 @@ class FundFavoriteCubit extends Cubit<FundFavoriteState> {
     FundFavoriteSortDirection direction,
   ) async {
     if (state is! FundFavoriteLoaded) {
-      emit(FundFavoriteError('请先初始化'));
+      emit(const FundFavoriteError('请先初始化'));
       return;
     }
 
@@ -631,7 +631,7 @@ class FundFavoriteCubit extends Cubit<FundFavoriteState> {
   /// 切换收藏状态
   Future<void> toggleFavorite(FundFavorite favorite) async {
     if (state is! FundFavoriteLoaded) {
-      emit(FundFavoriteError('请先初始化'));
+      emit(const FundFavoriteError('请先初始化'));
       return;
     }
 
@@ -647,7 +647,7 @@ class FundFavoriteCubit extends Cubit<FundFavoriteState> {
   Future<void> clearAllFavorites() async {
     try {
       if (state is! FundFavoriteLoaded) {
-        emit(FundFavoriteError('请先初始化'));
+        emit(const FundFavoriteError('请先初始化'));
         return;
       }
 

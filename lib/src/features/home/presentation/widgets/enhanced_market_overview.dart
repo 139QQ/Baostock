@@ -12,12 +12,12 @@ class EnhancedMarketOverview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+    return const Padding(
+      padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             '市场指数',
             style: TextStyle(
               fontSize: 20,
@@ -25,13 +25,13 @@ class EnhancedMarketOverview extends StatelessWidget {
               color: Color(0xFF1E293B),
             ),
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: 20),
 
           // 主要指数区域（两行布局）
           Row(
             children: [
               // 上证指数（突出显示）
-              const Expanded(
+              Expanded(
                 flex: 2,
                 child: _PrimaryIndexCard(
                   name: '上证指数',
@@ -41,7 +41,7 @@ class EnhancedMarketOverview extends StatelessWidget {
                   trendData: [3200, 3220, 3240, 3230, 3256],
                 ),
               ),
-              const SizedBox(width: 16),
+              SizedBox(width: 16),
 
               // 右侧紧凑排列
               Expanded(
@@ -54,7 +54,7 @@ class EnhancedMarketOverview extends StatelessWidget {
                       isPositive: false,
                       trendData: [10900, 10850, 10900, 10880, 10875],
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     _CompactIndexCard(
                       name: '创业板指',
                       value: '2,145.67',
@@ -65,10 +65,10 @@ class EnhancedMarketOverview extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 16),
+              SizedBox(width: 16),
 
               // 沪深300
-              const Expanded(
+              Expanded(
                 child: _CompactIndexCard(
                   name: '沪深300',
                   value: '4,123.45',

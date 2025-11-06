@@ -545,7 +545,7 @@ class PortfolioSummary extends Equatable {
       totalCost: 0.0,
       cashAndEquivalents: 0.0,
       numberOfHoldings: 0,
-      holdings: [],
+      holdings: const [],
       totalReturnAmount: 0.0,
       totalReturnRate: 0.0,
       dailyReturnAmount: 0.0,

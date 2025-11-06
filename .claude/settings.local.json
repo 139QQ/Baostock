@@ -33,7 +33,10 @@
       "Bash(git rm:*)",
       "Bash(git checkout:*)",
       "Bash(python -c \"import os; print(os.path.relpath(''../../../../bloc'', ''.''))\")",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(flutter:*)",
+      "Bash(mkdir:*)",
+      "Bash(android/local.properties)"
     ],
     "deny": [],
     "ask": []

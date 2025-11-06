@@ -1,5 +1,6 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 
 /// 应用环境配置管理器
 ///
@@ -45,8 +46,16 @@ class AppConfig {
 
   /// 自动确定环境文件
   static String _determineEnvFile() {
-    // 检查FLUTTER_ENV环境变量
-    final flutterEnv = Platform.environment['FLUTTER_ENV'] ?? 'development';
+    // 检查FLUTTER_ENV环境变量（Web兼容）
+    String flutterEnv;
+    if (kIsWeb) {
+      // Web环境使用默认值或从常量获取
+      flutterEnv = const String.fromEnvironment('FLUTTER_ENV',
+          defaultValue: 'development');
+    } else {
+      // Native环境可以访问系统环境变量
+      flutterEnv = Platform.environment['FLUTTER_ENV'] ?? 'development';
+    }
 
     // 在release模式下默认使用生产环境配置
     const bool isReleaseMode = bool.fromEnvironment('dart.vm.product');

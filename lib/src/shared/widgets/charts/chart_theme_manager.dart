@@ -34,78 +34,78 @@ class ChartTheme {
 
   /// 创建浅色主题
   factory ChartTheme.light() {
-    return ChartTheme(
-      primaryColor: const Color(0xFF1976D2),
+    return const ChartTheme(
+      primaryColor: Color(0xFF1976D2),
       backgroundColor: Colors.white,
-      textColor: const Color(0xFF212121),
-      gridColor: const Color(0xFFE0E0E0),
-      legendStyle: const TextStyle(
+      textColor: Color(0xFF212121),
+      gridColor: Color(0xFFE0E0E0),
+      legendStyle: TextStyle(
         fontSize: 12,
         color: Color(0xFF424242),
         fontWeight: FontWeight.w500,
       ),
-      titleStyle: const TextStyle(
+      titleStyle: TextStyle(
         fontSize: 16,
         color: Color(0xFF212121),
         fontWeight: FontWeight.w600,
       ),
-      tooltipStyle: const TextStyle(
+      tooltipStyle: TextStyle(
         fontSize: 11,
         color: Colors.white,
         fontWeight: FontWeight.w500,
       ),
       secondaryColors: [
-        const Color(0xFF2196F3),
-        const Color(0xFF4CAF50),
-        const Color(0xFFFF9800),
-        const Color(0xFF9C27B0),
-        const Color(0xFFF44336),
-        const Color(0xFF00BCD4),
-        const Color(0xFFFFEB3B),
-        const Color(0xFF795548),
+        Color(0xFF2196F3),
+        Color(0xFF4CAF50),
+        Color(0xFFFF9800),
+        Color(0xFF9C27B0),
+        Color(0xFFF44336),
+        Color(0xFF00BCD4),
+        Color(0xFFFFEB3B),
+        Color(0xFF795548),
       ],
       gradientColors: [
-        const Color(0xFF1976D2),
-        const Color(0xFF42A5F5),
+        Color(0xFF1976D2),
+        Color(0xFF42A5F5),
       ],
     );
   }
 
   /// 创建深色主题
   factory ChartTheme.dark() {
-    return ChartTheme(
-      primaryColor: const Color(0xFF64B5F6),
-      backgroundColor: const Color(0xFF121212),
-      textColor: const Color(0xFFFFFFFF),
-      gridColor: const Color(0xFF424242),
-      legendStyle: const TextStyle(
+    return const ChartTheme(
+      primaryColor: Color(0xFF64B5F6),
+      backgroundColor: Color(0xFF121212),
+      textColor: Color(0xFFFFFFFF),
+      gridColor: Color(0xFF424242),
+      legendStyle: TextStyle(
         fontSize: 12,
         color: Color(0xFFB0B0B0),
         fontWeight: FontWeight.w500,
       ),
-      titleStyle: const TextStyle(
+      titleStyle: TextStyle(
         fontSize: 16,
         color: Color(0xFFFFFFFF),
         fontWeight: FontWeight.w600,
       ),
-      tooltipStyle: const TextStyle(
+      tooltipStyle: TextStyle(
         fontSize: 11,
         color: Color(0xFF212121),
         fontWeight: FontWeight.w500,
       ),
       secondaryColors: [
-        const Color(0xFF64B5F6),
-        const Color(0xFF81C784),
-        const Color(0xFFFFB74D),
-        const Color(0xFFBA68C8),
-        const Color(0xFFE57373),
-        const Color(0xFF4DD0E1),
-        const Color(0xFFFFF176),
-        const Color(0xFFA1887F),
+        Color(0xFF64B5F6),
+        Color(0xFF81C784),
+        Color(0xFFFFB74D),
+        Color(0xFFBA68C8),
+        Color(0xFFE57373),
+        Color(0xFF4DD0E1),
+        Color(0xFFFFF176),
+        Color(0xFFA1887F),
       ],
       gradientColors: [
-        const Color(0xFF64B5F6),
-        const Color(0xFF90CAF9),
+        Color(0xFF64B5F6),
+        Color(0xFF90CAF9),
       ],
     );
   }

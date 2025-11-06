@@ -5,7 +5,7 @@ import '../../core/di/injection_container.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/app_lifecycle_manager.dart';
 import '../auth/domain/entities/user.dart';
-import '../navigation/presentation/pages/navigation_shell.dart';
+import '../home/presentation/widgets/smart_navigation_wrapper.dart';
 import '../fund/presentation/fund_exploration/presentation/cubit/fund_exploration_cubit.dart';
 import '../portfolio/presentation/cubit/portfolio_analysis_cubit.dart';
 import '../portfolio/presentation/cubit/fund_favorite_cubit.dart';
@@ -63,12 +63,13 @@ class JisuFundAnalyzerApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         routes: {
           '/': (context) => AppLifecycleManager(
-                child: NavigationShell(
+                child: NavigationWrapperFactory.createWrapper(
                   user: mockUser,
                   onLogout: () {
                     // 模拟登出操作 - 这里可以什么都不做
                     debugPrint('登出功能已暂时禁用');
                   },
+                  enableEnhancedDebug: true, // 调试模式下启用增强功能
                 ),
               ),
         },

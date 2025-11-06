@@ -1,10 +1,8 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:decimal/decimal.dart';
-import '../models/fund_info.dart';
 import '../core/cache/unified_hive_cache_manager.dart';
 import 'high_performance_fund_service.dart';
-import 'fund_api_service.dart';
 
 /// 基金分析服务 - 业务逻辑层核心
 ///
@@ -43,10 +41,10 @@ class FundAnalysisService {
     int period = 5,
     bool useCache = true,
   }) async {
-    final cacheKey = '${_analysisCachePrefix}ma_${fundCode}_${period}';
+    final cacheKey = '${_analysisCachePrefix}ma_${fundCode}_$period';
 
     if (useCache) {
-      final cached = await _cacheManager.get<List<MovingAverageData>>(cacheKey);
+      final cached = _cacheManager.get<List<MovingAverageData>>(cacheKey);
       if (cached != null) {
         return cached;
       }
@@ -91,10 +89,10 @@ class FundAnalysisService {
     int period = 14,
     bool useCache = true,
   }) async {
-    final cacheKey = '${_analysisCachePrefix}rsi_${fundCode}_${period}';
+    final cacheKey = '${_analysisCachePrefix}rsi_${fundCode}_$period';
 
     if (useCache) {
-      final cached = await _cacheManager.get<List<RSIData>>(cacheKey);
+      final cached = _cacheManager.get<List<RSIData>>(cacheKey);
       if (cached != null) {
         return cached;
       }
@@ -177,8 +175,7 @@ class FundAnalysisService {
         '${_analysisCachePrefix}bb_${fundCode}_${period}_${stdDev.toStringAsFixed(1)}';
 
     if (useCache) {
-      final cached =
-          await _cacheManager.get<List<BollingerBandsData>>(cacheKey);
+      final cached = _cacheManager.get<List<BollingerBandsData>>(cacheKey);
       if (cached != null) {
         return cached;
       }
@@ -246,10 +243,10 @@ class FundAnalysisService {
     int period = 252, // 一年交易日
     bool useCache = true,
   }) async {
-    final cacheKey = '${_analysisCachePrefix}risk_${fundCode}_${period}';
+    final cacheKey = '${_analysisCachePrefix}risk_${fundCode}_$period';
 
     if (useCache) {
-      final cached = await _cacheManager.get<FundRiskMetrics>(cacheKey);
+      final cached = _cacheManager.get<FundRiskMetrics>(cacheKey);
       if (cached != null) {
         return cached;
       }
@@ -298,12 +295,12 @@ class FundAnalysisService {
       }
 
       // 计算夏普比率 (假设无风险利率为3%)
-      final riskFreeRate = 0.03;
+      const riskFreeRate = 0.03;
       final annualizedReturn = avgReturn * 252;
       final sharpeRatio = (annualizedReturn - riskFreeRate) / volatility;
 
       // 计算Beta系数 (假设市场基准年化收益为8%)
-      final marketReturn = 0.08;
+      const marketReturn = 0.08;
       final beta =
           (annualizedReturn - riskFreeRate) / (marketReturn - riskFreeRate);
 

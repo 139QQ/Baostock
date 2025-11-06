@@ -27,7 +27,7 @@ class LRUCacheStrategy implements ICacheStrategy {
     CacheConfig config,
   ) {
     // LRU策略主要基于访问时间，不过期时间由配置决定
-    return DateTime.now().add(config.ttl ?? Duration(hours: 24));
+    return DateTime.now().add(config.ttl ?? const Duration(hours: 24));
   }
 
   @override
@@ -84,7 +84,7 @@ class LFUCacheStrategy implements ICacheStrategy {
     dynamic data,
     CacheConfig config,
   ) {
-    return DateTime.now().add(config.ttl ?? Duration(hours: 12));
+    return DateTime.now().add(config.ttl ?? const Duration(hours: 12));
   }
 
   @override
@@ -142,7 +142,7 @@ class TTLCacheStrategy implements ICacheStrategy {
     dynamic data,
     CacheConfig config,
   ) {
-    final ttl = config.ttl ?? Duration(hours: 1);
+    final ttl = config.ttl ?? const Duration(hours: 1);
     return DateTime.now().add(ttl);
   }
 
@@ -206,7 +206,7 @@ class AdaptiveCacheStrategy implements ICacheStrategy {
   final List<_AccessRecord> _accessHistory = [];
 
   // 统计信息
-  _PatternStats _patternStats = _PatternStats();
+  _PatternStats _patternStats = const _PatternStats();
 
   @override
   DateTime calculateExpiry(
@@ -214,7 +214,7 @@ class AdaptiveCacheStrategy implements ICacheStrategy {
     dynamic data,
     CacheConfig config,
   ) {
-    final baseTtl = config.ttl ?? Duration(hours: 2);
+    final baseTtl = config.ttl ?? const Duration(hours: 2);
 
     // 根据访问模式动态调整TTL
     final patternMultiplier = _calculatePatternMultiplier(key);
@@ -407,7 +407,7 @@ class PriorityBasedCacheStrategy implements ICacheStrategy {
     CacheConfig config,
   ) {
     // 根据优先级调整TTL
-    final baseTtl = config.ttl ?? Duration(hours: 1);
+    final baseTtl = config.ttl ?? const Duration(hours: 1);
     final priorityMultiplier = _getPriorityMultiplier(config.priority);
 
     final adjustedTtl = Duration(
@@ -751,7 +751,7 @@ class StrategyPerformanceMonitor {
   Timer? _monitoringTimer;
 
   void start() {
-    _monitoringTimer = Timer.periodic(Duration(minutes: 5), (_) {
+    _monitoringTimer = Timer.periodic(const Duration(minutes: 5), (_) {
       _updatePerformanceMetrics();
     });
   }

@@ -34,7 +34,7 @@ class FundFavoriteService {
       // 等待初始化完成，最多等待10秒
       int waitCount = 0;
       while (_isInitializing && waitCount < 100) {
-        await Future.delayed(Duration(milliseconds: 100));
+        await Future.delayed(const Duration(milliseconds: 100));
         waitCount++;
       }
 
@@ -57,13 +57,13 @@ class FundFavoriteService {
       try {
         print('📁 尝试打开Hive存储盒');
         _favoritesBox = await Hive.openBox<FundFavorite>(_favoritesBoxName)
-            .timeout(Duration(seconds: 10));
+            .timeout(const Duration(seconds: 10));
         _listsBox = await Hive.openBox<FundFavoriteList>(_listsBoxName)
-            .timeout(Duration(seconds: 10));
+            .timeout(const Duration(seconds: 10));
         print('✅ Hive存储盒打开成功');
       } on TimeoutException {
         print('❌ Hive存储盒打开超时');
-        throw CacheException('Hive存储盒打开超时，请检查磁盘空间');
+        throw const CacheException('Hive存储盒打开超时，请检查磁盘空间');
       } catch (e) {
         // 如果打开失败，可能是缓存损坏，清除后重试
         print('⚠️ 缓存可能损坏，正在清除并重新初始化: $e');
@@ -80,13 +80,13 @@ class FundFavoriteService {
         print('🔄 重新打开存储盒');
         try {
           _favoritesBox = await Hive.openBox<FundFavorite>(_favoritesBoxName)
-              .timeout(Duration(seconds: 10));
+              .timeout(const Duration(seconds: 10));
           _listsBox = await Hive.openBox<FundFavoriteList>(_listsBoxName)
-              .timeout(Duration(seconds: 10));
+              .timeout(const Duration(seconds: 10));
           print('✅ 存储盒重新打开成功');
         } on TimeoutException {
           print('❌ 存储盒重新打开超时');
-          throw CacheException('存储盒重新打开超时');
+          throw const CacheException('存储盒重新打开超时');
         } catch (retryError) {
           print('❌ 存储盒重新打开失败: $retryError');
           throw CacheException('存储盒重新打开失败: $retryError');
@@ -133,7 +133,8 @@ class FundFavoriteService {
 
   /// 创建默认自选列表
   Future<void> _createDefaultListIfNeeded() async {
-    if (_listsBox == null) throw CacheException('Service not initialized');
+    if (_listsBox == null)
+      throw const CacheException('Service not initialized');
 
     if (!_listsBox!.containsKey(_defaultListId)) {
       final now = DateTime.now();
@@ -155,23 +156,23 @@ class FundFavoriteService {
   void _ensureInitialized() {
     if (!_isInitialized) {
       print('❌ FundFavoriteService 未初始化');
-      throw CacheException('FundFavoriteService not initialized');
+      throw const CacheException('FundFavoriteService not initialized');
     }
     if (_favoritesBox == null) {
       print('❌ _favoritesBox 为空');
-      throw CacheException('_favoritesBox is null');
+      throw const CacheException('_favoritesBox is null');
     }
     if (_listsBox == null) {
       print('❌ _listsBox 为空');
-      throw CacheException('_listsBox is null');
+      throw const CacheException('_listsBox is null');
     }
     if (!Hive.isBoxOpen(_favoritesBoxName)) {
       print('❌ $_favoritesBoxName 盒子未打开');
-      throw CacheException('$_favoritesBoxName box is not open');
+      throw const CacheException('$_favoritesBoxName box is not open');
     }
     if (!Hive.isBoxOpen(_listsBoxName)) {
       print('❌ $_listsBoxName 盒子未打开');
-      throw CacheException('$_listsBoxName box is not open');
+      throw const CacheException('$_listsBoxName box is not open');
     }
     print('✅ FundFavoriteService 初始化检查通过');
   }
@@ -211,7 +212,7 @@ class FundFavoriteService {
       // 检查是否已存在
       if (_favoritesBox!.containsKey(favorite.fundCode)) {
         print('⚠️ 基金 ${favorite.fundCode} 已存在于自选中');
-        throw CacheException('基金已在自选中');
+        throw const CacheException('基金已在自选中');
       }
 
       // 添加到存储
@@ -227,7 +228,7 @@ class FundFavoriteService {
       if (added != null) {
         print('✅ 验证成功：基金已添加到存储');
       } else {
-        throw CacheException('添加验证失败：基金未找到');
+        throw const CacheException('添加验证失败：基金未找到');
       }
     } catch (e) {
       print('❌ 添加自选基金失败: $e');
@@ -485,7 +486,7 @@ class FundFavoriteService {
     try {
       // 不能删除默认列表
       if (listId == _defaultListId) {
-        throw CacheException('Cannot delete default list');
+        throw const CacheException('Cannot delete default list');
       }
 
       await _listsBox!.delete(listId);
@@ -501,7 +502,7 @@ class FundFavoriteService {
     try {
       final defaultList = await getListById(_defaultListId);
       if (defaultList == null) {
-        throw CacheException('Default list not found');
+        throw const CacheException('Default list not found');
       }
       return defaultList;
     } catch (e) {

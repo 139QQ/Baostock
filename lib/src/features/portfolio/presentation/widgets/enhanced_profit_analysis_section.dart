@@ -85,8 +85,9 @@ class _EnhancedProfitAnalysisSectionState
           if (previous.hasError != current.hasError) return true;
           if (previous.error != current.error) return true;
           if (previous.isCalculating != current.isCalculating) return true;
-          if (previous.fundMetrics.length != current.fundMetrics.length)
+          if (previous.fundMetrics.length != current.fundMetrics.length) {
             return true;
+          }
 
           // 其他状态变化不需要重建整个UI
           return false;

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:io';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -65,10 +66,11 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
     await loadFundRankings();
   }
 
-  /// 加载基金排行数据
+  /// 加载基金排行数据 - 增强版本，包含重试机制
   Future<void> loadFundRankings({
     String symbol = '', // 基金排行API不需要参数
     bool forceRefresh = false,
+    int maxRetries = 3,
   }) async {
     // 检查Cubit是否已关闭
     if (_isClosed || isClosed) {
@@ -82,7 +84,7 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
     }
 
     AppLogger.debug(
-        '🔄 FundExplorationCubit: 开始加载基金排行数据 (forceRefresh: $forceRefresh)');
+        '🔄 FundExplorationCubit: 开始加载基金排行数据 (forceRefresh: $forceRefresh, maxRetries: $maxRetries)');
 
     _safeEmit(state.copyWith(
       status: FundExplorationStatus.loading,
@@ -90,62 +92,135 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
       errorMessage: null,
     ));
 
-    try {
-      final result = await _fundDataService.getFundRankings(
-        symbol: symbol,
-        forceRefresh: forceRefresh,
-        onProgress: (progress) {
-          // 安全地发射进度状态
-          _safeEmit(state.copyWith(loadProgress: progress));
-        },
-      );
+    // 增强的重试机制
+    int attemptCount = 0;
+    dynamic lastError;
 
-      // 检查Cubit是否在异步操作过程中被关闭
-      if (_isClosed || isClosed) {
-        AppLogger.debug('⚠️ FundExplorationCubit: Cubit在数据加载过程中被关闭，取消状态更新');
-        return;
+    while (attemptCount <= maxRetries) {
+      try {
+        AppLogger.debug('🔄 FundExplorationCubit: 第${attemptCount + 1}次尝试加载数据');
+
+        final result = await _fundDataService.getFundRankings(
+          symbol: symbol,
+          forceRefresh: forceRefresh,
+          onProgress: (progress) {
+            // 安全地发射进度状态
+            _safeEmit(state.copyWith(loadProgress: progress));
+          },
+        );
+
+        // 检查Cubit是否在异步操作过程中被关闭
+        if (_isClosed || isClosed) {
+          AppLogger.debug('⚠️ FundExplorationCubit: Cubit在数据加载过程中被关闭，取消状态更新');
+          return;
+        }
+
+        if (result.isSuccess) {
+          final rankings = result.data!;
+
+          // 验证数据有效性
+          if (rankings.isEmpty) {
+            final errorMsg = '获取的基金数据为空，请重试';
+            AppLogger.warn('⚠️ FundExplorationCubit: $errorMsg');
+            if (attemptCount < maxRetries) {
+              attemptCount++;
+              lastError = errorMsg;
+              await Future.delayed(Duration(seconds: 2 * attemptCount)); // 递增延迟
+              continue;
+            }
+            _safeEmit(state.copyWith(
+              status: FundExplorationStatus.error,
+              isLoading: false,
+              errorMessage: errorMsg,
+            ));
+            return;
+          }
+
+          // 构建搜索索引
+          try {
+            _searchService.buildIndex(rankings);
+          } catch (indexError) {
+            AppLogger.warn(
+                '⚠️ FundExplorationCubit: 构建搜索索引失败，但继续处理: $indexError');
+            // 索引构建失败不影响主要功能
+          }
+
+          // 暂时禁用模拟数据检测，显示所有数据
+          const isRealData = true; // _checkIfRealData(rankings);
+
+          AppLogger.debug(
+              '✅ FundExplorationCubit: 数据加载成功 (${rankings.length}条, isRealData: $isRealData, attempt: ${attemptCount + 1})');
+
+          _safeEmit(state.copyWith(
+            status: FundExplorationStatus.loaded,
+            isLoading: false,
+            fundRankings: rankings,
+            searchResults: rankings, // 初始搜索结果为全部数据
+            totalCount: rankings.length,
+            lastUpdateTime: DateTime.now(),
+            isRealData: isRealData,
+            loadProgress: 1.0,
+          ));
+          return; // 成功，退出重试循环
+        } else {
+          final errorMsg = result.errorMessage ?? '未知错误';
+          AppLogger.warn(
+              '⚠️ FundExplorationCubit: 数据加载失败 (attempt: ${attemptCount + 1}): $errorMsg');
+
+          if (attemptCount < maxRetries) {
+            attemptCount++;
+            lastError = errorMsg;
+            // 根据错误类型决定是否重试
+            if (_shouldRetryForError(errorMsg)) {
+              await Future.delayed(Duration(seconds: 2 * attemptCount)); // 递增延迟
+              continue;
+            } else {
+              // 不应重试的错误，直接失败
+              break;
+            }
+          } else {
+            // 达到最大重试次数
+            _safeEmit(state.copyWith(
+              status: FundExplorationStatus.error,
+              isLoading: false,
+              errorMessage: '加载失败: $errorMsg',
+            ));
+            return;
+          }
+        }
+      } catch (e) {
+        final errorMsg = '加载失败: $e';
+        AppLogger.error(
+            '❌ FundExplorationCubit: $errorMsg (attempt: ${attemptCount + 1})',
+            e);
+
+        if (attemptCount < maxRetries) {
+          attemptCount++;
+          lastError = e;
+          // 根据异常类型决定是否重试
+          if (_shouldRetryForException(e)) {
+            await Future.delayed(Duration(seconds: 2 * attemptCount)); // 递增延迟
+            continue;
+          } else {
+            // 不应重试的异常，直接失败
+            break;
+          }
+        } else {
+          // 达到最大重试次数
+          break;
+        }
       }
-
-      if (result.isSuccess) {
-        final rankings = result.data!;
-
-        // 构建搜索索引
-        _searchService.buildIndex(rankings);
-
-        // 暂时禁用模拟数据检测，显示所有数据
-        final isRealData = true; // _checkIfRealData(rankings);
-
-        AppLogger.debug(
-            '✅ FundExplorationCubit: 数据加载成功 (${rankings.length}条, isRealData: $isRealData)');
-
-        _safeEmit(state.copyWith(
-          status: FundExplorationStatus.loaded,
-          isLoading: false,
-          fundRankings: rankings,
-          searchResults: rankings, // 初始搜索结果为全部数据
-          totalCount: rankings.length,
-          lastUpdateTime: DateTime.now(),
-          isRealData: isRealData,
-          loadProgress: 1.0,
-        ));
-      } else {
-        _safeEmit(state.copyWith(
-          status: FundExplorationStatus.error,
-          isLoading: false,
-          errorMessage: result.errorMessage,
-        ));
-      }
-    } catch (e) {
-      final errorMsg = '加载失败: $e';
-      AppLogger.error('❌ FundExplorationCubit: $errorMsg', e);
-      AppLogger.debug('🔄 FundExplorationCubit: 发射错误状态');
-      _safeEmit(state.copyWith(
-        status: FundExplorationStatus.error,
-        isLoading: false,
-        errorMessage: errorMsg,
-      ));
-      AppLogger.debug('✅ FundExplorationCubit: 错误状态已发射');
     }
+
+    // 所有重试都失败了
+    final finalErrorMsg = '加载失败: $lastError';
+    AppLogger.debug('🔄 FundExplorationCubit: 发射错误状态');
+    _safeEmit(state.copyWith(
+      status: FundExplorationStatus.error,
+      isLoading: false,
+      errorMessage: finalErrorMsg,
+    ));
+    AppLogger.debug('✅ FundExplorationCubit: 错误状态已发射');
   }
 
   /// 搜索基金
@@ -840,6 +915,84 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
       AppLogger.debug('❌ FundExplorationCubit: $errorMsg');
       return null;
     }
+  }
+
+  /// 判断错误是否适合重试
+  bool _shouldRetryForError(String errorMsg) {
+    // 适合重试的错误类型
+    final retryableErrors = [
+      '网络连接失败',
+      '请求超时',
+      '服务器暂时繁忙',
+      '服务器响应异常',
+      '当前请求过多',
+      '缓存服务暂时不可用',
+      '数据验证失败',
+    ];
+
+    for (final retryableError in retryableErrors) {
+      if (errorMsg.contains(retryableError)) {
+        return true;
+      }
+    }
+
+    // 检查是否包含超时相关的关键词
+    final timeoutKeywords = ['timeout', '超时', 'timeoutexception'];
+    for (final keyword in timeoutKeywords) {
+      if (errorMsg.toLowerCase().contains(keyword)) {
+        return true;
+      }
+    }
+
+    // 检查是否包含网络相关的关键词
+    final networkKeywords = ['network', 'connection', 'socket', '网络', '连接'];
+    for (final keyword in networkKeywords) {
+      if (errorMsg.toLowerCase().contains(keyword)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /// 判断异常是否适合重试
+  bool _shouldRetryForException(dynamic e) {
+    // 这些异常类型通常可以通过重试解决
+    if (e is TimeoutException) return true;
+    if (e is SocketException) return true;
+
+    // HTTP异常中，某些状态码可以重试
+    if (e is HttpException) {
+      final message = e.message.toLowerCase();
+      // 500-599 服务器错误可以重试
+      if (message.contains('500') ||
+          message.contains('502') ||
+          message.contains('503') ||
+          message.contains('504')) {
+        return true;
+      }
+    }
+
+    // 检查异常消息中是否包含可重试的关键词
+    final exceptionMessage = e.toString().toLowerCase();
+    final retryableKeywords = [
+      'timeout',
+      'network',
+      'connection',
+      'socket',
+      '超时',
+      '网络',
+      '连接',
+      'timeoutexception'
+    ];
+
+    for (final keyword in retryableKeywords) {
+      if (exceptionMessage.contains(keyword)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   @override

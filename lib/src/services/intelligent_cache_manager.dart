@@ -38,7 +38,7 @@ class IntelligentCacheManager {
 
   // 多级缓存
   List<FundInfo> _memoryCache = [];
-  Map<String, List<int>> _memoryIndex = {};
+  final Map<String, List<int>> _memoryIndex = {};
   String _currentDataHash = '';
   DateTime _lastUpdateTime = DateTime.now();
   bool _isInitialized = false;
@@ -181,7 +181,7 @@ class IntelligentCacheManager {
     final searchResult = _searchEngine.search(query);
 
     _logger.d(
-        '🔍 搜索完成: "${query}" → ${searchResult.funds.length} 结果, 耗时: ${searchResult.searchTimeMs}ms');
+        '🔍 搜索完成: "$query" → ${searchResult.funds.length} 结果, 耗时: ${searchResult.searchTimeMs}ms');
 
     return limit != null
         ? searchResult.funds.take(limit).toList()
@@ -236,11 +236,7 @@ class IntelligentCacheManager {
 
   /// 执行增量同步
   Future<void> _performIncrementalSync(List<FundInfo> remoteFunds) async {
-    final currentFunds = Map<String, FundInfo>.fromIterable(
-      _memoryCache,
-      key: (fund) => fund.code,
-      value: (fund) => fund,
-    );
+    final currentFunds = {for (var fund in _memoryCache) fund.code: fund};
 
     // 检测变更
     final changes = _detectChanges(currentFunds, remoteFunds);
@@ -271,11 +267,7 @@ class IntelligentCacheManager {
   /// 检测数据变更
   DataChanges _detectChanges(
       Map<String, FundInfo> currentFunds, List<FundInfo> remoteFunds) {
-    final remoteMap = Map<String, FundInfo>.fromIterable(
-      remoteFunds,
-      key: (fund) => fund.code,
-      value: (fund) => fund,
-    );
+    final remoteMap = {for (var fund in remoteFunds) fund.code: fund};
 
     final added = <FundInfo>[];
     final updated = <FundInfo>[];

@@ -34,9 +34,9 @@ class _ProfitTrendChartState extends State<ProfitTrendChart>
     with TickerProviderStateMixin {
   TimePeriod _selectedPeriod = TimePeriod.oneYear;
   ChartType _selectedChartType = ChartType.cumulative;
-  List<FlSpot> _cumulativeData = [];
-  List<FlSpot> _dailyReturnData = [];
-  List<FlSpot> _benchmarkData = [];
+  final List<FlSpot> _cumulativeData = [];
+  final List<FlSpot> _dailyReturnData = [];
+  final List<FlSpot> _benchmarkData = [];
   bool _showBenchmark = true;
 
   @override
@@ -335,7 +335,7 @@ class _ProfitTrendChartState extends State<ProfitTrendChart>
                 );
                 return LineTooltipItem(
                   '${date.month}/${date.day}\n收益: ${(value * 100).toStringAsFixed(2)}%',
-                  TextStyle(
+                  const TextStyle(
                     color: Colors.white,
                     fontSize: 12,
                   ),
@@ -465,7 +465,7 @@ class _ProfitTrendChartState extends State<ProfitTrendChart>
               );
               return BarTooltipItem(
                 '${date.month}/${date.day}\n收益率: ${(value * 100).toStringAsFixed(2)}%',
-                TextStyle(
+                const TextStyle(
                   color: Colors.white,
                   fontSize: 12,
                 ),

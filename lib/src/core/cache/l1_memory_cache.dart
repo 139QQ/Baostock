@@ -318,7 +318,7 @@ class L1MemoryCache {
     final node = _LRUNode(key, item);
 
     // 添加到缓存 - 使用dynamic类型确保兼容性
-    _cache[key] = node as _LRUNode<dynamic>;
+    _cache[key] = node;
     _priorityQueue[key] = item as dynamic;
 
     // 添加到缓存

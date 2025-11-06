@@ -9,16 +9,12 @@ import '../widgets/fund_ranking_wrapper_unified.dart';
 import '../widgets/market_dynamics_section.dart';
 import '../widgets/fund_comparison_tool.dart';
 import '../widgets/investment_calculator.dart';
-import '../widgets/fund_card.dart';
 import '../widgets/user_onboarding_guide.dart';
 import '../widgets/user_feedback_collector.dart';
-import '../../domain/models/fund.dart' as exploration_fund;
 import '../../domain/models/fund_filter.dart';
 import '../cubit/fund_exploration_cubit.dart';
 import '../../../../../../bloc/fund_search_bloc.dart';
 import '../../../../../../core/di/injection_container.dart';
-import '../../../../shared/extensions/fund_ranking_extension.dart';
-import '../../../../shared/models/fund_ranking.dart';
 
 /// 极简基金探索页面
 ///
@@ -64,9 +60,9 @@ class _MinimalistFundExplorationPageContentState
   final FundFilter _currentFilter = FundFilter();
 
   bool _showFilterPanel = false;
-  bool _showToolsPanel = false;
-  bool _isGridView = true;
-  bool _comparisonMode = false;
+  final bool _showToolsPanel = false;
+  final bool _isGridView = true;
+  final bool _comparisonMode = false;
   final Set<String> _selectedFunds = {};
 
   @override
@@ -495,7 +491,7 @@ class _MinimalistFundExplorationPageContentState
                     child: SingleChildScrollView(
                       child: BlocProvider<FundExplorationCubit>.value(
                         value: fundExplorationCubit,
-                        child: FundComparisonTool(),
+                        child: const FundComparisonTool(),
                       ),
                     ),
                   ),
@@ -547,7 +543,7 @@ class _MinimalistFundExplorationPageContentState
                     ),
                   ),
                   SizedBox(height: isSmallScreen ? 12 : 16),
-                  Expanded(
+                  const Expanded(
                     child: SingleChildScrollView(
                       child: InvestmentCalculator(),
                     ),

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:math' as math;
 
@@ -69,6 +68,7 @@ class DataConsistencyManager implements IDataConsistencyManager {
         _config = config ?? ConsistencyManagerConfig.defaultConfig();
 
   /// 初始化一致性管理器
+  @override
   Future<void> initialize() async {
     if (_isInitialized) return;
 
@@ -104,7 +104,7 @@ class DataConsistencyManager implements IDataConsistencyManager {
     for (final source in _dataSources) {
       // 初始化每个数据源的版本历史
       _versionHistory[source.id] = [];
-      _syncStatus[source.id] = SyncStatus(
+      _syncStatus[source.id] = const SyncStatus(
         state: SyncState.stopped,
         pendingChangesCount: 0,
         progress: 0.0,
@@ -116,7 +116,7 @@ class DataConsistencyManager implements IDataConsistencyManager {
   Future<void> _loadConsistencyRules() async {
     // 默认一致性规则
     _consistencyRules = [
-      ConsistencyRule(
+      const ConsistencyRule(
         ruleId: 'timestamp_validation',
         name: '时间戳验证',
         description: '验证数据时间戳的一致性',
@@ -132,7 +132,7 @@ class DataConsistencyManager implements IDataConsistencyManager {
         priority: 1,
         isEnabled: true,
       ),
-      ConsistencyRule(
+      const ConsistencyRule(
         ruleId: 'value_consistency',
         name: '数值一致性',
         description: '确保关键数值字段的一致性',
@@ -156,7 +156,8 @@ class DataConsistencyManager implements IDataConsistencyManager {
   /// 初始化同步状态
   Future<void> _initializeSyncStatus() async {
     for (final source in _dataSources) {
-      _lastSyncTimes[source.id] = DateTime.now().subtract(Duration(hours: 1));
+      _lastSyncTimes[source.id] =
+          DateTime.now().subtract(const Duration(hours: 1));
     }
   }
 
@@ -630,7 +631,7 @@ class DataConsistencyManager implements IDataConsistencyManager {
 
       final versionId = _generateVersionId();
       final createdAt = DateTime.now();
-      final createdBy = 'DataConsistencyManager';
+      const createdBy = 'DataConsistencyManager';
 
       final changeLog = <VersionChangeLog>[];
 
@@ -647,7 +648,7 @@ class DataConsistencyManager implements IDataConsistencyManager {
           createdAt: createdAt,
           createdBy: createdBy,
           metadata: metadata ??
-              VersionMetadata(
+              const VersionMetadata(
                 tags: ['auto'],
                 description: '自动创建的版本',
                 versionType: VersionType.automatic,
@@ -668,7 +669,7 @@ class DataConsistencyManager implements IDataConsistencyManager {
 
       // 返回第一个创建的版本作为代表
       return _currentVersions[
-          dataItems.first.itemType + ':' + dataItems.first.itemId]!;
+          '${dataItems.first.itemType}:${dataItems.first.itemId}']!;
     } catch (e) {
       developer.log('❌ 创建数据版本失败: $e',
           name: 'DataConsistencyManager', level: 1000);
@@ -687,7 +688,7 @@ class DataConsistencyManager implements IDataConsistencyManager {
     _ensureInitialized();
 
     try {
-      final key = '${itemType}:${itemId}';
+      final key = '$itemType:$itemId';
       final history = _versionHistory[key] ?? [];
 
       // 时间过滤
@@ -734,7 +735,7 @@ class DataConsistencyManager implements IDataConsistencyManager {
       developer.log('🔄 回滚到版本: $itemType:$itemId -> $versionId',
           name: 'DataConsistencyManager');
 
-      final key = '${itemType}:${itemId}';
+      final key = '$itemType:$itemId';
       final history = _versionHistory[key] ?? [];
       final targetVersion = history.firstWhere((v) => v.versionId == versionId);
 
@@ -790,13 +791,13 @@ class DataConsistencyManager implements IDataConsistencyManager {
       developer.log('🔍 比较数据版本: $itemType:$itemId [$versionId1 vs $versionId2]',
           name: 'DataConsistencyManager');
 
-      final key = '${itemType}:${itemId}';
+      final key = '$itemType:$itemId';
       final history = _versionHistory[key] ?? [];
 
       final version1 = history.firstWhere((v) => v.versionId == versionId1);
       final version2 = history.firstWhere((v) => v.versionId == versionId2);
 
-      if (version1 == null || version2 == null) {
+      if (version2 == null) {
         throw ArgumentError('版本不存在');
       }
 
@@ -830,7 +831,7 @@ class DataConsistencyManager implements IDataConsistencyManager {
       developer.log('🔀 合并数据版本: $itemType:$itemId [${versionIds.length} 个版本]',
           name: 'DataConsistencyManager');
 
-      final key = '${itemType}:${itemId}';
+      final key = '$itemType:$itemId';
       final history = _versionHistory[key] ?? [];
 
       final versionsToMerge = versionIds
@@ -976,7 +977,7 @@ class DataConsistencyManager implements IDataConsistencyManager {
 
     if (dataSourceId != null) {
       return _syncStatus[dataSourceId] ??
-          SyncStatus(
+          const SyncStatus(
             state: SyncState.stopped,
             pendingChangesCount: 0,
             progress: 0.0,
@@ -1020,7 +1021,7 @@ class DataConsistencyManager implements IDataConsistencyManager {
       _syncStatus[dataSourceId] = _syncStatus[dataSourceId]?.copyWith(
             state: SyncState.paused,
           ) ??
-          SyncStatus(
+          const SyncStatus(
               state: SyncState.paused, pendingChangesCount: 0, progress: 0.0);
     } else {
       for (final sourceId in _syncStatus.keys) {
@@ -1045,7 +1046,7 @@ class DataConsistencyManager implements IDataConsistencyManager {
       _syncStatus[dataSourceId] = _syncStatus[dataSourceId]?.copyWith(
             state: SyncState.running,
           ) ??
-          SyncStatus(
+          const SyncStatus(
               state: SyncState.running, pendingChangesCount: 0, progress: 0.0);
     } else {
       for (final sourceId in _syncStatus.keys) {
@@ -1303,7 +1304,7 @@ class DataConsistencyManager implements IDataConsistencyManager {
       final cached = _metricsCache[cacheKey]!;
       final cachedTime = _metricsCacheTimestamps[cacheKey]!;
       final now = DateTime.now();
-      if (now.difference(cachedTime) < Duration(hours: 1)) {
+      if (now.difference(cachedTime) < const Duration(hours: 1)) {
         return cached;
       }
     }
@@ -1397,7 +1398,7 @@ class DataConsistencyManager implements IDataConsistencyManager {
       final reportId = _generateReportId();
       final now = DateTime.now();
       final timeRange = TimeRange(
-        startTime: startTime ?? now.subtract(Duration(days: 1)),
+        startTime: startTime ?? now.subtract(const Duration(days: 1)),
         endTime: endTime ?? now,
       );
 
@@ -1442,8 +1443,8 @@ class DataConsistencyManager implements IDataConsistencyManager {
 
       // 生成趋势点（按小时或天）
       final interval = period == TrendPeriod.last7Days
-          ? Duration(days: 1)
-          : Duration(days: 7);
+          ? const Duration(days: 1)
+          : const Duration(days: 7);
 
       var currentTime = startTime;
       while (currentTime.isBefore(now)) {
@@ -1521,7 +1522,7 @@ class DataConsistencyManager implements IDataConsistencyManager {
   }
 
   int _getNextVersionNumber(String itemType, String itemId) {
-    final key = '${itemType}:${itemId}';
+    final key = '$itemType:$itemId';
     final currentVersion = _currentVersions[key];
     return currentVersion != null ? currentVersion.versionNumber + 1 : 1;
   }
@@ -1539,7 +1540,7 @@ class DataConsistencyManager implements IDataConsistencyManager {
 
   DateTime _getLastSyncTime() {
     if (_lastSyncTimes.isEmpty) {
-      return DateTime.now().subtract(Duration(hours: 24));
+      return DateTime.now().subtract(const Duration(hours: 24));
     }
     return _lastSyncTimes.values.reduce((a, b) => a.isBefore(b) ? a : b);
   }
@@ -1595,7 +1596,7 @@ class DataConsistencyManager implements IDataConsistencyManager {
       final expiredKeys = _metricsCacheTimestamps.keys.where((key) {
         final cachedTime = _metricsCacheTimestamps[key]!;
         final now = DateTime.now();
-        return now.difference(cachedTime) > Duration(hours: 2);
+        return now.difference(cachedTime) > const Duration(hours: 2);
       }).toList();
 
       for (final key in expiredKeys) {
@@ -1729,7 +1730,7 @@ class DataConsistencyManager implements IDataConsistencyManager {
   Future<ImpactAnalysis> _analyzeResolutionImpact(
       DataConflict conflict, ConflictResolutionStrategy strategy) async {
     // 实现影响分析逻辑
-    return ImpactAnalysis(
+    return const ImpactAnalysis(
       affectedDataSources: 0,
       affectedUsers: 0,
       affectedModules: [],
@@ -1883,20 +1884,20 @@ class DataConsistencyManager implements IDataConsistencyManager {
   DateTime _getPeriodStartTime(DateTime now, MetricsPeriod period) {
     switch (period) {
       case MetricsPeriod.lastHour:
-        return now.subtract(Duration(hours: 1));
+        return now.subtract(const Duration(hours: 1));
       case MetricsPeriod.last24Hours:
-        return now.subtract(Duration(days: 1));
+        return now.subtract(const Duration(days: 1));
       case MetricsPeriod.last7Days:
-        return now.subtract(Duration(days: 7));
+        return now.subtract(const Duration(days: 7));
       case MetricsPeriod.last30Days:
-        return now.subtract(Duration(days: 30));
+        return now.subtract(const Duration(days: 30));
     }
   }
 
   Future<ConsistencySummary> _generateConsistencySummary(
       TimeRange timeRange) async {
     // 实现一致性摘要生成逻辑
-    return ConsistencySummary(
+    return const ConsistencySummary(
       overallStatus: OverallStatus.good,
       consistencyRate: 0.95,
       activeConflictsCount: 0,
@@ -1912,7 +1913,7 @@ class DataConsistencyManager implements IDataConsistencyManager {
   Future<ConflictAnalysis> _generateConflictAnalysis(
       TimeRange timeRange) async {
     // 实现冲突分析生成逻辑
-    return ConflictAnalysis(
+    return const ConflictAnalysis(
       conflictTypeDistribution: {},
       conflictSeverityDistribution: {},
       frequentConflictItems: [],
@@ -1927,7 +1928,7 @@ class DataConsistencyManager implements IDataConsistencyManager {
 
   Future<TrendAnalysis> _generateTrendAnalysis(TimeRange timeRange) async {
     // 实现趋势分析生成逻辑
-    return TrendAnalysis(
+    return const TrendAnalysis(
       consistencyRateTrend: [],
       conflictCountTrend: [],
       syncPerformanceTrend: [],
@@ -1948,11 +1949,11 @@ class DataConsistencyManager implements IDataConsistencyManager {
   DateTime _getTrendPeriodStartTime(DateTime now, TrendPeriod period) {
     switch (period) {
       case TrendPeriod.last7Days:
-        return now.subtract(Duration(days: 7));
+        return now.subtract(const Duration(days: 7));
       case TrendPeriod.last30Days:
-        return now.subtract(Duration(days: 30));
+        return now.subtract(const Duration(days: 30));
       case TrendPeriod.last90Days:
-        return now.subtract(Duration(days: 90));
+        return now.subtract(const Duration(days: 90));
     }
   }
 
@@ -1961,6 +1962,7 @@ class DataConsistencyManager implements IDataConsistencyManager {
   }
 
   /// 释放资源
+  @override
   Future<void> dispose() async {
     try {
       developer.log('🔒 开始释放数据一致性管理器资源...', name: 'DataConsistencyManager');
@@ -2016,7 +2018,8 @@ class ConsistencyManagerConfig {
   factory ConsistencyManagerConfig.defaultConfig() =>
       const ConsistencyManagerConfig();
 
-  factory ConsistencyManagerConfig.development() => ConsistencyManagerConfig(
+  factory ConsistencyManagerConfig.development() =>
+      const ConsistencyManagerConfig(
         consistencyCheckInterval: Duration(minutes: 5),
         metricsUpdateInterval: Duration(minutes: 2),
         syncInterval: Duration(minutes: 10),
@@ -2025,7 +2028,8 @@ class ConsistencyManagerConfig {
         maxActiveConflicts: 500,
       );
 
-  factory ConsistencyManagerConfig.production() => ConsistencyManagerConfig(
+  factory ConsistencyManagerConfig.production() =>
+      const ConsistencyManagerConfig(
         consistencyCheckInterval: Duration(minutes: 10),
         metricsUpdateInterval: Duration(minutes: 1),
         syncInterval: Duration(minutes: 15),

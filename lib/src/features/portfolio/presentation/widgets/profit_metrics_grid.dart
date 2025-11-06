@@ -41,7 +41,7 @@ class ProfitMetricsGrid extends StatelessWidget {
         ),
 
         const SliverToBoxAdapter(
-          child: const SizedBox(height: 24),
+          child: SizedBox(height: 24),
         ),
 
         // 风险调整收益指标
@@ -50,7 +50,7 @@ class ProfitMetricsGrid extends StatelessWidget {
         ),
 
         const SliverToBoxAdapter(
-          child: const SizedBox(height: 24),
+          child: SizedBox(height: 24),
         ),
 
         // 基准比较指标
@@ -60,7 +60,7 @@ class ProfitMetricsGrid extends StatelessWidget {
 
         // 添加底部间距，确保内容不会被遮挡
         const SliverToBoxAdapter(
-          child: const SizedBox(height: 50),
+          child: SizedBox(height: 50),
         ),
       ],
     );

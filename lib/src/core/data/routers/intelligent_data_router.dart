@@ -46,6 +46,7 @@ class IntelligentDataRouter implements IDataRouter {
         _config = config ?? DataRouterConfig.defaultConfig();
 
   /// 初始化数据路由器
+  @override
   Future<void> initialize() async {
     if (_isInitialized) return;
 
@@ -345,8 +346,9 @@ class IntelligentDataRouter implements IDataRouter {
 
     if (startTime != null || endTime != null) {
       return history.where((point) {
-        if (startTime != null && point.timestamp.isBefore(startTime))
+        if (startTime != null && point.timestamp.isBefore(startTime)) {
           return false;
+        }
         if (endTime != null && point.timestamp.isAfter(endTime)) return false;
         return true;
       }).toList();
@@ -527,7 +529,7 @@ class IntelligentDataRouter implements IDataRouter {
 
       // 1. 验证替代数据源
       if (strategy.alternativeSources.isEmpty) {
-        issues.add(ValidationIssue(
+        issues.add(const ValidationIssue(
           type: IssueType.configuration,
           description: '故障转移策略没有配置替代数据源',
           severity: IssueSeverity.critical,
@@ -560,7 +562,7 @@ class IntelligentDataRouter implements IDataRouter {
       // 4. 验证超时配置
       if (strategy.timeout.inMilliseconds >
           _config.maxFailoverTimeout.inMilliseconds) {
-        issues.add(ValidationIssue(
+        issues.add(const ValidationIssue(
           type: IssueType.performance,
           description: '故障转移超时时间过长',
           severity: IssueSeverity.warning,
@@ -1157,7 +1159,7 @@ class IntelligentDataRouter implements IDataRouter {
 
     try {
       // 模拟质量评估过程
-      await Future.delayed(Duration(milliseconds: 50)); // 模拟评估耗时
+      await Future.delayed(const Duration(milliseconds: 50)); // 模拟评估耗时
 
       final performanceScore = _evaluatePerformance(dataSource);
       final reliabilityScore = _evaluateReliability(dataSource);
@@ -1538,7 +1540,7 @@ class IntelligentDataRouter implements IDataRouter {
     for (final preselected in preselectedSources) {
       try {
         // 模拟预热过程
-        await Future.delayed(Duration(milliseconds: 100));
+        await Future.delayed(const Duration(milliseconds: 100));
 
         // 更新预热状态
         final warmedSource = PreselectedSource(
@@ -1587,7 +1589,7 @@ class IntelligentDataRouter implements IDataRouter {
     }
 
     if (count == 0) {
-      return PerformanceMetrics(
+      return const PerformanceMetrics(
         averageResponseTime: 0.0,
         throughput: 0.0,
         errorRate: 0.0,
@@ -1733,7 +1735,7 @@ class IntelligentDataRouter implements IDataRouter {
     final currentMetrics = _calculateCurrentMetrics();
 
     if (currentMetrics.averageResponseTime > 200.0) {
-      recommendations.add(RouteRecommendation(
+      recommendations.add(const RouteRecommendation(
         type: RecommendationType.performance,
         title: '响应时间优化',
         description: '当前平均响应时间过高，建议优化数据源选择或增加缓存',
@@ -1747,7 +1749,7 @@ class IntelligentDataRouter implements IDataRouter {
     }
 
     if (currentMetrics.errorRate > 0.1) {
-      recommendations.add(RouteRecommendation(
+      recommendations.add(const RouteRecommendation(
         type: RecommendationType.performance,
         title: '错误率降低',
         description: '当前错误率较高，建议检查数据源健康状态或调整故障转移策略',
@@ -1777,7 +1779,7 @@ class IntelligentDataRouter implements IDataRouter {
     }
 
     if (healthySourceCount < 2) {
-      recommendations.add(RouteRecommendation(
+      recommendations.add(const RouteRecommendation(
         type: RecommendationType.reliability,
         title: '增加冗余数据源',
         description: '当前健康数据源较少，建议增加备用数据源以提高可靠性',
@@ -1807,7 +1809,7 @@ class IntelligentDataRouter implements IDataRouter {
     }
 
     if (avgCostEfficiency < 0.7) {
-      recommendations.add(RouteRecommendation(
+      recommendations.add(const RouteRecommendation(
         type: RecommendationType.cost,
         title: '优化成本效率',
         description: '当前成本效率较低，建议增加本地缓存使用或优化数据源选择策略',
@@ -1829,7 +1831,7 @@ class IntelligentDataRouter implements IDataRouter {
 
     // 检查是否启用预测性路由
     if (!_config.enablePredictiveRouting) {
-      recommendations.add(RouteRecommendation(
+      recommendations.add(const RouteRecommendation(
         type: RecommendationType.feature,
         title: '启用预测性路由',
         description: '启用机器学习算法来预测最佳数据源选择，提高整体性能',
@@ -1906,8 +1908,8 @@ class IntelligentDataRouter implements IDataRouter {
 
     // 近期数据权重更高
     final recentHistory = history
-        .where((point) =>
-            point.timestamp.isAfter(DateTime.now().subtract(Duration(days: 7))))
+        .where((point) => point.timestamp
+            .isAfter(DateTime.now().subtract(const Duration(days: 7))))
         .toList();
     final recencyFactor = math.min(1.0, recentHistory.length / 50.0);
 
@@ -1926,17 +1928,18 @@ class IntelligentDataRouter implements IDataRouter {
   DateTime _getPeriodStartTime(DateTime now, StatisticsPeriod period) {
     switch (period) {
       case StatisticsPeriod.lastHour:
-        return now.subtract(Duration(hours: 1));
+        return now.subtract(const Duration(hours: 1));
       case StatisticsPeriod.last24Hours:
-        return now.subtract(Duration(days: 1));
+        return now.subtract(const Duration(days: 1));
       case StatisticsPeriod.last7Days:
-        return now.subtract(Duration(days: 7));
+        return now.subtract(const Duration(days: 7));
       case StatisticsPeriod.last30Days:
-        return now.subtract(Duration(days: 30));
+        return now.subtract(const Duration(days: 30));
     }
   }
 
   /// 释放资源
+  @override
   Future<void> dispose() async {
     try {
       developer.log('🔒 开始释放智能数据路由器资源...', name: 'IntelligentDataRouter');
@@ -2001,7 +2004,7 @@ class DataRouterConfig {
 
   factory DataRouterConfig.defaultConfig() => const DataRouterConfig();
 
-  factory DataRouterConfig.development() => DataRouterConfig(
+  factory DataRouterConfig.development() => const DataRouterConfig(
         healthCheckInterval: Duration(minutes: 2),
         metricsCleanupInterval: Duration(minutes: 30),
         learningUpdateInterval: Duration(minutes: 10),
@@ -2016,7 +2019,7 @@ class DataRouterConfig {
         enablePredictiveRouting: true,
       );
 
-  factory DataRouterConfig.production() => DataRouterConfig(
+  factory DataRouterConfig.production() => const DataRouterConfig(
         healthCheckInterval: Duration(minutes: 1),
         metricsCleanupInterval: Duration(hours: 2),
         learningUpdateInterval: Duration(minutes: 15),

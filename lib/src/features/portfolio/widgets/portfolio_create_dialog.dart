@@ -303,7 +303,7 @@ class _PortfolioCreateDialogState extends State<PortfolioCreateDialog> {
             SizedBox(
               width: 100,
               child: TextFormField(
-                initialValue: '${(holding.weight * 100).toStringAsFixed(1)}',
+                initialValue: (holding.weight * 100).toStringAsFixed(1),
                 decoration: const InputDecoration(
                   labelText: '权重',
                   suffixText: '%',

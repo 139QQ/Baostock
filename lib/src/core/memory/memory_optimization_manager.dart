@@ -408,7 +408,7 @@ class MemoryOptimizationManager {
       // 在Debug模式下使用开发者工具
       if (!kReleaseMode) {
         // 尝试触发垃圾回收
-        await Future.delayed(Duration(milliseconds: 100));
+        await Future.delayed(const Duration(milliseconds: 100));
       }
 
       _logger.d('🗑️ 强制垃圾回收执行完成');

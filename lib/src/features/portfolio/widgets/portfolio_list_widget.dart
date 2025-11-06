@@ -64,7 +64,7 @@ class PortfolioListWidget extends StatelessWidget {
           ElevatedButton.icon(
             onPressed: () {
               // 切换到创建组合标签页
-              DefaultTabController.of(context)?.animateTo(1);
+              DefaultTabController.of(context).animateTo(1);
             },
             icon: const Icon(Icons.add),
             label: const Text('创建投资组合'),

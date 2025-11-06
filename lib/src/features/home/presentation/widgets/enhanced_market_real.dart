@@ -192,10 +192,10 @@ class _EnhancedMarketRealState extends State<EnhancedMarketReal> {
                     width: 1,
                   ),
                 ),
-                child: Row(
+                child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const SizedBox(
+                    SizedBox(
                       width: 12,
                       height: 12,
                       child: CircularProgressIndicator(
@@ -204,8 +204,8 @@ class _EnhancedMarketRealState extends State<EnhancedMarketReal> {
                             AlwaysStoppedAnimation<Color>(Color(0xFF3B82F6)),
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    const Text(
+                    SizedBox(width: 8),
+                    Text(
                       '自动刷新已开启 (30秒)',
                       style: TextStyle(
                         fontSize: 12,

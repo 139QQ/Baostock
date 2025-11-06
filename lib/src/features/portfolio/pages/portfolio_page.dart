@@ -20,7 +20,7 @@ class PortfolioPage extends StatelessWidget {
         fundService: HighPerformanceFundService(),
       )
         ..add(LoadPortfolios())
-        ..add(LoadRecommendedFunds()),
+        ..add(const LoadRecommendedFunds()),
       child: const PortfolioView(),
     );
   }
@@ -264,7 +264,7 @@ class _PortfolioViewState extends State<PortfolioView>
                           onPressed: () {
                             context
                                 .read<PortfolioBloc>()
-                                .add(LoadRecommendedFunds());
+                                .add(const LoadRecommendedFunds());
                           },
                           child: const Text('点击加载'),
                         ),
@@ -314,7 +314,7 @@ class _PortfolioViewState extends State<PortfolioView>
                       onPressed: () {
                         context
                             .read<PortfolioBloc>()
-                            .add(LoadRecommendedFunds());
+                            .add(const LoadRecommendedFunds());
                       },
                       child: const Text('手动加载'),
                     ),
@@ -429,7 +429,7 @@ class _PortfolioViewState extends State<PortfolioView>
 
   void _addFundToPortfolio(BuildContext context, FundRecommendation fund) {
     // 切换到我的组合标签页并提示用户
-    DefaultTabController.of(context)?.animateTo(0);
+    DefaultTabController.of(context).animateTo(0);
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -437,7 +437,7 @@ class _PortfolioViewState extends State<PortfolioView>
         action: SnackBarAction(
           label: '创建组合',
           onPressed: () {
-            DefaultTabController.of(context)?.animateTo(1);
+            DefaultTabController.of(context).animateTo(1);
           },
         ),
       ),

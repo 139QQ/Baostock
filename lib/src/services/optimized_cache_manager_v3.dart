@@ -233,8 +233,8 @@ class OptimizedCacheManagerV3 {
       }
 
       return dataList
-          .where((item) => item is Map<String, dynamic>)
-          .map((item) => item as Map<String, dynamic>)
+          .whereType<Map<String, dynamic>>()
+          .map((item) => item)
           .where((fundData) =>
               fundData['基金代码'] != null &&
               fundData['基金简称'] != null &&

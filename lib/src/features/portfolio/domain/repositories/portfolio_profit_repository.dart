@@ -327,51 +327,40 @@ abstract class Failure {
 
 /// 网络错误
 class NetworkFailure extends Failure {
-  const NetworkFailure(String message, {String? code, dynamic originalError})
-      : super(message, code: code, originalError: originalError);
+  const NetworkFailure(super.message, {super.code, super.originalError});
 }
 
 /// 数据解析错误
 class DataParsingFailure extends Failure {
-  const DataParsingFailure(String message,
-      {String? code, dynamic originalError})
-      : super(message, code: code, originalError: originalError);
+  const DataParsingFailure(super.message, {super.code, super.originalError});
 }
 
 /// 缓存错误
 class CacheFailure extends Failure {
-  const CacheFailure(String message, {String? code, dynamic originalError})
-      : super(message, code: code, originalError: originalError);
+  const CacheFailure(super.message, {super.code, super.originalError});
 }
 
 /// 计算错误
 class CalculationFailure extends Failure {
-  const CalculationFailure(String message,
-      {String? code, dynamic originalError})
-      : super(message, code: code, originalError: originalError);
+  const CalculationFailure(super.message, {super.code, super.originalError});
 }
 
 /// 验证错误
 class ValidationFailure extends Failure {
-  const ValidationFailure(String message, {String? code, dynamic originalError})
-      : super(message, code: code, originalError: originalError);
+  const ValidationFailure(super.message, {super.code, super.originalError});
 }
 
 /// 数据质量错误
 class DataQualityFailure extends Failure {
-  const DataQualityFailure(String message,
-      {String? code, dynamic originalError})
-      : super(message, code: code, originalError: originalError);
+  const DataQualityFailure(super.message, {super.code, super.originalError});
 }
 
 /// 权限错误
 class PermissionFailure extends Failure {
-  const PermissionFailure(String message, {String? code, dynamic originalError})
-      : super(message, code: code, originalError: originalError);
+  const PermissionFailure(super.message, {super.code, super.originalError});
 }
 
 /// 未知错误
 class UnknownFailure extends Failure {
-  const UnknownFailure(String message, {String? code, dynamic originalError})
-      : super(message, code: code, originalError: originalError);
+  const UnknownFailure(super.message, {super.code, super.originalError});
 }

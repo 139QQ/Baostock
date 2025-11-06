@@ -582,7 +582,7 @@ class PerformanceRelativeBenchmark extends Equatable {
 
   /// 创建一个空的PerformanceRelativeBenchmark实例
   static PerformanceRelativeBenchmark empty() {
-    return PerformanceRelativeBenchmark(
+    return const PerformanceRelativeBenchmark(
       outperformDays: 0,
       underperformDays: 0,
       neutralDays: 0,

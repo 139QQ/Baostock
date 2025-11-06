@@ -16,6 +16,33 @@ enum CacheStrategy {
   hybrid,
 }
 
+/// 简化的缓存性能指标（避免循环依赖）
+class SimpleCacheMetrics {
+  final double hitRate;
+  final double averageResponseTime;
+  final double requestsPerSecond;
+  final int cacheSize;
+  final int memoryUsage;
+  final double errorRate;
+  final int totalRequests;
+  final int totalHits;
+  final int totalMisses;
+  final int totalErrors;
+
+  const SimpleCacheMetrics({
+    required this.hitRate,
+    required this.averageResponseTime,
+    required this.requestsPerSecond,
+    required this.cacheSize,
+    required this.memoryUsage,
+    required this.errorRate,
+    required this.totalRequests,
+    required this.totalHits,
+    required this.totalMisses,
+    required this.totalErrors,
+  });
+}
+
 /// 统一Hive缓存管理器
 ///
 /// 这是项目唯一的缓存管理器实现，整合了：
@@ -46,6 +73,9 @@ class UnifiedHiveCacheManager {
 
   // L1 内存缓存层
   late L1MemoryCache _l1Cache;
+
+  // 性能监控器（移除循环依赖）
+  // CachePerformanceMonitor? _performanceMonitor;
 
   // 状态管理
   bool _isInitialized = false;
@@ -388,8 +418,14 @@ class UnifiedHiveCacheManager {
     }
   }
 
-  /// 获取数据
+  /// 获取数据（简化版，避免循环依赖）
   T? get<T>(String key, {bool updateStats = true}) {
+    // 简化实现，直接执行操作，避免循环依赖
+    return _performGet<T>(key, updateStats: updateStats);
+  }
+
+  /// 执行实际的获取操作
+  T? _performGet<T>(String key, {bool updateStats = true}) {
     if (!_isInitialized) {
       AppLogger.debug('🔍 缓存未初始化: $key');
       return null;
@@ -899,6 +935,62 @@ class UnifiedHiveCacheManager {
       AppLogger.error('❌ 关闭缓存管理器失败', e);
     }
   }
+
+  /// 获取缓存层
+  String? _getCacheLayer(String key) {
+    if (!_isInitialized) return null;
+
+    // 检查L1缓存
+    if (_strategy != CacheStrategy.diskFirst) {
+      final value = _l1Cache.get(key);
+      if (value != null) return 'L1';
+    }
+
+    // 检查L2缓存
+    if (_strategy != CacheStrategy.memoryFirst && _cacheBox != null) {
+      final data = _cacheBox!.get(key);
+      if (data != null) return 'L2';
+    }
+
+    return null;
+  }
+
+  /// 获取性能指标（移除循环依赖）
+  SimpleCacheMetrics getPerformanceMetrics() {
+    // 返回基础性能指标，避免循环依赖
+    return const SimpleCacheMetrics(
+      hitRate: 0.0,
+      averageResponseTime: 0.0,
+      requestsPerSecond: 0.0,
+      cacheSize: 0,
+      memoryUsage: 0,
+      errorRate: 0.0,
+      totalRequests: 0,
+      totalHits: 0,
+      totalMisses: 0,
+      totalErrors: 0,
+    );
+  }
+
+  /// 生成性能报告（移除循环依赖）
+  Map<String, dynamic> generatePerformanceReport() {
+    // 返回基础性能报告，避免循环依赖
+    final now = DateTime.now();
+    return {
+      'report_time': now.toIso8601String(),
+      'status': 'simplified_mode',
+      'message': '性能监控简化模式（循环依赖已移除）',
+      'cache_size': size,
+      'is_initialized': _isInitialized,
+      'strategy': _strategy.toString(),
+      'is_in_memory_mode': _isInMemoryMode,
+    };
+  }
+
+  /// 异步操作辅助函数
+  void unawaited(Future<void> future) {
+    // 故意不等待Future完成
+  }
 }
 
 /// 缓存项数据结构
@@ -998,9 +1090,4 @@ class _PerformanceStats {
           : '0%',
     };
   }
-}
-
-/// 异步操作辅助函数
-void unawaited(Future<void> future) {
-  // 故意不等待Future完成
 }

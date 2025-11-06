@@ -7,6 +7,7 @@ import '../cubit/fund_comparison_cubit.dart';
 import '../../../../core/di/injection_container.dart';
 import '../widgets/comparison_selector.dart';
 import '../widgets/comparison_table.dart';
+import '../widgets/comparison_carousel.dart';
 import '../widgets/comparison_statistics.dart' as stats;
 import '../../../../core/utils/logger.dart';
 
@@ -38,6 +39,9 @@ class _FundComparisonPageState extends State<FundComparisonPage>
   late FundComparisonCubit _comparisonCubit;
   MultiDimensionalComparisonCriteria? _currentCriteria;
   bool _isSelectorExpanded = true;
+  bool _useCarouselView = true; // 新增：控制使用轮播视图还是表格视图
+  final Set<String> _favoriteFunds = {}; // 收藏的基金
+  final Set<String> _comparisonFunds = {}; // 对比中的基金
 
   @override
   void initState() {
@@ -242,19 +246,25 @@ class _FundComparisonPageState extends State<FundComparisonPage>
           return _buildNoDataState();
         }
 
-        return TabBarView(
-          controller: _tabController,
-          children: [
-            // 对比表格视图
-            _buildTableView(state.result!),
+        if (_useCarouselView) {
+          // 轮播视图
+          return _buildCarouselView(state.result!);
+        } else {
+          // 原有的表格视图
+          return TabBarView(
+            controller: _tabController,
+            children: [
+              // 对比表格视图
+              _buildTableView(state.result!),
 
-            // 统计分析视图
-            _buildStatisticsView(state.result!),
+              // 统计分析视图
+              _buildStatisticsView(state.result!),
 
-            // 详细分析视图
-            _buildDetailView(state.result!),
-          ],
-        );
+              // 详细分析视图
+              _buildDetailView(state.result!),
+            ],
+          );
+        }
       },
     );
   }
@@ -614,6 +624,17 @@ class _FundComparisonPageState extends State<FundComparisonPage>
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+        // 视图切换按钮
+        if (!_useCarouselView) // 只在表格视图显示切换按钮
+          FloatingActionButton(
+            heroTag: "toggle_view",
+            onPressed: _toggleView,
+            backgroundColor: Colors.white,
+            foregroundColor: Theme.of(context).primaryColor,
+            child: const Icon(Icons.view_carousel),
+          ),
+        if (!_useCarouselView) const SizedBox(height: 8),
+
         // 刷新按钮
         FloatingActionButton(
           heroTag: "refresh",
@@ -748,5 +769,72 @@ class _FundComparisonPageState extends State<FundComparisonPage>
       default:
         return value.toString();
     }
+  }
+
+  Widget _buildCarouselView(ComparisonResult result) {
+    return ComparisonCarousel(
+      comparisonResult: result,
+      onFundTap: _onFundTap,
+      onFundDetail: _onFundDetail,
+      onFavorite: _onFavorite,
+      onCompare: _onCompare,
+      favoriteFunds: _favoriteFunds,
+      comparisonFunds: _comparisonFunds,
+    );
+  }
+
+  void _toggleView() {
+    setState(() {
+      _useCarouselView = !_useCarouselView;
+    });
+    AppLogger.info(
+        _tag, 'View toggled to: ${_useCarouselView ? "Carousel" : "Table"}');
+  }
+
+  void _onFavorite(String fundCode, bool isFavorite) {
+    setState(() {
+      if (isFavorite) {
+        _favoriteFunds.add(fundCode);
+      } else {
+        _favoriteFunds.remove(fundCode);
+      }
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(isFavorite ? '已添加到收藏' : '已取消收藏'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+
+    AppLogger.info(_tag, 'Fund $fundCode favorite status: $isFavorite');
+  }
+
+  void _onCompare(String fundCode) {
+    setState(() {
+      if (_comparisonFunds.contains(fundCode)) {
+        _comparisonFunds.remove(fundCode);
+      } else {
+        if (_comparisonFunds.length < 5) {
+          _comparisonFunds.add(fundCode);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('最多同时对比5只基金')),
+          );
+          return;
+        }
+      }
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content:
+            Text(_comparisonFunds.contains(fundCode) ? '已添加到对比' : '已从对比中移除'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+
+    AppLogger.info(_tag,
+        'Fund $fundCode comparison status: ${_comparisonFunds.contains(fundCode)}');
   }
 }

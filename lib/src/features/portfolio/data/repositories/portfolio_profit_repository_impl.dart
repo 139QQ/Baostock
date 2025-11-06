@@ -352,7 +352,7 @@ class PortfolioProfitRepositoryImpl implements PortfolioProfitRepository {
       AppLogger.debug('计算组合汇总收益: ${holdings.length} 只基金');
 
       if (holdings.isEmpty) {
-        return Left(const ValidationFailure('持仓列表不能为空'));
+        return const Left(ValidationFailure('持仓列表不能为空'));
       }
 
       // 计算各个基金的收益指标

@@ -9,7 +9,6 @@ library cache_management;
 import 'dart:async';
 import 'dart:collection';
 import 'dart:math' as math;
-import 'package:meta/meta.dart';
 
 import '../interfaces/i_unified_cache_service.dart';
 
@@ -33,7 +32,7 @@ class MemoryManager {
   /// 启动内存监控
   void start(Function(double) onMemoryPressure) {
     _memoryPressureCallback = onMemoryPressure;
-    _monitoringTimer = Timer.periodic(Duration(seconds: 30), (_) {
+    _monitoringTimer = Timer.periodic(const Duration(seconds: 30), (_) {
       _checkMemoryPressure();
     });
   }
@@ -346,7 +345,7 @@ enum CacheOperationType {
 /// 负责调度定期的缓存维护任务
 class CacheMaintenanceScheduler {
   Timer? _timer;
-  Duration _interval = Duration(minutes: 5);
+  Duration _interval = const Duration(minutes: 5);
   Function()? _maintenanceCallback;
 
   /// 启动维护调度器

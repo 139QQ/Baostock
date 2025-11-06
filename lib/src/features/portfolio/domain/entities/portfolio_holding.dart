@@ -216,7 +216,7 @@ class PortfolioHolding extends Equatable {
         'fundCode: $fundCode, '
         'fundName: $fundName, '
         'holdingAmount: $holdingAmount, '
-        'currentReturn: ${returnDescription}, '
+        'currentReturn: $returnDescription, '
         'status: $status'
         '}';
   }

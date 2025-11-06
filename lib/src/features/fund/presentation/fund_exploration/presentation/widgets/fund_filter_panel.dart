@@ -521,8 +521,8 @@ class _FundFilterPanelState extends State<FundFilterPanel> {
           builder: (context, child) {
             return Theme(
               data: Theme.of(context).copyWith(
-                colorScheme: ColorScheme.light(
-                  primary: const Color(0xFF1E40AF),
+                colorScheme: const ColorScheme.light(
+                  primary: Color(0xFF1E40AF),
                 ),
               ),
               child: child!,

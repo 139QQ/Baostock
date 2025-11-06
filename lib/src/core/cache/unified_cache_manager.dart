@@ -9,11 +9,7 @@
 library unified_cache_manager;
 
 import 'dart:async';
-import 'dart:collection';
 import 'dart:convert';
-import 'dart:io';
-import 'dart:math' as math;
-import 'package:meta/meta.dart';
 
 import 'interfaces/i_unified_cache_service.dart';
 import 'strategies/cache_strategies.dart';
@@ -50,6 +46,7 @@ class UnifiedCacheManager implements IUnifiedCacheService {
   bool _isMonitoringEnabled = true;
 
   /// 获取初始化状态
+  @override
   bool get isInitialized => _isInitialized;
   final Map<String, CacheEntry> _memoryCache = {};
   final Map<String, Timer> _expiryTimers = {};
@@ -77,6 +74,7 @@ class UnifiedCacheManager implements IUnifiedCacheService {
   // ============================================================================
 
   /// 初始化缓存管理器
+  @override
   Future<void> initialize() async {
     await _initialize();
   }
@@ -536,7 +534,7 @@ class UnifiedCacheManager implements IUnifiedCacheService {
       if (_storage is HiveCacheStorage) {
         final storageCleared =
             await (_storage as HiveCacheStorage).clearExpired();
-        clearedCount += storageCleared as int;
+        clearedCount += storageCleared;
       }
 
       _performanceTracker.recordEvent('expired_cleaned', data: clearedCount);
@@ -768,7 +766,7 @@ class UnifiedCacheManager implements IUnifiedCacheService {
       return jsonEncode(data);
     } else {
       // 对于复杂对象，使用 toJson() 方法（如果存在）
-      if (data is dynamic && data.toJson is Function) {
+      if (data.toJson is Function) {
         return jsonEncode(data.toJson());
       }
       return data.toString();
@@ -1074,7 +1072,7 @@ class UnifiedCacheConfig {
       );
 
   /// 开发环境配置
-  factory UnifiedCacheConfig.development() => UnifiedCacheConfig(
+  factory UnifiedCacheConfig.development() => const UnifiedCacheConfig(
         maxMemoryBytes: 50 * 1024 * 1024, // 50MB
         maintenanceInterval: Duration(minutes: 1),
         maxConcurrentOperations: 10,
@@ -1083,7 +1081,7 @@ class UnifiedCacheConfig {
       );
 
   /// 生产环境配置
-  factory UnifiedCacheConfig.production() => UnifiedCacheConfig(
+  factory UnifiedCacheConfig.production() => const UnifiedCacheConfig(
         maxMemoryBytes: 200 * 1024 * 1024, // 200MB
         maintenanceInterval: Duration(minutes: 10),
         maxConcurrentOperations: 200,
@@ -1092,7 +1090,7 @@ class UnifiedCacheConfig {
       );
 
   /// 测试环境配置
-  factory UnifiedCacheConfig.testing() => UnifiedCacheConfig(
+  factory UnifiedCacheConfig.testing() => const UnifiedCacheConfig(
         maxMemoryBytes: 10 * 1024 * 1024, // 10MB
         maintenanceInterval: Duration(minutes: 2),
         maxConcurrentOperations: 5,

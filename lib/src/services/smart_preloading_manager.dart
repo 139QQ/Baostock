@@ -318,7 +318,7 @@ class SmartPreloadingManager {
     int days = 30,
     int offset = 0,
   }) async {
-    final cacheKey = 'nav_history_incremental_${fundCode}_${offset}';
+    final cacheKey = 'nav_history_incremental_${fundCode}_$offset';
 
     // 检查缓存
     final cached = _getFromMemoryCache(cacheKey);
@@ -345,7 +345,7 @@ class SmartPreloadingManager {
   /// 内存管理：LRU缓存淘汰
   void _manageMemoryUsage() {
     final totalMemory = _estimateMemoryUsage();
-    final maxMemory = 200 * 1024 * 1024; // 200MB
+    const maxMemory = 200 * 1024 * 1024; // 200MB
 
     if (totalMemory > maxMemory) {
       _logger.d('🧹 内存使用超限，执行LRU淘汰...');
@@ -518,7 +518,7 @@ class SmartPreloadingManager {
     return List.generate(
         50,
         (index) => FundInfo(
-              code: '${(index + 1).toString().padLeft(6, '0')}',
+              code: (index + 1).toString().padLeft(6, '0'),
               name: '热门基金${index + 1}',
               type: '股票型',
               pinyinAbbr: 'rmjj${index + 1}',
@@ -532,7 +532,7 @@ class SmartPreloadingManager {
     return List.generate(
         5,
         (index) => FundInfo(
-              code: '${(1000 + index).toString().padLeft(6, '0')}',
+              code: (1000 + index).toString().padLeft(6, '0'),
               name: '同经理基金${index + 1}',
               type: '混合型',
               pinyinAbbr: 'tjljj${index + 1}',
@@ -546,7 +546,7 @@ class SmartPreloadingManager {
     return List.generate(
         10,
         (index) => FundInfo(
-              code: '${(2000 + index).toString().padLeft(6, '0')}',
+              code: (2000 + index).toString().padLeft(6, '0'),
               name: '同类型基金${index + 1}',
               type: '股票型',
               pinyinAbbr: 'tlxjj${index + 1}',
@@ -587,7 +587,7 @@ class SmartPreloadingManager {
     return List.generate(
         3,
         (index) => FundInfo(
-              code: '${(3000 + index).toString().padLeft(6, '0')}',
+              code: (3000 + index).toString().padLeft(6, '0'),
               name: '持仓基金${index + 1}',
               type: '债券型',
               pinyinAbbr: 'ccjj${index + 1}',
@@ -601,7 +601,7 @@ class SmartPreloadingManager {
     return List.generate(
         20,
         (index) => FundInfo(
-              code: '${(4000 + index).toString().padLeft(6, '0')}',
+              code: (4000 + index).toString().padLeft(6, '0'),
               name: '7日热门基金${index + 1}',
               type: '指数型',
               pinyinAbbr: 'rqrmtop${index + 1}',

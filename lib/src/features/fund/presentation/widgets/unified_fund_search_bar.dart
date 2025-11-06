@@ -536,7 +536,7 @@ class _UnifiedFundSearchBarState extends State<UnifiedFundSearchBar> {
   Widget _buildSuggestionsList() {
     return Container(
       margin: const EdgeInsets.only(top: 4),
-      constraints: BoxConstraints(
+      constraints: const BoxConstraints(
         maxHeight: 200, // 限制最大高度避免溢出
       ),
       decoration: BoxDecoration(

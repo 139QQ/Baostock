@@ -177,7 +177,7 @@ class SearchPerformanceOptimizer {
 
     // 生成模拟基金数据
     _testData = List.generate(10000, (index) {
-      final code = '${(index + 1).toString().padLeft(6, '0')}';
+      final code = (index + 1).toString().padLeft(6, '0');
       return FundInfo(
         code: code,
         name: '测试基金${index + 1}',
@@ -461,9 +461,9 @@ class SearchPerformanceOptimizer {
     int score = 0;
 
     // 搜索时间评分 (40%)
-    if (avgSearchTime <= 10)
+    if (avgSearchTime <= 10) {
       score += 40;
-    else if (avgSearchTime <= 30)
+    } else if (avgSearchTime <= 30)
       score += 30;
     else if (avgSearchTime <= 50)
       score += 20;
@@ -471,9 +471,9 @@ class SearchPerformanceOptimizer {
       score += 10;
 
     // 内存使用评分 (30%)
-    if (avgMemoryUsage <= 20)
+    if (avgMemoryUsage <= 20) {
       score += 30;
-    else if (avgMemoryUsage <= 50)
+    } else if (avgMemoryUsage <= 50)
       score += 20;
     else if (avgMemoryUsage <= 100)
       score += 10;
@@ -481,9 +481,9 @@ class SearchPerformanceOptimizer {
       score += 5;
 
     // 缓存命中率评分 (30%)
-    if (avgCacheHitRate >= 0.95)
+    if (avgCacheHitRate >= 0.95) {
       score += 30;
-    else if (avgCacheHitRate >= 0.90)
+    } else if (avgCacheHitRate >= 0.90)
       score += 25;
     else if (avgCacheHitRate >= 0.80)
       score += 20;

@@ -7,13 +7,14 @@
 library cache_storage;
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../interfaces/i_unified_cache_service.dart';
+
+part 'cache_storage.g.dart';
 
 // ============================================================================
 // 缓存环境枚举
@@ -117,7 +118,7 @@ class HiveCacheStorage implements ICacheStorage {
     try {
       int deletedCount = 0;
       for (final key in keys) {
-        if (await _box.containsKey(key)) {
+        if (_box.containsKey(key)) {
           await _box.delete(key);
           deletedCount++;
         }
@@ -703,43 +704,6 @@ class BoxCacheEntry {
       metadata: metadata,
       expiresAt: expiresAt,
     );
-  }
-}
-
-/// Hive 适配器
-class BoxCacheEntryAdapter extends TypeAdapter<BoxCacheEntry> {
-  @override
-  final typeId = 0;
-
-  @override
-  BoxCacheEntry read(BinaryReader reader) {
-    final numOfFields = reader.readByte();
-    final fields = <int, dynamic>{
-      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
-    };
-
-    return BoxCacheEntry(
-      key: fields[0] as String,
-      data: fields[1],
-      configJson: fields[2] as Map<String, dynamic>,
-      metadataJson: fields[3] as Map<String, dynamic>,
-      expiresAtMillis: fields[4] as int?,
-    );
-  }
-
-  @override
-  void write(BinaryWriter writer, BoxCacheEntry obj) {
-    writer.writeByte(5);
-    writer.writeByte(0);
-    writer.write(obj.key);
-    writer.writeByte(1);
-    writer.write(obj.data);
-    writer.writeByte(2);
-    writer.write(obj.configJson);
-    writer.writeByte(3);
-    writer.write(obj.metadataJson);
-    writer.writeByte(4);
-    writer.write(obj.expiresAtMillis);
   }
 }
 

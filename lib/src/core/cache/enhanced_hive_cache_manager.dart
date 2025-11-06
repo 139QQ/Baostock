@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../utils/logger.dart';
 
@@ -165,7 +164,7 @@ class EnhancedHiveCacheManager {
   }
 
   /// 动态导入path_provider
-  Future<dynamic?> _tryImportPathProvider() async {
+  Future<dynamic> _tryImportPathProvider() async {
     try {
       // 尝试导入path_provider
       // 注意：这里使用动态导入来避免测试环境中的依赖问题

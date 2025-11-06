@@ -135,7 +135,7 @@ class PortfolioProfitApiService {
         // 如果新API没有数据，返回空Map而不是错误
         AppLogger.warn(
             'No accumulated NAV data from FundNavApiService, returning empty map');
-        return Right(<DateTime, double>{});
+        return const Right(<DateTime, double>{});
       } catch (e) {
         AppLogger.error(
             'FundNavApiService failed to get accumulated NAV data', e);
@@ -236,35 +236,35 @@ class PortfolioProfitApiService {
 
       // 返回常见的基准指数
       final indices = [
-        BenchmarkIndex(
+        const BenchmarkIndex(
           code: '000300',
           name: '沪深300指数',
           description: '沪深300指数是由上海和深圳证券市场中市值大、流动性好的300只股票组成',
           type: BenchmarkType.stock,
           exchange: 'CFFEX',
         ),
-        BenchmarkIndex(
+        const BenchmarkIndex(
           code: '000905',
           name: '中证500指数',
           description: '中证500指数综合反映沪深证券市场内小市值公司的整体状况',
           type: BenchmarkType.stock,
           exchange: 'CFFEX',
         ),
-        BenchmarkIndex(
+        const BenchmarkIndex(
           code: '399006',
           name: '创业板指',
           description: '创业板指由创业板市场中市值大、流动性好的100只股票组成',
           type: BenchmarkType.stock,
           exchange: 'SZSE',
         ),
-        BenchmarkIndex(
+        const BenchmarkIndex(
           code: 'H30055',
           name: '中证全债指数',
           description: '中证全债指数是综合反映银行间和交易所市场国债、金融债、企业债、可转债价格变动趋势的债券指数',
           type: BenchmarkType.bond,
           exchange: 'CFFEX',
         ),
-        BenchmarkIndex(
+        const BenchmarkIndex(
           code: 'CBA00101',
           name: '中证货币基金指数',
           description: '中证货币基金指数反映货币市场基金的整体走势',

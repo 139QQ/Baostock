@@ -491,7 +491,7 @@ class _RealFundChartExampleState extends State<RealFundChartExample> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => FundComparisonExample(
+        builder: (context) => const FundComparisonExample(
           fundCodes: ['000001', '110022', '161725'],
         ),
       ),

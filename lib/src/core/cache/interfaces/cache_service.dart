@@ -44,7 +44,7 @@ abstract class CacheService {
   ///
   /// [keys] 缓存键列表
   /// 返回键值对Map，不存在的键对应的值为null
-  Future<Map<String, dynamic?>> getAll(List<String> keys);
+  Future<Map<String, dynamic>> getAll(List<String> keys);
 
   /// 批量设置缓存值
   ///

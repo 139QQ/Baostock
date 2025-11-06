@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:jisu_fund_analyzer/src/features/portfolio/domain/entities/portfolio_holding.dart';
 import 'package:jisu_fund_analyzer/src/features/portfolio/presentation/cubit/portfolio_analysis_cubit.dart';
 import 'package:jisu_fund_analyzer/src/features/portfolio/presentation/cubit/portfolio_analysis_state.dart';
-import 'package:jisu_fund_analyzer/src/core/di/injection_container.dart';
 
 /// 持仓管理组件
 ///

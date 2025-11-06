@@ -221,7 +221,7 @@ class DataValidationService {
 
       if (fund.updateDate == null) {
         warnings.add('基金[${fund.fundCode}] 更新日期为空');
-      } else if (fund.updateDate!
+      } else if (fund.updateDate
           .isBefore(DateTime.now().subtract(const Duration(days: 7)))) {
         warnings.add('基金[${fund.fundCode}] 数据可能过期 (${fund.updateDate})');
       }

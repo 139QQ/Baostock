@@ -188,7 +188,7 @@ class CacheConfigManager {
   /// 测试环境调整
   CacheConfig _adjustForTesting(CacheConfig config) {
     return config.copyWith(
-      ttl: Duration(seconds: 30), // 测试环境使用短TTL
+      ttl: const Duration(seconds: 30), // 测试环境使用短TTL
       maxSize: 1024 * 1024, // 限制最大1MB
       persistent: false, // 测试环境不持久化
     );
@@ -241,21 +241,21 @@ class CacheConfigManager {
   /// 初始化预定义配置
   void _initializePredefinedConfigs() {
     // 搜索相关配置
-    _predefinedConfigs['search_results'] = CacheConfig(
+    _predefinedConfigs['search_results'] = const CacheConfig(
       ttl: Duration(minutes: 15),
       priority: 6,
       compressible: true,
       tags: {'search', 'results'},
     );
 
-    _predefinedConfigs['search_suggestions'] = CacheConfig(
+    _predefinedConfigs['search_suggestions'] = const CacheConfig(
       ttl: Duration(minutes: 30),
       priority: 5,
       compressible: true,
       tags: {'search', 'suggestions'},
     );
 
-    _predefinedConfigs['search_history'] = CacheConfig(
+    _predefinedConfigs['search_history'] = const CacheConfig(
       ttl: Duration(days: 30), // 搜索历史保留30天
       priority: 3,
       compressible: true,
@@ -263,14 +263,14 @@ class CacheConfigManager {
     );
 
     // 筛选相关配置
-    _predefinedConfigs['filter_criteria'] = CacheConfig(
+    _predefinedConfigs['filter_criteria'] = const CacheConfig(
       ttl: Duration(hours: 2),
       priority: 7,
       compressible: true,
       tags: {'filter', 'criteria'},
     );
 
-    _predefinedConfigs['filter_options'] = CacheConfig(
+    _predefinedConfigs['filter_options'] = const CacheConfig(
       ttl: Duration(hours: 24),
       priority: 4,
       compressible: true,
@@ -278,7 +278,7 @@ class CacheConfigManager {
     );
 
     // 用户数据配置
-    _predefinedConfigs['user_data'] = CacheConfig(
+    _predefinedConfigs['user_data'] = const CacheConfig(
       ttl: Duration(days: 7),
       priority: 8,
       compressible: true,
@@ -286,14 +286,14 @@ class CacheConfigManager {
     );
 
     // 基金数据配置
-    _predefinedConfigs['fund_details'] = CacheConfig(
+    _predefinedConfigs['fund_details'] = const CacheConfig(
       ttl: Duration(hours: 1),
       priority: 7,
       compressible: true,
       tags: {'fund', 'details'},
     );
 
-    _predefinedConfigs['fund_list'] = CacheConfig(
+    _predefinedConfigs['fund_list'] = const CacheConfig(
       ttl: Duration(minutes: 30),
       priority: 6,
       compressible: true,
@@ -302,7 +302,7 @@ class CacheConfigManager {
     );
 
     // 临时数据配置
-    _predefinedConfigs['temporary'] = CacheConfig(
+    _predefinedConfigs['temporary'] = const CacheConfig(
       ttl: Duration(minutes: 5),
       priority: 2,
       compressible: true,
@@ -311,7 +311,7 @@ class CacheConfigManager {
     );
 
     // 系统配置
-    _predefinedConfigs['system_config'] = CacheConfig(
+    _predefinedConfigs['system_config'] = const CacheConfig(
       ttl: Duration(hours: 24),
       priority: 9,
       compressible: true,

@@ -88,7 +88,7 @@ class ResponsiveUtils {
     final screenType = getScreenType(width);
     return paddings[screenType] ??
         paddings[ScreenType.mobile] ??
-        EdgeInsets.all(16);
+        const EdgeInsets.all(16);
   }
 
   /// 获取响应式组件高度

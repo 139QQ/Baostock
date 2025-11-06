@@ -278,7 +278,7 @@ class PortfolioProfitCalculationCriteria extends Equatable {
     final buffer = StringBuffer();
     buffer.writeln('计算标准摘要:');
     buffer.writeln('- 基金数量: ${fundCodes.length}');
-    buffer.writeln('- 计算期间: ${calculationDays}天');
+    buffer.writeln('- 计算期间: $calculationDays天');
     buffer.writeln('- 计算频率: $frequencyDescription');
     buffer.writeln('- 收益类型: $returnTypeDescription');
     buffer.writeln('- 分红再投资: ${includeDividendReinvestment ? '包含' : '不包含'}');
@@ -325,7 +325,7 @@ class PortfolioProfitCalculationCriteria extends Equatable {
     final now = DateTime.now();
     return PortfolioProfitCalculationCriteria(
       calculationId: 'basic_${now.millisecondsSinceEpoch}',
-      fundCodes: [],
+      fundCodes: const [],
       startDate: now.subtract(const Duration(days: 365)),
       endDate: now,
       frequency: CalculationFrequency.daily,

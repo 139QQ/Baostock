@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../fund_exploration/presentation/cubit/fund_exploration_cubit.dart';
-import '../widgets/simple_fund_search_bar.dart';
 import '../widgets/fund_search_bar_adapter.dart';
 import '../widgets/simple_search_results.dart';
 import '../widgets/simple_filter_panel.dart';

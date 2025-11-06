@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:async/async.dart';
 
 void main() async {
   const baseUrl = 'http://154.44.25.92:8080';
@@ -26,9 +25,9 @@ void main() async {
     final stopwatch = Stopwatch()..start();
 
     final streamedResponse =
-        await request.send().timeout(Duration(seconds: 30));
+        await request.send().timeout(const Duration(seconds: 30));
     final response = await http.Response.fromStream(streamedResponse)
-        .timeout(Duration(seconds: 30));
+        .timeout(const Duration(seconds: 30));
 
     stopwatch.stop();
 
@@ -49,7 +48,7 @@ void main() async {
           // 检查必需字段
           final requiredFields = ['基金代码', '基金简称', '单位净值'];
           final missingFields = requiredFields
-              .where((field) => !(firstItem as Map).containsKey(field));
+              .where((field) => !(firstItem).containsKey(field));
 
           if (missingFields.isEmpty) {
             print('✅ 必需字段验证通过');

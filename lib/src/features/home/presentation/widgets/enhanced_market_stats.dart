@@ -240,7 +240,7 @@ class _EnhancedMarketStatsState extends State<EnhancedMarketStats>
                   end: Alignment.centerRight,
                 ),
                 borderRadius: BorderRadius.horizontal(
-                  left: const Radius.circular(8),
+                  left: Radius.circular(8),
                 ),
               ),
               child: Center(
@@ -267,7 +267,7 @@ class _EnhancedMarketStatsState extends State<EnhancedMarketStats>
                   end: Alignment.centerRight,
                 ),
                 borderRadius: BorderRadius.horizontal(
-                  right: const Radius.circular(8),
+                  right: Radius.circular(8),
                 ),
               ),
               child: Center(

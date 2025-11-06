@@ -21,35 +21,35 @@ class _UserOnboardingGuideState extends State<UserOnboardingGuide>
   late Animation<double> _fadeAnimation;
 
   final List<GuideStep> _guideSteps = [
-    GuideStep(
+    const GuideStep(
       title: '欢迎使用极简界面',
       description: '我们重新设计了基金探索页面，采用更简洁的单栏布局，让您更专注于基金发现。',
       icon: Icons.auto_awesome,
       highlightArea: Rect.zero, // 全屏引导
     ),
-    GuideStep(
+    const GuideStep(
       title: '智能搜索框',
       description: '顶部搜索框支持基金代码、名称搜索，快速找到您感兴趣的基金。',
       icon: Icons.search,
-      highlightArea: const Rect.fromLTWH(32, 100, 600, 50),
+      highlightArea: Rect.fromLTWH(32, 100, 600, 50),
     ),
-    GuideStep(
+    const GuideStep(
       title: '快速筛选',
       description: '使用筛选标签快速找到热门基金、高收益产品等。',
       icon: Icons.filter_list,
-      highlightArea: const Rect.fromLTWH(32, 180, 400, 40),
+      highlightArea: Rect.fromLTWH(32, 180, 400, 40),
     ),
-    GuideStep(
+    const GuideStep(
       title: '悬浮工具栏',
       description: '底部悬浮工具栏提供筛选、对比、计算等核心功能，随时可用。',
       icon: Icons.apps,
-      highlightArea: const Rect.fromLTWH(32, 600, 800, 64),
+      highlightArea: Rect.fromLTWH(32, 600, 800, 64),
     ),
-    GuideStep(
+    const GuideStep(
       title: '布局切换',
       description: '点击右上角按钮可在极简布局和传统布局之间自由切换。',
       icon: Icons.swap_horiz,
-      highlightArea: const Rect.fromLTWH(650, 20, 80, 40),
+      highlightArea: Rect.fromLTWH(650, 20, 80, 40),
     ),
   ];
 

@@ -420,7 +420,7 @@ class UnifiedPerformanceMonitor {
   /// 获取性能摘要
   PerformanceSummary getPerformanceSummary() {
     final now = DateTime.now();
-    final recentPeriod = const Duration(minutes: 5);
+    const recentPeriod = Duration(minutes: 5);
 
     final recentMetrics = <String, List<PerformanceDataPoint>>{};
 

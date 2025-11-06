@@ -15,7 +15,6 @@
 library i_unified_cache_service;
 
 import 'dart:async';
-import 'package:meta/meta.dart';
 
 // ============================================================================
 // 核心接口定义
@@ -365,7 +364,7 @@ class CacheConfig {
       priority: json['priority'] ?? 5,
       compressible: json['compressible'] ?? true,
       persistent: json['persistent'] ?? true,
-      tags: (json['tags'] as List<dynamic>?)?.cast<String>()?.toSet() ?? {},
+      tags: (json['tags'] as List<dynamic>?)?.cast<String>().toSet() ?? {},
       strategyName: json['strategyName'],
       extensions: Map<String, dynamic>.from(json['extensions'] ?? {}),
     );
@@ -496,7 +495,7 @@ class CacheMetadata {
       size: json['size'],
       compressed: json['compressed'] ?? false,
       originalSize: json['originalSize'],
-      tags: (json['tags'] as List<dynamic>?)?.cast<String>()?.toSet() ?? {},
+      tags: (json['tags'] as List<dynamic>?)?.cast<String>().toSet() ?? {},
       extensions: Map<String, dynamic>.from(json['extensions'] ?? {}),
     );
   }
@@ -733,7 +732,7 @@ class CacheAccessStats {
         .toList();
 
     if (recentAccessesFiltered.isEmpty) {
-      return AccessStats(
+      return const AccessStats(
         totalAccesses: 0,
         hits: 0,
         misses: 0,
@@ -873,22 +872,18 @@ abstract class CacheException implements Exception {
 
 /// 缓存键异常
 class CacheKeyException extends CacheException {
-  const CacheKeyException(String message, {String? key})
-      : super(message, key: key);
+  const CacheKeyException(super.message, {super.key});
 }
 
 /// 缓存序列化异常
 class CacheSerializationException extends CacheException {
-  const CacheSerializationException(String message,
-      {String? key, dynamic originalError})
-      : super(message, key: key, originalError: originalError);
+  const CacheSerializationException(super.message,
+      {super.key, super.originalError});
 }
 
 /// 缓存存储异常
 class CacheStorageException extends CacheException {
-  const CacheStorageException(String message,
-      {String? key, dynamic originalError})
-      : super(message, key: key, originalError: originalError);
+  const CacheStorageException(super.message, {super.key, super.originalError});
 }
 
 /// 缓存容量异常
@@ -897,11 +892,11 @@ class CacheCapacityException extends CacheException {
   final int availableSize;
 
   const CacheCapacityException(
-    String message, {
-    String? key,
+    super.message, {
+    super.key,
     required this.requiredSize,
     required this.availableSize,
-  }) : super(message, key: key);
+  });
 
   @override
   String toString() =>
@@ -910,6 +905,6 @@ class CacheCapacityException extends CacheException {
 
 /// 缓存策略异常
 class CacheStrategyException extends CacheException {
-  const CacheStrategyException(String message, {String? strategyName})
-      : super(message, key: strategyName);
+  const CacheStrategyException(super.message, {String? strategyName})
+      : super(key: strategyName);
 }

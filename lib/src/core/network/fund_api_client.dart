@@ -306,7 +306,7 @@ class FundApiClient {
     try {
       // 基金搜索功能需要先获取所有基金列表，然后在客户端进行过滤
       // 因为API文档中没有提供专门的搜索接口
-      final endpoint = '/api/public/fund_name_em';
+      const endpoint = '/api/public/fund_name_em';
       return await get(endpoint);
     } catch (e) {
       AppLogger.error('搜索基金失败', e);

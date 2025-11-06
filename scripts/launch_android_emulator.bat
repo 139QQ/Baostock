@@ -1,0 +1,16 @@
+@echo off
+echo 🚀 启动Android模拟器并运行应用...
+
+echo 📱 启动Pixel 7模拟器...
+flutter emulators --launch Pixel_7_API_30
+
+echo ⏳ 等待模拟器启动完成...
+timeout /t 45 /nobreak >nul
+
+echo 🔍 检查设备状态...
+flutter devices
+
+echo 🚀 启动Flutter应用...
+flutter run
+
+pause

@@ -2,7 +2,6 @@ import 'dart:async';
 import '../../../features/fund/domain/entities/fund.dart';
 import '../../../features/fund/domain/entities/fund_search_criteria.dart';
 import '../../../features/fund/domain/entities/fund_ranking.dart';
-import '../../../features/fund/domain/entities/fund_filter_criteria.dart';
 import '../../cache/interfaces/i_unified_cache_service.dart';
 
 /// 统一数据源接口

@@ -133,9 +133,9 @@ class _RefreshDebugPageState extends State<RefreshDebugPage> {
                       children: [
                         const Icon(Icons.info, color: Colors.blue),
                         const SizedBox(width: 8),
-                        Text(
+                        const Text(
                           'Cubit状态',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../auth/domain/entities/user.dart';
+import '../../../../core/navigation/navigation_manager.dart';
+// 为依赖注入容器创建别名
+import '../../../../core/di/injection_container.dart' as di;
 
 /// 全局导航栏组件
 ///
@@ -13,6 +16,8 @@ import '../../../auth/domain/entities/user.dart';
 /// - 布局切换功能
 class GlobalNavigationBar extends StatelessWidget
     implements PreferredSizeWidget {
+  final GlobalKey _globalKey = GlobalKey();
+
   /// 当前登录用户
   final User user;
 
@@ -28,13 +33,21 @@ class GlobalNavigationBar extends StatelessWidget
   /// 当前是否为极简布局
   final bool isMinimalistLayout;
 
-  const GlobalNavigationBar({
+  /// 导航回调函数，用于点击导航项时切换页面
+  final Function(int)? onNavigate;
+
+  /// 当前选中的页面索引
+  final int selectedIndex;
+
+  GlobalNavigationBar({
     super.key,
     required this.user,
     required this.onLogout,
     this.showLayoutToggle = false,
     this.onToggleLayout,
     this.isMinimalistLayout = false,
+    this.onNavigate,
+    this.selectedIndex = 0,
   });
 
   @override
@@ -45,6 +58,7 @@ class GlobalNavigationBar extends StatelessWidget
     final theme = Theme.of(context);
 
     return Container(
+      key: _globalKey,
       height: preferredSize.height,
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
@@ -62,32 +76,41 @@ class GlobalNavigationBar extends StatelessWidget
           ),
         ),
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Row(
-          children: [
-            // 品牌Logo
-            _buildBrandLogo(),
-            const SizedBox(width: 32),
-
-            // 主导航菜单
-            _buildMainNavigation(),
-
-            const Spacer(),
-
-            // 搜索框
-            _buildSearchBox(),
-            const SizedBox(width: 16),
-
-            // 布局切换按钮（可选）
-            if (showLayoutToggle) ...[
-              _buildLayoutToggle(),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Row(
+            children: [
+              // 品牌Logo - 缩小为最小必要宽度
+              _buildBrandLogo(),
               const SizedBox(width: 16),
-            ],
 
-            // 用户信息
-            _buildUserInfo(context),
-          ],
+              // 主导航菜单
+              _buildMainNavigation(context),
+
+              const SizedBox(width: 16),
+
+              // 搜索框 - 使用ConstrainedBox限制最大宽度
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 200),
+                child: _buildSearchBox(context),
+              ),
+              const SizedBox(width: 12),
+
+              // 布局切换按钮（可选）
+              if (showLayoutToggle) ...[
+                _buildLayoutToggle(context),
+                const SizedBox(width: 12),
+              ],
+
+              // 用户信息 - 使用ConstrainedBox限制最大宽度
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 150),
+                child: _buildUserInfo(context),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -126,30 +149,48 @@ class GlobalNavigationBar extends StatelessWidget
     );
   }
 
-  Widget _buildMainNavigation() {
+  Widget _buildMainNavigation(BuildContext context) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        _buildNavItem('基金筛选', const IconData(0xe3a9)),
-        const SizedBox(width: 24),
-        _buildNavItem('持仓分析', const IconData(0xe254)),
-        const SizedBox(width: 24),
-        _buildNavItem('行情预警', const IconData(0xe7f7)),
-        const SizedBox(width: 24),
-        _buildNavItem('数据中心', const IconData(0xe1db)),
+        _buildNavItem(context, '市场概览', Icons.dashboard_outlined, 0),
+        const SizedBox(width: 16),
+        _buildNavItem(context, '基金筛选', Icons.filter_alt_outlined, 1),
+        const SizedBox(width: 16),
+        _buildNavItem(context, '自选基金', Icons.star_outline, 2),
+        const SizedBox(width: 16),
+        _buildNavItem(context, '持仓分析', Icons.analytics_outlined, 3),
+        const SizedBox(width: 16),
+        _buildNavItem(context, '系统设置', Icons.settings_outlined, 4),
       ],
     );
   }
 
-  Widget _buildNavItem(String label, IconData icon) {
+  Widget _buildNavItem(
+      BuildContext context, String label, IconData icon, int index) {
+    final isSelected = selectedIndex == index;
+
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
-        onTap: () {},
+        onTap: () {
+          if (onNavigate != null) {
+            onNavigate!(index);
+          }
+        },
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
-            color: Colors.transparent,
+            color: isSelected
+                ? Theme.of(context).primaryColor.withOpacity(0.1)
+                : Colors.transparent,
+            border: isSelected
+                ? Border.all(
+                    color: Theme.of(context).primaryColor.withOpacity(0.3),
+                    width: 1,
+                  )
+                : null,
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -157,15 +198,19 @@ class GlobalNavigationBar extends StatelessWidget
               Icon(
                 icon,
                 size: 18,
-                color: const Color(0xFF64748B),
+                color: isSelected
+                    ? Theme.of(context).primaryColor
+                    : const Color(0xFF64748B),
               ),
               const SizedBox(width: 6),
               Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF475569),
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: isSelected
+                      ? Theme.of(context).primaryColor
+                      : const Color(0xFF475569),
                 ),
               ),
             ],
@@ -175,7 +220,7 @@ class GlobalNavigationBar extends StatelessWidget
     );
   }
 
-  Widget _buildSearchBox() {
+  Widget _buildSearchBox(BuildContext context) {
     return Container(
       width: 300,
       height: 36,
@@ -208,6 +253,11 @@ class GlobalNavigationBar extends StatelessWidget
                 fontSize: 14,
                 color: Color(0xFF475569),
               ),
+              onSubmitted: (query) {
+                if (query.trim().isNotEmpty) {
+                  _performGlobalSearch(query.trim(), context);
+                }
+              },
             ),
           ),
         ],
@@ -215,8 +265,22 @@ class GlobalNavigationBar extends StatelessWidget
     );
   }
 
+  /// 执行全局搜索
+  void _performGlobalSearch(String query, BuildContext context) {
+    debugPrint('执行全局搜索: $query');
+
+    // 使用导航管理器进行搜索导航
+    final navigationManager = di.sl<NavigationManager>();
+    navigationManager.navigateWithSearch(query);
+
+    // 如果也提供了导航回调，则同时调用
+    if (onNavigate != null) {
+      onNavigate!(1); // 导航到基金筛选页面
+    }
+  }
+
   /// 构建布局切换按钮
-  Widget _buildLayoutToggle() {
+  Widget _buildLayoutToggle(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         color: isMinimalistLayout
@@ -334,10 +398,13 @@ class GlobalNavigationBar extends StatelessWidget
       onSelected: (value) {
         switch (value) {
           case 'profile':
-            // 打开用户资料页面
+            debugPrint('打开用户资料页面 - TODO: 实现用户资料页面');
             break;
           case 'settings':
-            // 打开设置页面
+            debugPrint('导航到设置页面');
+            if (onNavigate != null) {
+              onNavigate!(4); // 导航到设置页面
+            }
             break;
           case 'logout':
             _showLogoutDialog(context);

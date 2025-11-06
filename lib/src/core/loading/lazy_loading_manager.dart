@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:collection';
 import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
@@ -55,7 +54,7 @@ enum LoadingPriority {
 }
 
 /// 加载函数类型定义
-typedef Future<dynamic> LoadingFunction();
+typedef LoadingFunction = Future<dynamic> Function();
 
 /// 加载状态枚举
 enum LoadingStatus {
@@ -184,12 +183,12 @@ class LazyLoadingManager {
     _performanceReportTimer?.cancel();
 
     // 启动缓存清理定时器
-    _cacheCleanupTimer =
-        Timer.periodic(Duration(minutes: 5), (_) => _cleanupExpiredCache());
+    _cacheCleanupTimer = Timer.periodic(
+        const Duration(minutes: 5), (_) => _cleanupExpiredCache());
 
     // Week 10 性能优化: 启动性能报告定时器
     _performanceReportTimer = Timer.periodic(
-        Duration(minutes: 2), (_) => _generatePerformanceReport());
+        const Duration(minutes: 2), (_) => _generatePerformanceReport());
 
     AppLogger.info('✅ 懒加载管理器初始化成功（含性能监控）');
   }
@@ -278,7 +277,7 @@ class LazyLoadingManager {
 
   /// 等待预加载任务完成
   Future<void> _waitForPreloadTasks(List<String> keys) async {
-    final maxWaitTime = Duration(seconds: 5);
+    const maxWaitTime = Duration(seconds: 5);
     final startTime = DateTime.now();
 
     while (DateTime.now().difference(startTime) < maxWaitTime) {
@@ -295,7 +294,7 @@ class LazyLoadingManager {
         return;
       }
 
-      await Future.delayed(Duration(milliseconds: 50));
+      await Future.delayed(const Duration(milliseconds: 50));
     }
 
     _logger.w('⚠️ 预加载任务等待超时');
@@ -442,7 +441,7 @@ class LazyLoadingManager {
       _triggerLoadCallback(task.key, result);
 
       _logger.d('✅ 加载任务完成: ${task.key}');
-    } catch (e, stackTrace) {
+    } catch (e) {
       _logger.e('❌ 加载任务失败: ${task.key}, 错误: $e');
 
       // 触发错误回调
@@ -615,7 +614,7 @@ class LazyLoadingManager {
       return Duration.zero;
     }
 
-    return Duration(milliseconds: 100); // 估算值
+    return const Duration(milliseconds: 100); // 估算值
   }
 
   /// 重置管理器状态（仅用于测试）

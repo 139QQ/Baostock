@@ -464,27 +464,27 @@ class BarChartStyle {
 
   /// 创建简约样式
   static BarChartStyle minimal() {
-    return BarChartStyle(
+    return const BarChartStyle(
       showGradient: false,
       barWidth: 12.0,
       borderRadius: 2.0,
       groupSpacing: 8.0,
       maxBarWidth: 60.0,
       alignment: BarChartAlignment.center,
-      animationDuration: const Duration(milliseconds: 500),
+      animationDuration: Duration(milliseconds: 500),
     );
   }
 
   /// 创建演示样式
   static BarChartStyle presentation() {
-    return BarChartStyle(
+    return const BarChartStyle(
       showGradient: true,
       barWidth: 24.0,
       borderRadius: 8.0,
       groupSpacing: 20.0,
       maxBarWidth: 120.0,
       alignment: BarChartAlignment.spaceAround,
-      animationDuration: const Duration(milliseconds: 1200),
+      animationDuration: Duration(milliseconds: 1200),
     );
   }
 }

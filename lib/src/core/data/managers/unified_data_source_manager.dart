@@ -1,11 +1,9 @@
 import 'dart:async';
 import 'dart:developer' as developer;
-import 'package:flutter/foundation.dart';
 
 import '../../../features/fund/domain/entities/fund.dart';
 import '../../../features/fund/domain/entities/fund_search_criteria.dart';
 import '../../../features/fund/domain/entities/fund_ranking.dart';
-import '../../../features/fund/domain/entities/fund_filter_criteria.dart';
 import '../interfaces/i_unified_data_source.dart';
 import '../interfaces/i_data_router.dart';
 import '../interfaces/i_data_consistency_manager.dart';
@@ -165,7 +163,7 @@ class UnifiedDataSourceManager implements IUnifiedDataSource {
             minThroughput: 10.0,
             expectedConcurrency: 1,
           ),
-          reliability: ReliabilityRequirements(
+          reliability: const ReliabilityRequirements(
             minAvailability: 0.99,
             maxErrorRate: 0.01,
             requiresConsistency: true,
@@ -467,7 +465,7 @@ class UnifiedDataSourceManager implements IUnifiedDataSource {
     // TODO: 实现WebSocket或SSE连接
     // 这里返回一个模拟的流
     return Stream.periodic(
-      Duration(seconds: 5),
+      const Duration(seconds: 5),
       (count) => FundData(
         fundCode: fundCode,
         fields: {
@@ -490,7 +488,7 @@ class UnifiedDataSourceManager implements IUnifiedDataSource {
 
     // TODO: 实现批量实时数据流
     return Stream.periodic(
-      Duration(seconds: 10),
+      const Duration(seconds: 10),
       (count) => fundCodes
           .map((code) => FundData(
                 fundCode: code,
@@ -1266,7 +1264,7 @@ class UnifiedDataSourceManager implements IUnifiedDataSource {
   ) async {
     // TODO: 实现排行榜获取逻辑
     return PaginatedRankingResult(
-      rankings: [],
+      rankings: const [],
       totalCount: 0,
       currentPage: page,
       pageSize: pageSize,
@@ -1354,17 +1352,17 @@ class UnifiedDataSourceConfig {
         metricsRetentionPeriod: Duration(hours: 6),
       );
 
-  factory UnifiedDataSourceConfig.production() => UnifiedDataSourceConfig(
-        defaultTimeout: const Duration(seconds: 60),
-        defaultCacheTTL: const Duration(hours: 1),
-        searchCacheTTL: const Duration(minutes: 30),
-        rankingCacheTTL: const Duration(minutes: 15),
-        fundDetailCacheTTL: const Duration(hours: 2),
-        defaultMaxDataAge: const Duration(minutes: 30),
+  factory UnifiedDataSourceConfig.production() => const UnifiedDataSourceConfig(
+        defaultTimeout: Duration(seconds: 60),
+        defaultCacheTTL: Duration(hours: 1),
+        searchCacheTTL: Duration(minutes: 30),
+        rankingCacheTTL: Duration(minutes: 15),
+        fundDetailCacheTTL: Duration(hours: 2),
+        defaultMaxDataAge: Duration(minutes: 30),
         maxConcurrency: 20,
         maxActiveConnections: 200,
-        metricsCleanupInterval: const Duration(hours: 2),
-        metricsRetentionPeriod: const Duration(days: 30),
+        metricsCleanupInterval: Duration(hours: 2),
+        metricsRetentionPeriod: Duration(days: 30),
       );
 }
 

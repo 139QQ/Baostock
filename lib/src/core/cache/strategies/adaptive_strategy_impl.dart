@@ -38,7 +38,7 @@ class AdvancedAdaptiveStrategy implements ICacheStrategy {
   // 策略参数
   double _hitRateThreshold = _defaultHitRateThreshold;
   double _accessFrequencyThreshold = _defaultAccessFrequencyThreshold;
-  Duration _baseTtl = Duration(hours: 2);
+  final Duration _baseTtl = const Duration(hours: 2);
 
   // 状态跟踪
   final Map<String, CacheKeyProfile> _keyProfiles = {};
@@ -446,7 +446,7 @@ class AdvancedAdaptiveStrategy implements ICacheStrategy {
 
   void _cleanupOldProfiles() {
     final now = DateTime.now();
-    final cutoff = now.subtract(Duration(days: 7)); // 清理7天未访问的档案
+    final cutoff = now.subtract(const Duration(days: 7)); // 清理7天未访问的档案
 
     final keysToRemove = <String>[];
     for (final entry in _keyProfiles.entries) {
@@ -542,7 +542,7 @@ class CacheKeyProfile {
 
     // 计算访问频率（基于最近24小时）
     final now = DateTime.now();
-    final dayAgo = now.subtract(Duration(days: 1));
+    final dayAgo = now.subtract(const Duration(days: 1));
     final recentAccesses =
         accessTimes.where((time) => time.isAfter(dayAgo)).length;
     _accessFrequency = recentAccesses / 24.0; // 每小时访问次数
@@ -807,7 +807,7 @@ class AccessPrediction {
 
   factory AccessPrediction.confidence(double confidence) {
     return AccessPrediction(
-      predictedTime: DateTime.now().add(Duration(hours: 1)),
+      predictedTime: DateTime.now().add(const Duration(hours: 1)),
       confidence: confidence,
     );
   }

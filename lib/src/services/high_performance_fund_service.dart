@@ -26,7 +26,7 @@ class HighPerformanceFundService {
 
   // 内存索引缓存 - 毫秒级搜索
   List<FundInfo> _memoryCache = [];
-  Map<String, List<int>> _searchIndex = {};
+  final Map<String, List<int>> _searchIndex = {};
 
   // 配置常量
   static const String _apiUrl =
@@ -140,7 +140,7 @@ class HighPerformanceFundService {
         stopwatch.stop();
         final dataSize = response.data.length;
         _logger.d(
-            '✅ 网络请求完成，耗时: ${stopwatch.elapsedMilliseconds}ms，数据大小: ${dataSize} 字符');
+            '✅ 网络请求完成，耗时: ${stopwatch.elapsedMilliseconds}ms，数据大小: $dataSize 字符');
         _logger.d('🗜️ 启用gzip压缩，节省传输时间');
         return response.data as String;
       } else {
@@ -262,7 +262,7 @@ class HighPerformanceFundService {
       _logger.d(
           '✅ 缓存写入完成，耗时: ${stopwatch.elapsedMilliseconds}ms，缓存了 ${cachedFunds.length} 只基金');
       if (funds.length > _maxCacheSize) {
-        _logger.d('⚠️ 总共 ${funds.length} 只基金，缓存前 ${_maxCacheSize} 只');
+        _logger.d('⚠️ 总共 ${funds.length} 只基金，缓存前 $_maxCacheSize 只');
       }
       _logger.d('🧠 内存索引构建完成，支持毫秒级搜索');
     } catch (e) {

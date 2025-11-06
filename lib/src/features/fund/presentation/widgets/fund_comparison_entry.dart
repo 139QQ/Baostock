@@ -193,7 +193,7 @@ class FundComparisonEntry extends StatelessWidget {
     if (preselectedFunds != null && preselectedFunds!.isNotEmpty) {
       initialCriteria = MultiDimensionalComparisonCriteria(
         fundCodes: preselectedFunds!,
-        periods: [
+        periods: const [
           RankingPeriod.oneMonth,
           RankingPeriod.threeMonths,
           RankingPeriod.sixMonths,

@@ -6,7 +6,6 @@ import '../services/unified_search_service/i_unified_search_service.dart';
 import '../services/unified_search_service/unified_search_service.dart';
 import '../services/unified_search_service/search_options_factory.dart';
 import '../models/fund_info.dart';
-import '../features/fund/domain/entities/fund_ranking.dart';
 
 // ========================================
 // Events

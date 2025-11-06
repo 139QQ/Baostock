@@ -117,36 +117,46 @@ class PerformanceThresholds {
       int responseTime, String operation) {
     switch (operation.toLowerCase()) {
       case 'search':
-        if (responseTime <= searchResponseTimeOptimal)
+        if (responseTime <= searchResponseTimeOptimal) {
           return PerformanceStatus.optimal;
-        if (responseTime <= searchResponseTimeGood)
+        }
+        if (responseTime <= searchResponseTimeGood) {
           return PerformanceStatus.good;
-        if (responseTime <= searchResponseTimeWarning)
+        }
+        if (responseTime <= searchResponseTimeWarning) {
           return PerformanceStatus.warning;
+        }
         return PerformanceStatus.critical;
 
       case 'navigation':
-        if (responseTime <= pageNavigationTimeOptimal)
+        if (responseTime <= pageNavigationTimeOptimal) {
           return PerformanceStatus.optimal;
-        if (responseTime <= pageNavigationTimeGood)
+        }
+        if (responseTime <= pageNavigationTimeGood) {
           return PerformanceStatus.good;
-        if (responseTime <= pageNavigationTimeWarning)
+        }
+        if (responseTime <= pageNavigationTimeWarning) {
           return PerformanceStatus.warning;
+        }
         return PerformanceStatus.critical;
 
       case 'loading':
-        if (responseTime <= dataLoadingTimeOptimal)
+        if (responseTime <= dataLoadingTimeOptimal) {
           return PerformanceStatus.optimal;
+        }
         if (responseTime <= dataLoadingTimeGood) return PerformanceStatus.good;
-        if (responseTime <= dataLoadingTimeWarning)
+        if (responseTime <= dataLoadingTimeWarning) {
           return PerformanceStatus.warning;
+        }
         return PerformanceStatus.critical;
 
       default:
-        if (responseTime <= searchResponseTimeGood)
+        if (responseTime <= searchResponseTimeGood) {
           return PerformanceStatus.optimal;
-        if (responseTime <= searchResponseTimeWarning)
+        }
+        if (responseTime <= searchResponseTimeWarning) {
           return PerformanceStatus.good;
+        }
         return PerformanceStatus.critical;
     }
   }
@@ -229,12 +239,15 @@ class PerformanceMetric {
 
   /// 获取状态
   PerformanceStatus getStatus(double value) {
-    if (value <= thresholds[PerformanceStatus.optimal]!)
+    if (value <= thresholds[PerformanceStatus.optimal]!) {
       return PerformanceStatus.optimal;
-    if (value <= thresholds[PerformanceStatus.good]!)
+    }
+    if (value <= thresholds[PerformanceStatus.good]!) {
       return PerformanceStatus.good;
-    if (value <= thresholds[PerformanceStatus.warning]!)
+    }
+    if (value <= thresholds[PerformanceStatus.warning]!) {
       return PerformanceStatus.warning;
+    }
     return PerformanceStatus.critical;
   }
 

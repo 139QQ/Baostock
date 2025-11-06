@@ -4,7 +4,6 @@ import '../../domain/models/fund.dart';
 
 /// 用户偏好管理服务
 class UserPreferences {
-
   /// 获取用户偏好的动画级别 (0: 禁用, 1: 基础, 2: 完整)
   static Future<int> getAnimationLevel() async {
     try {
@@ -125,7 +124,8 @@ class UserPreferences {
 
 /// 性能监控混入
 mixin PerformanceMonitorMixin on State {
-  static const Duration _performanceThreshold = Duration(milliseconds: 16); // 60fps
+  static const Duration _performanceThreshold =
+      Duration(milliseconds: 16); // 60fps
   static const Map<String, Duration> _animationThresholds = {
     'hover': Duration(milliseconds: 200),
     'scale': Duration(milliseconds: 150),
@@ -144,7 +144,8 @@ mixin PerformanceMonitorMixin on State {
       _stopwatch!.stop();
       final duration = _stopwatch!.elapsed;
 
-      final threshold = _animationThresholds[animationType] ?? _performanceThreshold;
+      final threshold =
+          _animationThresholds[animationType] ?? _performanceThreshold;
       if (duration > threshold) {
         _reportSlowAnimation(animationType, duration);
       }
@@ -154,7 +155,8 @@ mixin PerformanceMonitorMixin on State {
   }
 
   void _reportSlowAnimation(String animationType, Duration duration) {
-    debugPrint('🔍 Performance Warning: $animationType animation took ${duration.inMilliseconds}ms');
+    debugPrint(
+        '🔍 Performance Warning: $animationType animation took ${duration.inMilliseconds}ms');
 
     // 这里可以集成到分析服务
     // Analytics.track('slow_animation', {
@@ -216,7 +218,6 @@ class AdaptiveFundCard extends StatefulWidget {
 
 class _AdaptiveFundCardState extends State<AdaptiveFundCard>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
-
   // Performance monitoring methods
   Stopwatch? _stopwatch;
   static const Duration _performanceThreshold = Duration(milliseconds: 16);
@@ -236,7 +237,8 @@ class _AdaptiveFundCardState extends State<AdaptiveFundCard>
       _stopwatch!.stop();
       final duration = _stopwatch!.elapsed;
 
-      final threshold = _animationThresholds[animationType] ?? _performanceThreshold;
+      final threshold =
+          _animationThresholds[animationType] ?? _performanceThreshold;
       if (duration > threshold) {
         _reportSlowAnimation(animationType, duration);
       }
@@ -246,8 +248,10 @@ class _AdaptiveFundCardState extends State<AdaptiveFundCard>
   }
 
   void _reportSlowAnimation(String animationType, Duration duration) {
-    debugPrint('🔍 Performance Warning: $animationType animation took ${duration.inMilliseconds}ms');
+    debugPrint(
+        '🔍 Performance Warning: $animationType animation took ${duration.inMilliseconds}ms');
   }
+
   late AnimationController _hoverController;
   late AnimationController _returnController;
   late AnimationController _favoriteController;
@@ -264,10 +268,11 @@ class _AdaptiveFundCardState extends State<AdaptiveFundCard>
   bool _isPressed = false;
 
   // 性能相关状态
-  late bool _enableAnimations;
-  late bool _enableHoverEffects;
-  late int _animationLevel; // 0: 禁用, 1: 基础, 2: 完整
+  late bool _enableAnimations; // 异步初始化
+  late bool _enableHoverEffects; // 异步初始化
+  late int _animationLevel; // 异步初始化
   bool _animationInitializationFailed = false;
+  bool _isInitialized = false; // 初始化状态标记
 
   @override
   bool get wantKeepAlive => true;
@@ -275,6 +280,13 @@ class _AdaptiveFundCardState extends State<AdaptiveFundCard>
   @override
   void initState() {
     super.initState();
+    // 同步初始化默认值，避免延迟初始化错误
+    _enableAnimations = true;
+    _enableHoverEffects = true;
+    _animationLevel = 2;
+    _isInitialized = true;
+
+    // 异步初始化用户偏好设置
     _initializeUserPreferences();
     _isFavorite = widget.fund.isFavorite;
   }
@@ -297,7 +309,9 @@ class _AdaptiveFundCardState extends State<AdaptiveFundCard>
         _enableHoverEffects = false;
       } else {
         // 应用用户偏好设置（但不超过设备性能上限）
-        _animationLevel = _animationLevel < userAnimationLevel ? _animationLevel : userAnimationLevel;
+        _animationLevel = _animationLevel < userAnimationLevel
+            ? _animationLevel
+            : userAnimationLevel;
         _enableHoverEffects = _enableHoverEffects && userHoverEffects;
 
         // 如果用户偏好完全禁用动画，则禁用所有动画
@@ -307,8 +321,9 @@ class _AdaptiveFundCardState extends State<AdaptiveFundCard>
         }
       }
 
-      debugPrint('AdaptiveFundCard: Final settings - Animation Level: $_animationLevel, '
-                'Animations: $_enableAnimations, Hover: $_enableHoverEffects');
+      debugPrint(
+          'AdaptiveFundCard: Final settings - Animation Level: $_animationLevel, '
+          'Animations: $_enableAnimations, Hover: $_enableHoverEffects');
 
       // 初始化动画
       _initializeAnimations();
@@ -401,18 +416,21 @@ class _AdaptiveFundCardState extends State<AdaptiveFundCard>
     } else if (pixelRatio >= 1.5) {
       screenScore += 10; // 普通密度屏幕
     } else {
-      screenScore += 5;  // 低密度屏幕
+      screenScore += 5; // 低密度屏幕
     }
 
     // 屏幕尺寸评分 (20分)
-    if (totalPixels >= 2000000) { // 大于2百万像素
+    if (totalPixels >= 2000000) {
+      // 大于2百万像素
       screenScore += 20; // 大屏幕
-    } else if (totalPixels >= 1000000) { // 大于1百万像素
+    } else if (totalPixels >= 1000000) {
+      // 大于1百万像素
       screenScore += 15; // 中等屏幕
-    } else if (totalPixels >= 500000) { // 大于50万像素
+    } else if (totalPixels >= 500000) {
+      // 大于50万像素
       screenScore += 10; // 小屏幕
     } else {
-      screenScore += 5;  // 超小屏幕
+      screenScore += 5; // 超小屏幕
     }
 
     return screenScore;
@@ -454,7 +472,7 @@ class _AdaptiveFundCardState extends State<AdaptiveFundCard>
     } else if (pixelRatio >= 1.5) {
       deviceScore += 10; // 中端设备
     } else {
-      deviceScore += 5;  // 低端设备
+      deviceScore += 5; // 低端设备
     }
 
     // 平台加分 (桌面设备通常性能更好)
@@ -463,7 +481,7 @@ class _AdaptiveFundCardState extends State<AdaptiveFundCard>
         platform == TargetPlatform.linux) {
       deviceScore += 10; // 桌面平台加分
     } else {
-      deviceScore += 5;  // 移动平台基础分
+      deviceScore += 5; // 移动平台基础分
     }
 
     return deviceScore;
@@ -537,7 +555,6 @@ class _AdaptiveFundCardState extends State<AdaptiveFundCard>
 
       // 启动收益率动画
       _returnController.forward();
-
     } catch (e) {
       // 动画初始化失败，降级到静态模式
       debugPrint('AdaptiveFundCard: Animation initialization failed: $e');
@@ -743,7 +760,9 @@ class _AdaptiveFundCardState extends State<AdaptiveFundCard>
                         borderRadius: BorderRadius.circular(12),
                         border: _isHovered && _enableHoverEffects
                             ? Border.all(
-                                color: Theme.of(context).primaryColor.withOpacity(0.3),
+                                color: Theme.of(context)
+                                    .primaryColor
+                                    .withOpacity(0.3),
                                 width: 1,
                               )
                             : null,
@@ -800,21 +819,20 @@ class _AdaptiveFundCardState extends State<AdaptiveFundCard>
                 onTapUp: _onTapUp,
                 onTapCancel: _onTapCancel,
                 child: ListTile(
-                leading: widget.showComparisonCheckbox
-                    ? Checkbox(
-                        value: widget.isSelected,
-                        onChanged: (value) {
-                          widget.onSelectionChanged?.call(value ?? false);
-                        },
-                      )
-                    : null,
-                title: _buildCompactTitle(),
-                subtitle: _buildCompactSubtitle(),
-                trailing: widget.showQuickActions
-                    ? _buildCompactActions()
-                    : null,
-                onTap: widget.onTap,
-              ),
+                  leading: widget.showComparisonCheckbox
+                      ? Checkbox(
+                          value: widget.isSelected,
+                          onChanged: (value) {
+                            widget.onSelectionChanged?.call(value ?? false);
+                          },
+                        )
+                      : null,
+                  title: _buildCompactTitle(),
+                  subtitle: _buildCompactSubtitle(),
+                  trailing:
+                      widget.showQuickActions ? _buildCompactActions() : null,
+                  onTap: widget.onTap,
+                ),
               ),
             ),
           );
@@ -1222,9 +1240,8 @@ class _AdaptiveFundCardState extends State<AdaptiveFundCard>
           children: [
             IconButton(
               icon: Transform.scale(
-                scale: _isFavorite
-                    ? 0.8 + (_favoriteAnimation.value * 0.4)
-                    : 1.0,
+                scale:
+                    _isFavorite ? 0.8 + (_favoriteAnimation.value * 0.4) : 1.0,
                 child: Icon(
                   _isFavorite ? Icons.favorite : Icons.favorite_border,
                   color: _isFavorite ? Colors.red : null,

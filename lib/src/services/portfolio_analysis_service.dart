@@ -1,7 +1,5 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'package:decimal/decimal.dart';
-import '../models/fund_info.dart';
 import 'fund_analysis_service.dart';
 import 'high_performance_fund_service.dart';
 import '../core/cache/unified_hive_cache_manager.dart';
@@ -132,7 +130,7 @@ class PortfolioAnalysisService {
           await _calculatePortfolioVolatility(holdings, riskMetricsList);
 
       // 计算夏普比率
-      final riskFreeRate = 0.03;
+      const riskFreeRate = 0.03;
       sharpeRatio = (totalExpectedReturn - riskFreeRate) / totalVolatility;
 
       // 计算风险分散度
@@ -172,7 +170,7 @@ class PortfolioAnalysisService {
               math.pow(riskMetricsList[i].volatility, 2).toDouble();
         } else {
           // 假设相关性为0.3 (简化计算)
-          final correlation = 0.3;
+          const correlation = 0.3;
           variance[i][j] = correlation *
               riskMetricsList[i].volatility *
               riskMetricsList[j].volatility;
@@ -374,7 +372,7 @@ class PortfolioAnalysisService {
           '${_portfolioCachePrefix}simulation_${portfolio.id}_${months}_$simulations';
 
       // 检查缓存
-      final cached = await _cacheManager.get<PortfolioSimulation>(cacheKey);
+      final cached = _cacheManager.get<PortfolioSimulation>(cacheKey);
       if (cached != null) {
         return cached;
       }
@@ -401,7 +399,7 @@ class PortfolioAnalysisService {
           double portfolioReturn = 0;
           for (final holding in portfolio.holdings) {
             final meanReturn = fundReturns[holding.weight] ?? 0;
-            final monthlyStd = 0.05; // 假设月度标准差为5%
+            const monthlyStd = 0.05; // 假设月度标准差为5%
             final randomReturn =
                 meanReturn + (_nextGaussian(random) * monthlyStd);
             portfolioReturn += holding.weight * randomReturn;

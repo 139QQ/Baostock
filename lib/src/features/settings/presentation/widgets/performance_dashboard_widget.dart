@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:async';
 import '../../../../core/performance/unified_performance_monitor.dart';
 import '../../../../core/performance/performance_thresholds.dart';
@@ -9,7 +8,7 @@ import '../../../../core/performance/performance_thresholds.dart';
 /// 显示实时性能指标、历史趋势和性能警报
 /// 支持不同时间范围的数据查看和性能状态监控
 class PerformanceDashboardWidget extends StatefulWidget {
-  const PerformanceDashboardWidget({Key? key}) : super(key: key);
+  const PerformanceDashboardWidget({super.key});
 
   @override
   State<PerformanceDashboardWidget> createState() =>

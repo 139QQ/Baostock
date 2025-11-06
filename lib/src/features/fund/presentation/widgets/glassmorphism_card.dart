@@ -84,7 +84,6 @@ class GlassmorphismCard extends StatefulWidget {
 
     return GlassmorphismCard(
       key: key,
-      child: child,
       blur: finalConfig.blur,
       opacity: finalConfig.opacity,
       borderRadius: finalConfig.borderRadius,
@@ -97,6 +96,7 @@ class GlassmorphismCard extends StatefulWidget {
       margin: margin,
       padding: padding,
       boxShadow: boxShadow,
+      child: child,
     );
   }
 
@@ -117,7 +117,6 @@ class GlassmorphismCard extends StatefulWidget {
 
     return GlassmorphismCard(
       key: key,
-      child: child,
       blur: responsiveConfig.blur,
       opacity: responsiveConfig.opacity,
       borderRadius: responsiveConfig.borderRadius,
@@ -131,6 +130,7 @@ class GlassmorphismCard extends StatefulWidget {
       margin: margin,
       padding: padding,
       boxShadow: boxShadow,
+      child: child,
     );
   }
 
@@ -254,13 +254,13 @@ class GlassmorphismPresets {
     double? borderRadius,
   }) {
     return GlassmorphismCard(
-      child: child,
       blur: 5.0,
       opacity: 0.05,
       borderRadius: borderRadius ?? 8.0,
       borderWidth: 0.5,
       borderColor: Colors.white,
       backgroundColor: Colors.white,
+      child: child,
     );
   }
 
@@ -270,13 +270,13 @@ class GlassmorphismPresets {
     double? borderRadius,
   }) {
     return GlassmorphismCard(
-      child: child,
       blur: 10.0,
       opacity: 0.1,
       borderRadius: borderRadius ?? 12.0,
       borderWidth: 1.0,
       borderColor: Colors.white,
       backgroundColor: Colors.white,
+      child: child,
     );
   }
 
@@ -286,13 +286,13 @@ class GlassmorphismPresets {
     double? borderRadius,
   }) {
     return GlassmorphismCard(
-      child: child,
       blur: 15.0,
       opacity: 0.15,
       borderRadius: borderRadius ?? 16.0,
       borderWidth: 1.5,
       borderColor: Colors.white,
       backgroundColor: Colors.white,
+      child: child,
     );
   }
 
@@ -302,7 +302,6 @@ class GlassmorphismPresets {
     double? borderRadius,
   }) {
     return GlassmorphismCard(
-      child: child,
       blur: 8.0,
       opacity: 0.08,
       borderRadius: borderRadius ?? 12.0,
@@ -317,6 +316,7 @@ class GlassmorphismPresets {
           offset: const Offset(0, 2),
         ),
       ],
+      child: child,
     );
   }
 }

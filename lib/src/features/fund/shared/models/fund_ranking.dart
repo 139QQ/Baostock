@@ -469,6 +469,15 @@ extension FundRankingExtensions on FundRanking {
   /// 日收益是否为正
   bool get isDailyPositive => dailyReturn >= 0;
 
+  /// 兼容性 getter：近期收益率（使用日收益率作为替代）
+  double get recentReturnRate => dailyReturn;
+
+  /// 兼容性 getter：总收益率（使用近1年收益率作为替代）
+  double get totalReturnRate => oneYearReturn;
+
+  /// 兼容性 getter：风险等级数值（1-5）
+  int get riskLevel => getRiskLevel().level;
+
   /// 获取简短的基金名称（用于显示）
   String get shortName {
     if (fundName.length <= 12) return fundName;

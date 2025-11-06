@@ -7,6 +7,7 @@
 /// 1. 查找所有包含print语句的文件
 /// 2. 根据上下文将print语句替换为适当的AppLogger调用
 /// 3. 或者在适当的情况下添加ignore注释
+library;
 
 import 'dart:io';
 

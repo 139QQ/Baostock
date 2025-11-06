@@ -4,7 +4,6 @@ import '../../domain/models/fund.dart';
 
 /// 用户偏好管理服务
 class UserPreferences {
-
   /// 获取用户偏好的动画级别 (0: 禁用, 1: 基础, 2: 完整)
   static Future<int> getAnimationLevel() async {
     try {
@@ -36,7 +35,8 @@ class UserPreferences {
 
 /// 性能监控混入
 mixin PerformanceMonitorMixin on State {
-  static const Duration _performanceThreshold = Duration(milliseconds: 16); // 60fps
+  static const Duration _performanceThreshold =
+      Duration(milliseconds: 16); // 60fps
   static const Map<String, Duration> _animationThresholds = {
     'hover': Duration(milliseconds: 200),
     'scale': Duration(milliseconds: 150),
@@ -56,7 +56,8 @@ mixin PerformanceMonitorMixin on State {
       _stopwatch!.stop();
       final duration = _stopwatch!.elapsed;
 
-      final threshold = _animationThresholds[animationType] ?? _performanceThreshold;
+      final threshold =
+          _animationThresholds[animationType] ?? _performanceThreshold;
       if (duration > threshold) {
         _reportSlowAnimation(animationType, duration);
       }
@@ -66,7 +67,8 @@ mixin PerformanceMonitorMixin on State {
   }
 
   void _reportSlowAnimation(String animationType, Duration duration) {
-    debugPrint('🔍 Performance Warning: $animationType animation took ${duration.inMilliseconds}ms');
+    debugPrint(
+        '🔍 Performance Warning: $animationType animation took ${duration.inMilliseconds}ms');
 
     // 这里可以集成到分析服务
     // Analytics.track('slow_animation', {
@@ -119,12 +121,12 @@ class MicrointeractiveFundCard extends StatefulWidget {
   });
 
   @override
-  State<MicrointeractiveFundCard> createState() => _MicrointeractiveFundCardState();
+  State<MicrointeractiveFundCard> createState() =>
+      _MicrointeractiveFundCardState();
 }
 
 class _MicrointeractiveFundCardState extends State<MicrointeractiveFundCard>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
-
   // Performance monitoring methods
   Stopwatch? _stopwatch;
   static const Duration _performanceThreshold = Duration(milliseconds: 16);
@@ -145,7 +147,8 @@ class _MicrointeractiveFundCardState extends State<MicrointeractiveFundCard>
       _stopwatch!.stop();
       final duration = _stopwatch!.elapsed;
 
-      final threshold = _animationThresholds[animationType] ?? _performanceThreshold;
+      final threshold =
+          _animationThresholds[animationType] ?? _performanceThreshold;
       if (duration > threshold) {
         _reportSlowAnimation(animationType, duration);
       }
@@ -155,8 +158,10 @@ class _MicrointeractiveFundCardState extends State<MicrointeractiveFundCard>
   }
 
   void _reportSlowAnimation(String animationType, Duration duration) {
-    debugPrint('🔍 Performance Warning: $animationType animation took ${duration.inMilliseconds}ms');
+    debugPrint(
+        '🔍 Performance Warning: $animationType animation took ${duration.inMilliseconds}ms');
   }
+
   late AnimationController _hoverController;
   late AnimationController _returnController;
   late AnimationController _favoriteController;
@@ -272,10 +277,10 @@ class _MicrointeractiveFundCardState extends State<MicrointeractiveFundCard>
 
       // 启动收益率动画
       _returnController.forward();
-
     } catch (e) {
       // 动画初始化失败，降级到静态模式
-      debugPrint('MicrointeractiveFundCard: Animation initialization failed: $e');
+      debugPrint(
+          'MicrointeractiveFundCard: Animation initialization failed: $e');
       setState(() {
         _animationInitializationFailed = true;
       });
@@ -451,11 +456,13 @@ class _MicrointeractiveFundCardState extends State<MicrointeractiveFundCard>
 
     // 增强的滑动手势检测
     if (_isSwipeGesture(totalDeltaX, totalDeltaY, velocityX, velocityY)) {
-      if (totalDeltaX > _horizontalGestureThreshold || velocityX > _swipeVelocityThreshold) {
+      if (totalDeltaX > _horizontalGestureThreshold ||
+          velocityX > _swipeVelocityThreshold) {
         // 右滑 - 对比
         widget.onSwipeRight?.call();
         _showSwipeFeedback('对比');
-      } else if (totalDeltaX < -_horizontalGestureThreshold || velocityX < -_swipeVelocityThreshold) {
+      } else if (totalDeltaX < -_horizontalGestureThreshold ||
+          velocityX < -_swipeVelocityThreshold) {
         // 左滑 - 收藏
         widget.onSwipeLeft?.call();
         _showSwipeFeedback('收藏');
@@ -477,7 +484,8 @@ class _MicrointeractiveFundCardState extends State<MicrointeractiveFundCard>
   }
 
   /// 增强的滑动手势检测
-  bool _isSwipeGesture(double deltaX, double deltaY, double velocityX, double velocityY) {
+  bool _isSwipeGesture(
+      double deltaX, double deltaY, double velocityX, double velocityY) {
     // 检查是否有足够的速度或距离
     final hasVelocity = velocityX.abs() > _swipeVelocityThreshold;
     final hasDistance = deltaX.abs() > _horizontalGestureThreshold;
@@ -589,7 +597,8 @@ class _MicrointeractiveFundCardState extends State<MicrointeractiveFundCard>
           break;
       }
     } catch (e) {
-      debugPrint('MicrointeractiveFundCard: Failed to provide haptic feedback: $e');
+      debugPrint(
+          'MicrointeractiveFundCard: Failed to provide haptic feedback: $e');
     }
   }
 
@@ -654,50 +663,52 @@ class _MicrointeractiveFundCardState extends State<MicrointeractiveFundCard>
                     onEnter: (_) => _onHoverChange(true),
                     onExit: (_) => _onHoverChange(false),
                     child: Semantics(
-                        button: true,
-                        label: _generateSemanticLabel(),
-                        hint: '点击查看基金详情，支持左滑收藏和右滑对比操作',
-                        child: GestureDetector(
-                          onTapDown: _onTapDown,
-                          onTapUp: _onTapUp,
-                          onTapCancel: _onTapCancel,
-                          onPanStart: _onPanStart,
-                          onPanUpdate: _onPanUpdate,
-                          onPanEnd: _onPanEnd,
-                          child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: _isHovered
-                              ? Border.all(
-                                  color: Theme.of(context).primaryColor.withOpacity(0.3),
-                                  width: 1,
-                                )
-                              : null,
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Stack(
-                            children: [
-                              // 主要内容
-                              Padding(
-                                padding: const EdgeInsets.all(14),
-                                child: _buildCardContent(context),
-                              ),
-                              // 涟漪效果
-                              if (_isPressed)
-                                Positioned.fill(
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(12),
+                      button: true,
+                      label: _generateSemanticLabel(),
+                      hint: '点击查看基金详情，支持左滑收藏和右滑对比操作',
+                      child: GestureDetector(
+                        onTapDown: _onTapDown,
+                        onTapUp: _onTapUp,
+                        onTapCancel: _onTapCancel,
+                        onPanStart: _onPanStart,
+                        onPanUpdate: _onPanUpdate,
+                        onPanEnd: _onPanEnd,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            border: _isHovered
+                                ? Border.all(
+                                    color: Theme.of(context)
+                                        .primaryColor
+                                        .withOpacity(0.3),
+                                    width: 1,
+                                  )
+                                : null,
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Stack(
+                              children: [
+                                // 主要内容
+                                Padding(
+                                  padding: const EdgeInsets.all(14),
+                                  child: _buildCardContent(context),
+                                ),
+                                // 涟漪效果
+                                if (_isPressed)
+                                  Positioned.fill(
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
                                     ),
                                   ),
-                                ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
                     ),
                   ),
                 ),
@@ -738,9 +749,8 @@ class _MicrointeractiveFundCardState extends State<MicrointeractiveFundCard>
                       : null,
                   title: _buildCompactTitle(),
                   subtitle: _buildCompactSubtitle(),
-                  trailing: widget.showQuickActions
-                      ? _buildCompactActions()
-                      : null,
+                  trailing:
+                      widget.showQuickActions ? _buildCompactActions() : null,
                   onTap: widget.onTap,
                 ),
               ),
@@ -797,9 +807,8 @@ class _MicrointeractiveFundCardState extends State<MicrointeractiveFundCard>
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: _isHovered
-                            ? Theme.of(context).primaryColor
-                            : null,
+                        color:
+                            _isHovered ? Theme.of(context).primaryColor : null,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -1078,9 +1087,8 @@ class _MicrointeractiveFundCardState extends State<MicrointeractiveFundCard>
           children: [
             IconButton(
               icon: Transform.scale(
-                scale: _isFavorite
-                    ? 0.8 + (_favoriteAnimation.value * 0.4)
-                    : 1.0,
+                scale:
+                    _isFavorite ? 0.8 + (_favoriteAnimation.value * 0.4) : 1.0,
                 child: Icon(
                   _isFavorite ? Icons.favorite : Icons.favorite_border,
                   color: _isFavorite ? Colors.red : null,
@@ -1113,27 +1121,32 @@ class _MicrointeractiveFundCardState extends State<MicrointeractiveFundCard>
       try {
         _hoverController.dispose();
       } catch (e) {
-        debugPrint('MicrointeractiveFundCard: Error disposing hover controller: $e');
+        debugPrint(
+            'MicrointeractiveFundCard: Error disposing hover controller: $e');
       }
       try {
         _returnController.dispose();
       } catch (e) {
-        debugPrint('MicrointeractiveFundCard: Error disposing return controller: $e');
+        debugPrint(
+            'MicrointeractiveFundCard: Error disposing return controller: $e');
       }
       try {
         _favoriteController.dispose();
       } catch (e) {
-        debugPrint('MicrointeractiveFundCard: Error disposing favorite controller: $e');
+        debugPrint(
+            'MicrointeractiveFundCard: Error disposing favorite controller: $e');
       }
       try {
         _scaleController.dispose();
       } catch (e) {
-        debugPrint('MicrointeractiveFundCard: Error disposing scale controller: $e');
+        debugPrint(
+            'MicrointeractiveFundCard: Error disposing scale controller: $e');
       }
       try {
         _swipeController.dispose();
       } catch (e) {
-        debugPrint('MicrointeractiveFundCard: Error disposing swipe controller: $e');
+        debugPrint(
+            'MicrointeractiveFundCard: Error disposing swipe controller: $e');
       }
     }
     super.dispose();

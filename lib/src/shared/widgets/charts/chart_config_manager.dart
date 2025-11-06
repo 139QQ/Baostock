@@ -98,7 +98,7 @@ class ChartConfigManager implements IChartConfigManager {
         getTooltipItems: (spots) {
           return spots.map((spot) {
             return LineTooltipItem(
-              '${spot.y.toStringAsFixed(2)}',
+              spot.y.toStringAsFixed(2),
               theme.tooltipStyle.copyWith(
                 color: Colors.white,
               ),
@@ -126,7 +126,7 @@ class ChartConfigManager implements IChartConfigManager {
         tooltipMargin: 8,
         getTooltipItem: (group, groupIndex, rod, rodIndex) {
           return BarTooltipItem(
-            '${rod.toY.toStringAsFixed(2)}',
+            rod.toY.toStringAsFixed(2),
             theme.tooltipStyle.copyWith(
               color: Colors.white,
             ),

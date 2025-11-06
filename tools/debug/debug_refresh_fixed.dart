@@ -197,9 +197,9 @@ class _RefreshDebugFixedPageState extends State<RefreshDebugFixedPage> {
                           children: [
                             const Icon(Icons.info, color: Colors.blue),
                             const SizedBox(width: 8),
-                            Text(
+                            const Text(
                               'Cubit状态',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -319,9 +319,9 @@ class _RefreshDebugFixedPageState extends State<RefreshDebugFixedPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          const Text(
                             '基金数据预览（前5条）',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),

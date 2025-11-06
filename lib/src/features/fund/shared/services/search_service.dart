@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:collection';
 import 'dart:math';
 
 import '../../../../core/utils/logger.dart';
@@ -27,9 +26,9 @@ class SearchService {
   final List<String> _searchHistory = [];
 
   // 索引结构
-  Map<String, Set<int>> _nameIndex = {};
-  Map<String, Set<int>> _codeIndex = {};
-  Map<String, Set<int>> _typeIndex = {};
+  final Map<String, Set<int>> _nameIndex = {};
+  final Map<String, Set<int>> _codeIndex = {};
+  final Map<String, Set<int>> _typeIndex = {};
   List<FundRanking> _indexedFunds = [];
 
   Timer? _debounceTimer;

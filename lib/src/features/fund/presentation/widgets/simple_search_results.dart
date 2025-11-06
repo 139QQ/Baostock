@@ -120,7 +120,7 @@ class SimpleSearchResults extends StatelessWidget {
   }
 
   Widget _buildEmptyWidget() {
-    return Center(
+    return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -138,7 +138,7 @@ class SimpleSearchResults extends StatelessWidget {
               color: Colors.grey,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Text(
             '尝试使用不同的关键词',
             style: TextStyle(
@@ -290,13 +290,13 @@ class SimpleSearchResults extends StatelessWidget {
           children: [
             ListTile(
               leading: const Icon(Icons.info),
-              title: Text('基金详情'),
+              title: const Text('基金详情'),
               subtitle: Text('${ranking.fundCode} - ${ranking.fundName}'),
             ),
             const Divider(),
             ListTile(
               leading: const Icon(Icons.show_chart),
-              title: Text('日收益率'),
+              title: const Text('日收益率'),
               trailing: Text(
                 ranking.formatReturn(ranking.dailyReturn),
                 style: TextStyle(
@@ -317,13 +317,13 @@ class SimpleSearchResults extends StatelessWidget {
             ),
             ListTile(
               leading: const Icon(Icons.account_balance),
-              title: Text('基金规模'),
+              title: const Text('基金规模'),
               trailing: Text(ranking.formatFundSize()),
             ),
             if (ranking.fundCompany.isNotEmpty)
               ListTile(
                 leading: const Icon(Icons.business),
-                title: Text('基金公司'),
+                title: const Text('基金公司'),
                 subtitle: Text(ranking.fundCompany),
               ),
           ],

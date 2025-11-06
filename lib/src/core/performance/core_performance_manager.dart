@@ -261,7 +261,7 @@ class CorePerformanceManager {
     // 现在基于当前活动任务数量和系统时间进行估算
     final loadingStatus = _lazyLoadingManager.getQueueStatus();
     final activeTasks = loadingStatus['activeTasks'] ?? 0;
-    final baseUsage = 10.0; // 基础使用率
+    const baseUsage = 10.0; // 基础使用率
 
     return (baseUsage + (activeTasks * 15.0)).clamp(0.0, 100.0);
   }

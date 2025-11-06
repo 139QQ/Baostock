@@ -295,9 +295,9 @@ class _EnhancedMarketOverviewV2State extends State<EnhancedMarketOverviewV2> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: const Text(
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8),
+              child: Text(
                 '其他指数',
                 style: TextStyle(
                   fontSize: 16,
