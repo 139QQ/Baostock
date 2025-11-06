@@ -58,7 +58,7 @@ class FundDataService {
   Timer? _preheatTimer;
 
   // 请求配置 - 120秒超时设置
-  static const Duration _timeout = Duration(seconds: 15); // 减少超时时间到15秒，提升响应速度
+  static const Duration _timeout = Duration(seconds: 120); // 恢复120秒超时，确保数据请求完成
   static const int _maxRetries = 2; // 增加重试次数，提高成功率
   static const Duration _retryDelay = Duration(seconds: 3); // 增加重试间隔
   static const Duration _connectionTimeout = Duration(seconds: 30); // 连接超时
@@ -158,7 +158,7 @@ class FundDataService {
     AppLogger.debug('🔑 标准化缓存键: $cacheKey');
     AppLogger.debug('🔄 请求去重键: $deduplicationKey');
 
-    // 使用请求去重管理器
+    // 使用请求去重管理器 - 让请求去重管理器自动识别合适的超时时间
     return await _deduplicationManager
         .getOrExecute<FundDataResult<List<FundRanking>>>(
       deduplicationKey,
@@ -168,7 +168,7 @@ class FundDataService {
         onProgress: onProgress,
         cacheKey: cacheKey,
       ),
-      timeout: _timeout,
+      // 不再传递固定超时，让智能识别生效
       enableCache: !forceRefresh,
       cacheExpiration: _cacheExpireTime,
     );
@@ -1144,7 +1144,7 @@ class FundDataService {
           () => _fetchRankingsFromApi(uri, onProgress),
           maxRetries: _maxRetries,
           retryDelay: _retryDelay,
-        ).timeout(const Duration(seconds: 30)); // 添加整体请求超时
+        ).timeout(const Duration(seconds: 150)); // 使用150秒整体请求超时，包含重试时间
 
         onProgress?.call(0.8); // 数据解析完成
 

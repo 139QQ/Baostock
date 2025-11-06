@@ -81,6 +81,7 @@ class GlobalNavigationBar extends StatelessWidget
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Row(
+            mainAxisSize: MainAxisSize.min, // 添加此行以最小化Row宽度
             children: [
               // 品牌Logo - 缩小为最小必要宽度
               _buildBrandLogo(),
@@ -93,7 +94,7 @@ class GlobalNavigationBar extends StatelessWidget
 
               // 搜索框 - 使用ConstrainedBox限制最大宽度
               ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 200),
+                constraints: const BoxConstraints(maxWidth: 180), // 减少最大宽度
                 child: _buildSearchBox(context),
               ),
               const SizedBox(width: 12),
@@ -101,7 +102,7 @@ class GlobalNavigationBar extends StatelessWidget
               // 布局切换按钮（可选）
               if (showLayoutToggle) ...[
                 _buildLayoutToggle(context),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8), // 减少间距
               ],
 
               // 用户信息 - 使用ConstrainedBox限制最大宽度

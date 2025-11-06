@@ -84,11 +84,11 @@ class PerformanceThresholds {
 
   // ========== UI性能阈值 ==========
 
-  /// 帧率阈值 (FPS)
-  static const int frameRateOptimal = 60; // 最优：60 FPS
-  static const int frameRateGood = 55; // 良好：55 FPS
-  static const int frameRateWarning = 45; // 警告：45 FPS
-  static const int frameRateCritical = 30; // 危险：30 FPS
+  /// 帧率阈值 (FPS) - 针对异常高FPS值
+  static const int frameRateOptimal = 120; // 最优：120 FPS (允许高刷新率)
+  static const int frameRateGood = 200; // 良好：200 FPS
+  static const int frameRateWarning = 300; // 警告：300 FPS
+  static const int frameRateCritical = 500; // 危险：500 FPS (异常值)
 
   /// UI渲染时间阈值
   static const int uiRenderTimeOptimal = 16; // 最优：16ms (60 FPS)
@@ -193,11 +193,11 @@ class PerformanceThresholds {
     return PerformanceStatus.critical;
   }
 
-  /// 获取帧率状态
+  /// 获取帧率状态 - 监控异常高FPS值
   static PerformanceStatus getFrameRateStatus(int fps) {
-    if (fps >= frameRateOptimal) return PerformanceStatus.optimal;
-    if (fps >= frameRateGood) return PerformanceStatus.good;
-    if (fps >= frameRateWarning) return PerformanceStatus.warning;
+    if (fps <= frameRateOptimal) return PerformanceStatus.optimal;
+    if (fps <= frameRateGood) return PerformanceStatus.good;
+    if (fps <= frameRateWarning) return PerformanceStatus.warning;
     return PerformanceStatus.critical;
   }
 }
@@ -239,6 +239,21 @@ class PerformanceMetric {
 
   /// 获取状态
   PerformanceStatus getStatus(double value) {
+    // 对于frame_rate指标，使用反向逻辑
+    if (name == 'frame_rate') {
+      if (value <= thresholds[PerformanceStatus.optimal]!) {
+        return PerformanceStatus.optimal;
+      }
+      if (value <= thresholds[PerformanceStatus.good]!) {
+        return PerformanceStatus.good;
+      }
+      if (value <= thresholds[PerformanceStatus.warning]!) {
+        return PerformanceStatus.warning;
+      }
+      return PerformanceStatus.critical;
+    }
+
+    // 对于其他指标，使用正常逻辑
     if (value <= thresholds[PerformanceStatus.optimal]!) {
       return PerformanceStatus.optimal;
     }
@@ -347,10 +362,10 @@ class PredefinedMetrics {
       category: PerformanceCategory.ui,
       unit: 'FPS',
       thresholds: {
-        PerformanceStatus.optimal: 60.0,
-        PerformanceStatus.good: 55.0,
-        PerformanceStatus.warning: 45.0,
-        PerformanceStatus.critical: 30.0,
+        PerformanceStatus.optimal: 120.0,
+        PerformanceStatus.good: 200.0,
+        PerformanceStatus.warning: 300.0,
+        PerformanceStatus.critical: 500.0,
       },
     ),
 

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import '../utils/logger.dart';
 
 /// 请求去重管理器
@@ -32,10 +33,33 @@ class RequestDeduplicationManager {
     Duration? cacheExpiration,
   }) async {
     final effectiveKey = _normalizeKey(requestKey);
-    // 设置更合理的默认超时时间，并限制最大超时时间
-    const defaultTimeout = Duration(seconds: 5);
-    const maxTimeout = Duration(seconds: 30);
-    final userTimeout = timeout ?? defaultTimeout;
+    // 智能超时配置：根据请求类型动态调整超时时间
+    const defaultTimeout = Duration(seconds: 10);
+    const maxTimeout = Duration(seconds: 120); // 提高最大超时限制到120秒
+    const dataIntensiveTimeout = Duration(seconds: 120); // 数据密集型请求使用120秒超时
+
+    Duration userTimeout;
+    if (timeout != null) {
+      userTimeout = timeout;
+    } else {
+      // 根据请求键自动识别请求类型
+      if (requestKey.contains('fund_') &&
+          (requestKey.contains('ranking') ||
+              requestKey.contains('all') ||
+              requestKey.contains(
+                  'ee2c7301ecd5faf47bc98ea368625611') || // 基金排行请求的哈希标识
+              requestKey.length > 20 || // 长请求键通常表示复杂数据请求
+              RegExp(r'^fund_[a-f0-9]{32}$').hasMatch(requestKey))) {
+        // 基金数据请求的哈希格式
+        // 基金排行或全部数据请求，使用更长的超时时间
+        userTimeout = dataIntensiveTimeout;
+        AppLogger.debug(
+            '🎯 检测到数据密集型请求，使用延长超时: [$requestKey] (${userTimeout.inSeconds}秒)');
+      } else {
+        userTimeout = defaultTimeout;
+      }
+    }
+
     final effectiveTimeout =
         userTimeout > maxTimeout ? maxTimeout : userTimeout;
 
@@ -162,6 +186,32 @@ class RequestDeduplicationManager {
   /// 获取请求统计信息
   RequestStats getStats() => _stats.getSnapshot();
 
+  /// 增强错误信息，提供更详细的上下文
+  dynamic _enhanceErrorMessage(
+      dynamic error, String requestKey, Duration timeout) {
+    if (error is TimeoutException) {
+      return TimeoutException(
+        '请求超时详情: [$requestKey] - 设定超时: ${timeout.inSeconds}秒 - 建议: 检查网络连接或减少数据请求量',
+        timeout,
+      );
+    } else if (error is SocketException) {
+      return SocketException(
+        '网络连接错误: [$requestKey] - ${error.message} - 建议: 检查网络状态或API服务器可用性',
+        address: error.address,
+        osError: error.osError,
+        port: error.port,
+      );
+    } else if (error is HttpException) {
+      return HttpException(
+        'HTTP请求错误: [$requestKey] - ${error.message} - 建议: 检查API端点或请求参数',
+        uri: error.uri,
+      );
+    }
+
+    // 对于其他类型的错误，添加请求键上下文
+    return Exception('请求执行失败: [$requestKey] - 原始错误: ${error.toString()}');
+  }
+
   /// 标准化请求键
   String _normalizeKey(String requestKey) {
     // 移除多余空格并转换为小写
@@ -175,7 +225,7 @@ class RequestDeduplicationManager {
     required String requestKey,
   }) async {
     final warningThreshold = Duration(
-      milliseconds: (timeout.inMilliseconds * 0.6).round(), // 提前到60%时警告
+      milliseconds: (timeout.inMilliseconds * 0.5).round(), // 提前到50%时警告，更早提醒
     );
 
     Timer? warningTimer;
@@ -201,9 +251,11 @@ class RequestDeduplicationManager {
       // 设置主超时定时器
       timeoutTimer = Timer(timeout, () {
         if (timeoutCompleter != null && !timeoutCompleter.isCompleted) {
-          AppLogger.warn('⏰ 请求主超时触发: [$requestKey] (${timeout.inSeconds}秒)');
+          AppLogger.warn(
+              '⏰ 请求主超时触发: [$requestKey] (${timeout.inSeconds}秒) - 建议检查网络连接或API状态');
           timeoutCompleter.completeError(
-            TimeoutException('请求执行超时: [$requestKey]', timeout),
+            TimeoutException(
+                '请求执行超时: [$requestKey] - 耗时${timeout.inSeconds}秒', timeout),
             StackTrace.current,
           );
         }
@@ -231,7 +283,10 @@ class RequestDeduplicationManager {
         }
       }).catchError((error, stackTrace) {
         if (timeoutCompleter != null && !timeoutCompleter.isCompleted) {
-          timeoutCompleter.completeError(error, stackTrace);
+          // 增强错误信息，提供更多上下文
+          final enhancedError =
+              _enhanceErrorMessage(error, requestKey, timeout);
+          timeoutCompleter.completeError(enhancedError, stackTrace);
         }
       });
 

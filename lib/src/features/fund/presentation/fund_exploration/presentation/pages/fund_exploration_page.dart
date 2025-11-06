@@ -9,6 +9,7 @@ import '../widgets/market_dynamics_section.dart';
 import '../widgets/fund_comparison_tool.dart';
 import '../widgets/investment_calculator.dart';
 import '../widgets/fund_card.dart';
+import '../widgets/tool_panel_container.dart';
 import '../../domain/models/fund.dart' as exploration_fund;
 import '../../domain/models/fund_filter.dart';
 import '../cubit/fund_exploration_cubit.dart';
@@ -1256,12 +1257,8 @@ class _FundExplorationPageContentState
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // 基金对比工具
-          FundComparisonTool(),
-          SizedBox(height: 16),
-
-          // 定投计算器
-          InvestmentCalculator(),
+          // 可折叠工具面板容器
+          ToolPanelContainer(),
         ],
       ),
     );
@@ -1271,26 +1268,14 @@ class _FundExplorationPageContentState
   Widget _buildCollapsibleRightTools() {
     return const Card(
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.all(8),
         child: SingleChildScrollView(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                '工具箱',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+              // 可折叠工具面板容器（紧凑模式）
+              ToolPanelContainer(
+                config: ToolPanelConfig.compactConfig,
               ),
-              SizedBox(height: 16),
-
-              // 基金对比工具
-              FundComparisonTool(),
-              SizedBox(height: 16),
-
-              // 定投计算器
-              InvestmentCalculator(),
             ],
           ),
         ),
@@ -1349,42 +1334,81 @@ class _FundExplorationPageContentState
     );
   }
 
-  /// 显示基金对比对话框
-  void _showComparisonDialog(BuildContext context) {
+  /// 显示工具面板对话框
+  void _showToolPanelDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('基金对比'),
-        content: const SingleChildScrollView(
-          child: FundComparisonTool(),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('关闭'),
+      builder: (context) => Dialog(
+        child: SizedBox(
+          width: MediaQuery.of(context).size.width * 0.9,
+          height: MediaQuery.of(context).size.height * 0.8,
+          child: Column(
+            children: [
+              // 对话框标题
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF1E40AF), Color(0xFF3B82F6)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(12),
+                    topRight: Radius.circular(12),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.build_circle_outlined,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Text(
+                        '投资工具箱',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.close, color: Colors.white),
+                    ),
+                  ],
+                ),
+              ),
+
+              // 工具面板内容
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: const ToolPanelContainer(
+                    showHeader: false,
+                    config: ToolPanelConfig.compactConfig,
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
+  /// 显示基金对比对话框
+  void _showComparisonDialog(BuildContext context) {
+    _showToolPanelDialog(context);
+  }
+
   /// 显示定投计算器对话框
   void _showCalculatorDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('定投计算器'),
-        content: const SingleChildScrollView(
-          child: InvestmentCalculator(),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('关闭'),
-          ),
-        ],
-      ),
-    );
+    _showToolPanelDialog(context);
   }
 
   /// 显示更多工具菜单
