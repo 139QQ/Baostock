@@ -1,3 +1,6 @@
+// 为了向后兼容，创建 FundData 的类型别名
+typedef FundData = Fund;
+
 class Fund {
   final String code;
   final String name;

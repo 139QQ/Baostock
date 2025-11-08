@@ -473,6 +473,75 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
     }
   }
 
+  /// 通过基金代码切换收藏状态
+  void toggleFavorite(String fundCode) {
+    final currentFavorites = Set<String>.from(state.favoriteFunds);
+
+    if (currentFavorites.contains(fundCode)) {
+      currentFavorites.remove(fundCode);
+      AppLogger.debug('💔 FundExplorationCubit: 已取消收藏基金 $fundCode');
+    } else {
+      currentFavorites.add(fundCode);
+      AppLogger.debug('❤️ FundExplorationCubit: 已收藏基金 $fundCode');
+    }
+
+    emit(state.copyWith(favoriteFunds: currentFavorites));
+  }
+
+  /// 通过基金代码切换对比状态
+  void toggleComparisonByCode(String fundCode) {
+    final currentComparing = Set<String>.from(state.comparingFunds);
+
+    if (currentComparing.contains(fundCode)) {
+      currentComparing.remove(fundCode);
+      AppLogger.debug('📊 FundExplorationCubit: 已移除对比基金 $fundCode');
+    } else {
+      // 限制对比基金数量（最多5个）
+      if (currentComparing.length >= 5) {
+        AppLogger.debug('⚠️ FundExplorationCubit: 对比列表已满（最多5个）');
+        return;
+      }
+      currentComparing.add(fundCode);
+      AppLogger.debug('📊 FundExplorationCubit: 已添加对比基金 $fundCode');
+    }
+
+    emit(state.copyWith(comparingFunds: currentComparing));
+  }
+
+  /// 清除搜索状态
+  void clearSearch() {
+    emit(state.copyWith(
+      status: FundExplorationStatus.loaded,
+      searchResults: [],
+      searchQuery: '',
+      errorMessage: null,
+    ));
+    AppLogger.debug('🔍 FundExplorationCubit: 已清除搜索状态');
+  }
+
+  /// 添加到搜索历史
+  void addToSearchHistory(String query) {
+    final currentHistory = List<String>.from(state.searchHistory);
+
+    // 移除重复项
+    currentHistory.remove(query);
+
+    // 添加到开头
+    currentHistory.insert(0, query);
+
+    // 限制历史记录数量
+    final limitedHistory = currentHistory.take(10).toList();
+
+    emit(state.copyWith(searchHistory: limitedHistory));
+    AppLogger.debug('📝 FundExplorationCubit: 已添加到搜索历史: $query');
+  }
+
+  /// 更新搜索查询
+  void updateSearchQuery(String query) {
+    emit(state.copyWith(searchQuery: query));
+    AppLogger.debug('🔍 FundExplorationCubit: 已更新搜索查询: $query');
+  }
+
   /// 初始化方法（兼容性）
   Future<void> initialize() async {
     AppLogger.debug('🔄 FundExplorationCubit: 初始化');

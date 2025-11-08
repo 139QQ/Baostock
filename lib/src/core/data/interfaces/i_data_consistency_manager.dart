@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'i_unified_data_source.dart';
-import 'i_data_router.dart';
 
 /// 数据一致性管理器接口
 ///
@@ -220,6 +218,88 @@ abstract class IDataConsistencyManager {
 
   /// 获取一致性规则
   Future<List<ConsistencyRule>> getConsistencyRules();
+
+  // ===== 断线缓存和恢复接口 =====
+
+  /// 记录数据变更（用于断线期间缓存）
+  ///
+  /// [dataType] 数据类型
+  /// [dataKey] 数据键
+  /// [data] 数据内容
+  /// [sourceId] 数据源ID
+  /// [changeType] 变更类型
+  /// [previousData] 变更前的数据
+  /// [metadata] 变更元数据
+  Future<void> recordDataChange({
+    required String dataType,
+    required String dataKey,
+    required Map<String, dynamic> data,
+    required String sourceId,
+    String changeType = 'update',
+    Map<String, dynamic>? previousData,
+    Map<String, dynamic>? metadata,
+  });
+
+  /// 获取断线期间缓存的数据变更
+  ///
+  /// [since] 起始时间
+  /// [dataType] 数据类型过滤
+  /// [sourceId] 数据源过滤
+  ///
+  /// 返回缓存的变更记录列表
+  Future<List<OfflineDataChange>> getCachedChanges({
+    DateTime? since,
+    String? dataType,
+    String? sourceId,
+  });
+
+  /// 清理过期的缓存数据
+  ///
+  /// [olderThan] 清理多久之前的数据
+  Future<void> cleanupExpiredCache({Duration? olderThan});
+
+  /// 同步缓存的变更到远程数据源
+  ///
+  /// [sourceId] 目标数据源ID
+  /// [changeIds] 要同步的变更ID列表，为空则同步所有
+  ///
+  /// 返回同步结果
+  Future<OfflineSyncResult> syncCachedChanges({
+    String? sourceId,
+    List<String>? changeIds,
+  });
+
+  /// 检测数据冲突（本地缓存 vs 远程数据）
+  ///
+  /// [dataKey] 数据键
+  /// [localData] 本地缓存数据
+  /// [remoteData] 远程数据
+  /// [remoteChecksum] 远程数据校验和
+  ///
+  /// 返回是否存在冲突
+  bool detectDataConflict(
+    String dataKey,
+    Map<String, dynamic> localData,
+    Map<String, dynamic> remoteData,
+    String remoteChecksum,
+  );
+
+  /// 解决数据冲突
+  ///
+  /// [dataKey] 数据键
+  /// [strategy] 解决策略
+  /// [resolvedData] 解决后的数据
+  Future<void> resolveDataConflict({
+    required String dataKey,
+    required ConflictResolutionStrategy strategy,
+    Map<String, dynamic>? resolvedData,
+  });
+
+  /// 获取缓存统计信息
+  Future<OfflineCacheStats> getCacheStats();
+
+  /// 获取离线同步状态
+  Future<OfflineSyncStatus> getOfflineSyncStatus();
 }
 
 /// 一致性验证结果
@@ -1857,4 +1937,490 @@ enum RecommendationType {
 
   /// 同步优化
   synchronization,
+}
+
+// ===== 离线缓存相关数据类 =====
+
+/// 离线数据变更记录
+class OfflineDataChange {
+  /// 变更ID
+  final String changeId;
+
+  /// 数据类型
+  final String dataType;
+
+  /// 数据键
+  final String dataKey;
+
+  /// 变更类型
+  final String changeType;
+
+  /// 变更前的数据
+  final Map<String, dynamic>? previousData;
+
+  /// 变更后的数据
+  Map<String, dynamic>? newData;
+
+  /// 变更时间戳
+  final DateTime timestamp;
+
+  /// 数据源ID
+  final String sourceId;
+
+  /// 数据版本
+  final int version;
+
+  /// 数据校验和
+  String? checksum;
+
+  /// 变更元数据
+  final Map<String, dynamic> metadata;
+
+  /// 是否已同步
+  bool isSynced;
+
+  /// 同步失败次数
+  int syncFailureCount;
+
+  /// 最后同步时间
+  DateTime? lastSyncTime;
+
+  /// 同步错误信息
+  String? syncError;
+
+  OfflineDataChange({
+    required this.changeId,
+    required this.dataType,
+    required this.dataKey,
+    required this.changeType,
+    this.previousData,
+    this.newData,
+    required this.timestamp,
+    required this.sourceId,
+    required this.version,
+    this.checksum,
+    this.metadata = const {},
+    this.isSynced = false,
+    this.syncFailureCount = 0,
+    this.lastSyncTime,
+    this.syncError,
+  });
+
+  /// 转换为JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'changeId': changeId,
+      'dataType': dataType,
+      'dataKey': dataKey,
+      'changeType': changeType,
+      'previousData': previousData,
+      'newData': newData,
+      'timestamp': timestamp.toIso8601String(),
+      'sourceId': sourceId,
+      'version': version,
+      'checksum': checksum,
+      'metadata': metadata,
+      'isSynced': isSynced,
+      'syncFailureCount': syncFailureCount,
+      'lastSyncTime': lastSyncTime?.toIso8601String(),
+      'syncError': syncError,
+    };
+  }
+
+  /// 从JSON创建
+  factory OfflineDataChange.fromJson(Map<String, dynamic> json) {
+    return OfflineDataChange(
+      changeId: json['changeId'] as String,
+      dataType: json['dataType'] as String,
+      dataKey: json['dataKey'] as String,
+      changeType: json['changeType'] as String,
+      previousData: json['previousData'] as Map<String, dynamic>?,
+      newData: json['newData'] as Map<String, dynamic>?,
+      timestamp: DateTime.parse(json['timestamp'] as String),
+      sourceId: json['sourceId'] as String,
+      version: json['version'] as int,
+      checksum: json['checksum'] as String?,
+      metadata: json['metadata'] as Map<String, dynamic>? ?? {},
+      isSynced: json['isSynced'] as bool? ?? false,
+      syncFailureCount: json['syncFailureCount'] as int? ?? 0,
+      lastSyncTime: json['lastSyncTime'] != null
+          ? DateTime.parse(json['lastSyncTime'] as String)
+          : null,
+      syncError: json['syncError'] as String?,
+    );
+  }
+
+  /// 标记为已同步
+  void markAsSynced() {
+    isSynced = true;
+    syncFailureCount = 0;
+    syncError = null;
+    lastSyncTime = DateTime.now();
+  }
+
+  /// 标记同步失败
+  void markSyncFailed(String error) {
+    syncFailureCount++;
+    syncError = error;
+  }
+
+  /// 是否可以重试同步
+  bool get canRetrySync => syncFailureCount < 3;
+}
+
+/// 离线同步结果
+class OfflineSyncResult {
+  /// 同步是否成功
+  final bool success;
+
+  /// 同步的变更数量
+  final int syncedChangesCount;
+
+  /// 失败的变更数量
+  final int failedChangesCount;
+
+  /// 跳过的变更数量
+  final int skippedChangesCount;
+
+  /// 同步耗时
+  final Duration syncDuration;
+
+  /// 同步时间
+  final DateTime syncTime;
+
+  /// 冲突数量
+  final int conflictCount;
+
+  /// 解决的冲突数量
+  final int resolvedConflictsCount;
+
+  /// 详细结果
+  final List<OfflineSyncItemResult> itemResults;
+
+  /// 错误信息
+  final String? error;
+
+  const OfflineSyncResult({
+    required this.success,
+    required this.syncedChangesCount,
+    required this.failedChangesCount,
+    required this.skippedChangesCount,
+    required this.syncDuration,
+    required this.syncTime,
+    required this.conflictCount,
+    required this.resolvedConflictsCount,
+    required this.itemResults,
+    this.error,
+  });
+
+  /// 总变更数量
+  int get totalChangesCount =>
+      syncedChangesCount + failedChangesCount + skippedChangesCount;
+
+  /// 同步成功率
+  double get syncSuccessRate =>
+      totalChangesCount > 0 ? syncedChangesCount / totalChangesCount : 0.0;
+
+  /// 冲突解决率
+  double get conflictResolutionRate =>
+      conflictCount > 0 ? resolvedConflictsCount / conflictCount : 1.0;
+}
+
+/// 离线同步单项结果
+class OfflineSyncItemResult {
+  /// 变更ID
+  final String changeId;
+
+  /// 数据键
+  final String dataKey;
+
+  /// 同步是否成功
+  final bool success;
+
+  /// 同步耗时
+  final Duration syncDuration;
+
+  /// 错误信息
+  final String? error;
+
+  /// 是否检测到冲突
+  final bool hasConflict;
+
+  /// 冲突解决策略
+  final ConflictResolutionStrategy? conflictResolutionStrategy;
+
+  /// 冲突是否已解决
+  final bool conflictResolved;
+
+  const OfflineSyncItemResult({
+    required this.changeId,
+    required this.dataKey,
+    required this.success,
+    required this.syncDuration,
+    this.error,
+    this.hasConflict = false,
+    this.conflictResolutionStrategy,
+    this.conflictResolved = false,
+  });
+}
+
+/// 离线缓存统计信息
+class OfflineCacheStats {
+  /// 缓存的变更总数
+  final int totalChangesCount;
+
+  /// 已同步的变更数量
+  final int syncedChangesCount;
+
+  /// 待同步的变更数量
+  final int pendingChangesCount;
+
+  /// 失败的变更数量
+  final int failedChangesCount;
+
+  /// 缓存大小（字节）
+  final int cacheSizeBytes;
+
+  /// 最早变更时间
+  final DateTime? earliestChangeTime;
+
+  /// 最晚变更时间
+  final DateTime? latestChangeTime;
+
+  /// 按数据类型分组的统计
+  final Map<String, int> changesByDataType;
+
+  /// 按数据源分组的统计
+  final Map<String, int> changesByDataSource;
+
+  /// 冲突数量
+  final int conflictCount;
+
+  /// 过期变更数量
+  final int expiredChangesCount;
+
+  const OfflineCacheStats({
+    required this.totalChangesCount,
+    required this.syncedChangesCount,
+    required this.pendingChangesCount,
+    required this.failedChangesCount,
+    required this.cacheSizeBytes,
+    this.earliestChangeTime,
+    this.latestChangeTime,
+    required this.changesByDataType,
+    required this.changesByDataSource,
+    required this.conflictCount,
+    required this.expiredChangesCount,
+  });
+
+  /// 缓存使用率
+  double get cacheUtilizationRate => totalChangesCount > 0
+      ? (syncedChangesCount + pendingChangesCount) / totalChangesCount
+      : 0.0;
+
+  /// 同步成功率
+  double get syncSuccessRate =>
+      totalChangesCount > 0 ? syncedChangesCount / totalChangesCount : 0.0;
+}
+
+/// 离线同步状态
+class OfflineSyncStatus {
+  /// 是否正在同步
+  final bool isSyncing;
+
+  /// 同步进度 (0.0 - 1.0)
+  final double progress;
+
+  /// 当前同步的变更ID
+  final String? currentChangeId;
+
+  /// 预计剩余时间
+  final Duration? estimatedRemainingTime;
+
+  /// 同步开始时间
+  final DateTime? syncStartTime;
+
+  /// 最后同步时间
+  final DateTime? lastSyncTime;
+
+  /// 同步错误
+  final String? syncError;
+
+  /// 自动同步是否启用
+  final bool autoSyncEnabled;
+
+  /// 下次自动同步时间
+  final DateTime? nextAutoSyncTime;
+
+  const OfflineSyncStatus({
+    required this.isSyncing,
+    required this.progress,
+    this.currentChangeId,
+    this.estimatedRemainingTime,
+    this.syncStartTime,
+    this.lastSyncTime,
+    this.syncError,
+    required this.autoSyncEnabled,
+    this.nextAutoSyncTime,
+  });
+}
+
+// ===== 基础数据类型定义 =====
+
+/// 数据源
+class DataSource {
+  /// 数据源ID
+  final String id;
+
+  /// 数据源名称
+  final String name;
+
+  /// 数据源类型
+  final DataSourceType type;
+
+  /// 健康状态
+  final HealthStatus healthStatus;
+
+  /// 连接配置
+  final Map<String, dynamic> connectionConfig;
+
+  /// 创建时间
+  final DateTime createdAt;
+
+  /// 最后更新时间
+  final DateTime lastUpdated;
+
+  const DataSource({
+    required this.id,
+    required this.name,
+    required this.type,
+    this.healthStatus = HealthStatus.healthy,
+    required this.connectionConfig,
+    required this.createdAt,
+    required this.lastUpdated,
+  });
+}
+
+/// 数据源类型
+enum DataSourceType {
+  /// 本地缓存
+  localCache,
+
+  /// 远程API
+  remoteAPI,
+
+  /// 数据库
+  database,
+
+  /// 文件系统
+  fileSystem,
+
+  /// 实时流
+  realtime,
+}
+
+/// 健康状态
+enum HealthStatus {
+  /// 健康
+  healthy,
+
+  /// 警告
+  warning,
+
+  /// 错误
+  error,
+
+  /// 离线
+  offline,
+}
+
+/// 增量同步结果
+class IncrementalSyncResult {
+  /// 同步是否成功
+  final bool success;
+
+  /// 变更列表
+  final List<DataChange> changes;
+
+  /// 同步耗时
+  final Duration duration;
+
+  /// 错误信息
+  final String? error;
+
+  const IncrementalSyncResult({
+    required this.success,
+    required this.changes,
+    required this.duration,
+    this.error,
+  });
+}
+
+/// 数据变更
+class DataChange {
+  /// 变更ID
+  final String id;
+
+  /// 变更类型
+  final ChangeType changeType;
+
+  /// 数据项类型
+  final String itemType;
+
+  /// 数据项ID
+  final String itemId;
+
+  /// 变更时间
+  final DateTime timestamp;
+
+  /// 变更内容
+  final Map<String, dynamic>? changeData;
+
+  const DataChange({
+    required this.id,
+    required this.changeType,
+    required this.itemType,
+    required this.itemId,
+    required this.timestamp,
+    this.changeData,
+  });
+}
+
+/// 变更类型
+enum ChangeType {
+  /// 创建
+  create,
+
+  /// 更新
+  update,
+
+  /// 删除
+  delete,
+}
+
+/// 动作类型
+enum ActionType {
+  /// 刷新缓存
+  refreshCache,
+
+  /// 重新同步
+  resync,
+
+  /// 数据回滚
+  rollback,
+
+  /// 数据合并
+  merge,
+
+  /// 告警通知
+  alert,
+
+  /// 日志记录
+  log,
+
+  /// 数据验证
+  validate,
+
+  /// 自动修复
+  autoRepair,
 }

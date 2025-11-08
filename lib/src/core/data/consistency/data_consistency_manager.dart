@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:math' as math;
 
+import 'package:crypto/crypto.dart';
+
 import '../interfaces/i_data_consistency_manager.dart';
-import '../interfaces/i_data_router.dart';
-import '../interfaces/i_unified_data_source.dart';
+import '../interfaces/i_data_router.dart' as router;
 
 /// 数据一致性管理器实现
 ///
@@ -16,7 +18,7 @@ class DataConsistencyManager implements IDataConsistencyManager {
   // ========================================================================
 
   final List<DataSource> _dataSources;
-  final IDataRouter _dataRouter;
+  final router.IDataRouter _dataRouter;
 
   // 版本控制存储
   final Map<String, List<DataVersion>> _versionHistory = {};
@@ -32,6 +34,20 @@ class DataConsistencyManager implements IDataConsistencyManager {
 
   // 一致性规则
   List<ConsistencyRule> _consistencyRules = [];
+
+  // 离线缓存管理
+  final Map<String, OfflineDataChange> _offlineChanges = {};
+  final Map<String, List<OfflineDataChange>> _changesByDataKey = {};
+  final Map<String, List<OfflineDataChange>> _changesByDataType = {};
+  final Map<String, List<OfflineDataChange>> _changesByDataSource = {};
+
+  // 离线同步状态
+  bool _isOfflineSyncing = false;
+  double _offlineSyncProgress = 0.0;
+  String? _currentOfflineChangeId;
+  DateTime? _offlineSyncStartTime;
+  bool _autoOfflineSyncEnabled = true;
+  DateTime? _nextAutoOfflineSyncTime;
 
   // 监控和指标
   final Map<String, List<ConsistencyTrendPoint>> _consistencyTrends = {};
@@ -61,7 +77,7 @@ class DataConsistencyManager implements IDataConsistencyManager {
 
   DataConsistencyManager({
     required List<DataSource> dataSources,
-    required IDataRouter dataRouter,
+    required router.IDataRouter dataRouter,
     ConsistencyManagerConfig? config,
   })  : _dataSources = dataSources,
         _dataRouter = dataRouter,
@@ -1961,6 +1977,531 @@ class DataConsistencyManager implements IDataConsistencyManager {
     // 实现一致性规则验证逻辑
   }
 
+  // ===== 断线缓存和恢复接口实现 =====
+
+  @override
+  Future<void> recordDataChange({
+    required String dataType,
+    required String dataKey,
+    required Map<String, dynamic> data,
+    required String sourceId,
+    String changeType = 'update',
+    Map<String, dynamic>? previousData,
+    Map<String, dynamic>? metadata,
+  }) async {
+    _ensureInitialized();
+
+    try {
+      final changeId = _generateChangeId();
+      final timestamp = DateTime.now();
+      final version = _getNextVersionNumber(dataType, dataKey);
+      final checksum = _calculateChecksum(data);
+
+      final change = OfflineDataChange(
+        changeId: changeId,
+        dataType: dataType,
+        dataKey: dataKey,
+        changeType: changeType,
+        previousData: previousData,
+        newData: data,
+        timestamp: timestamp,
+        sourceId: sourceId,
+        version: version,
+        checksum: checksum,
+        metadata: metadata ?? {},
+      );
+
+      // 存储变更记录
+      _offlineChanges[changeId] = change;
+
+      // 按数据键索引
+      _changesByDataKey.putIfAbsent(dataKey, () => []).add(change);
+
+      // 按数据类型索引
+      _changesByDataType.putIfAbsent(dataType, () => []).add(change);
+
+      // 按数据源索引
+      _changesByDataSource.putIfAbsent(sourceId, () => []).add(change);
+
+      developer.log('📝 记录离线数据变更: $dataKey ($changeType)',
+          name: 'DataConsistencyManager');
+
+      // 触发自动同步检查
+      _checkAutoOfflineSync();
+    } catch (e) {
+      developer.log('❌ 记录离线数据变更失败: $dataKey - $e',
+          name: 'DataConsistencyManager', level: 1000);
+      rethrow;
+    }
+  }
+
+  @override
+  Future<List<OfflineDataChange>> getCachedChanges({
+    DateTime? since,
+    String? dataType,
+    String? sourceId,
+  }) async {
+    _ensureInitialized();
+
+    try {
+      var changes = _offlineChanges.values.toList();
+
+      // 时间过滤
+      if (since != null) {
+        changes =
+            changes.where((change) => change.timestamp.isAfter(since)).toList();
+      }
+
+      // 数据类型过滤
+      if (dataType != null) {
+        changes =
+            changes.where((change) => change.dataType == dataType).toList();
+      }
+
+      // 数据源过滤
+      if (sourceId != null) {
+        changes =
+            changes.where((change) => change.sourceId == sourceId).toList();
+      }
+
+      // 按时间排序（最新的在前）
+      changes.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+
+      return changes;
+    } catch (e) {
+      developer.log('❌ 获取缓存变更失败: $e',
+          name: 'DataConsistencyManager', level: 1000);
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> cleanupExpiredCache({Duration? olderThan}) async {
+    _ensureInitialized();
+
+    try {
+      final cutoff = olderThan ?? const Duration(days: 7);
+      final cutoffTime = DateTime.now().subtract(cutoff);
+
+      final expiredChanges = <String>[];
+      int removedCount = 0;
+
+      for (final entry in _offlineChanges.entries) {
+        if (entry.value.timestamp.isBefore(cutoffTime)) {
+          expiredChanges.add(entry.key);
+        }
+      }
+
+      // 移除过期变更
+      for (final changeId in expiredChanges) {
+        final change = _offlineChanges[changeId]!;
+
+        _offlineChanges.remove(changeId);
+        _changesByDataKey[change.dataKey]?.remove(change);
+        _changesByDataType[change.dataType]?.remove(change);
+        _changesByDataSource[change.sourceId]?.remove(change);
+
+        removedCount++;
+      }
+
+      // 清理空列表
+      _changesByDataKey.removeWhere((key, value) => value.isEmpty);
+      _changesByDataType.removeWhere((key, value) => value.isEmpty);
+      _changesByDataSource.removeWhere((key, value) => value.isEmpty);
+
+      developer.log('🧹 清理过期缓存: 移除 $removedCount 个变更',
+          name: 'DataConsistencyManager');
+    } catch (e) {
+      developer.log('❌ 清理过期缓存失败: $e',
+          name: 'DataConsistencyManager', level: 1000);
+    }
+  }
+
+  @override
+  Future<OfflineSyncResult> syncCachedChanges({
+    String? sourceId,
+    List<String>? changeIds,
+  }) async {
+    _ensureInitialized();
+
+    if (_isOfflineSyncing) {
+      throw StateError('离线同步正在进行中');
+    }
+
+    final stopwatch = Stopwatch()..start();
+    final syncTime = DateTime.now();
+
+    try {
+      _isOfflineSyncing = true;
+      _offlineSyncStartTime = syncTime;
+      _offlineSyncProgress = 0.0;
+
+      developer.log(
+          '🔄 开始离线同步: ${sourceId ?? '所有源'}, ${changeIds?.length ?? '全部'} 个变更',
+          name: 'DataConsistencyManager');
+
+      // 获取要同步的变更
+      final changesToSync = _getChangesToSync(sourceId, changeIds);
+
+      if (changesToSync.isEmpty) {
+        return OfflineSyncResult(
+          success: true,
+          syncedChangesCount: 0,
+          failedChangesCount: 0,
+          skippedChangesCount: 0,
+          syncDuration: stopwatch.elapsed,
+          syncTime: syncTime,
+          conflictCount: 0,
+          resolvedConflictsCount: 0,
+          itemResults: [],
+        );
+      }
+
+      final itemResults = <OfflineSyncItemResult>[];
+      int syncedCount = 0;
+      int failedCount = 0;
+      int skippedCount = 0;
+      int conflictCount = 0;
+      int resolvedConflictCount = 0;
+
+      // 逐个同步变更
+      for (int i = 0; i < changesToSync.length; i++) {
+        final change = changesToSync[i];
+        _currentOfflineChangeId = change.changeId;
+        _offlineSyncProgress = (i + 1) / changesToSync.length;
+
+        try {
+          // 检查冲突
+          final hasConflict = await _checkChangeConflict(change);
+          bool conflictResolved = false;
+
+          if (hasConflict) {
+            conflictCount++;
+            conflictResolved = await _resolveChangeConflict(change);
+            if (conflictResolved) {
+              resolvedConflictCount++;
+            }
+          }
+
+          // 执行同步
+          await _syncSingleChange(change);
+
+          // 标记为已同步
+          change.markAsSynced();
+          syncedCount++;
+
+          itemResults.add(OfflineSyncItemResult(
+            changeId: change.changeId,
+            dataKey: change.dataKey,
+            success: true,
+            syncDuration: stopwatch.elapsed,
+            hasConflict: hasConflict,
+            conflictResolved: conflictResolved,
+          ));
+        } catch (e) {
+          failedCount++;
+          change.markSyncFailed(e.toString());
+
+          itemResults.add(OfflineSyncItemResult(
+            changeId: change.changeId,
+            dataKey: change.dataKey,
+            success: false,
+            syncDuration: stopwatch.elapsed,
+            error: e.toString(),
+          ));
+
+          developer.log('⚠️ 变更同步失败: ${change.dataKey} - $e',
+              name: 'DataConsistencyManager');
+        }
+      }
+
+      stopwatch.stop();
+
+      final result = OfflineSyncResult(
+        success: failedCount == 0,
+        syncedChangesCount: syncedCount,
+        failedChangesCount: failedCount,
+        skippedChangesCount: skippedCount,
+        syncDuration: stopwatch.elapsed,
+        syncTime: syncTime,
+        conflictCount: conflictCount,
+        resolvedConflictsCount: resolvedConflictCount,
+        itemResults: itemResults,
+      );
+
+      developer.log(
+          '✅ 离线同步完成: ${result.syncSuccessRate.toStringAsFixed(1)}% 成功率',
+          name: 'DataConsistencyManager');
+
+      return result;
+    } catch (e) {
+      stopwatch.stop();
+      developer.log('❌ 离线同步失败: $e',
+          name: 'DataConsistencyManager', level: 1000);
+
+      return OfflineSyncResult(
+        success: false,
+        syncedChangesCount: 0,
+        failedChangesCount: 0,
+        skippedChangesCount: 0,
+        syncDuration: stopwatch.elapsed,
+        syncTime: syncTime,
+        conflictCount: 0,
+        resolvedConflictsCount: 0,
+        itemResults: [],
+        error: e.toString(),
+      );
+    } finally {
+      _isOfflineSyncing = false;
+      _currentOfflineChangeId = null;
+      _offlineSyncProgress = 1.0;
+      _offlineSyncStartTime = null;
+    }
+  }
+
+  @override
+  bool detectDataConflict(
+    String dataKey,
+    Map<String, dynamic> localData,
+    Map<String, dynamic> remoteData,
+    String remoteChecksum,
+  ) {
+    try {
+      final localChecksum = _calculateChecksum(localData);
+      return localChecksum != remoteChecksum;
+    } catch (e) {
+      developer.log('❌ 检测数据冲突失败: $dataKey - $e',
+          name: 'DataConsistencyManager', level: 1000);
+      return false;
+    }
+  }
+
+  @override
+  Future<void> resolveDataConflict({
+    required String dataKey,
+    required ConflictResolutionStrategy strategy,
+    Map<String, dynamic>? resolvedData,
+  }) async {
+    try {
+      final changes = _changesByDataKey[dataKey] ?? [];
+
+      for (final change in changes) {
+        if (!change.isSynced && change.newData != null) {
+          switch (strategy) {
+            case ConflictResolutionStrategy.auto:
+            case ConflictResolutionStrategy.manual:
+            case ConflictResolutionStrategy.userChoice:
+              // 保持本地数据，标记为已解决
+              change.markAsSynced();
+              break;
+            case ConflictResolutionStrategy.latestWins:
+              // 使用远程数据
+              if (resolvedData != null) {
+                change.newData = resolvedData;
+                change.checksum = _calculateChecksum(resolvedData);
+                change.markAsSynced();
+              }
+              break;
+            case ConflictResolutionStrategy.earliestWins:
+              // 使用最旧版本数据
+              if (resolvedData != null) {
+                change.newData = resolvedData;
+                change.checksum = _calculateChecksum(resolvedData);
+                change.markAsSynced();
+              }
+              break;
+            case ConflictResolutionStrategy.merge:
+              // 合并数据（简化处理）
+              if (resolvedData != null) {
+                change.newData = resolvedData;
+                change.checksum = _calculateChecksum(resolvedData);
+                change.markAsSynced();
+              }
+              break;
+          }
+        }
+      }
+
+      developer.log('🔧 解决数据冲突: $dataKey (策略: ${strategy.name})',
+          name: 'DataConsistencyManager');
+    } catch (e) {
+      developer.log('❌ 解决数据冲突失败: $dataKey - $e',
+          name: 'DataConsistencyManager', level: 1000);
+      rethrow;
+    }
+  }
+
+  @override
+  Future<OfflineCacheStats> getCacheStats() async {
+    try {
+      int totalCount = _offlineChanges.length;
+      int syncedCount = _offlineChanges.values.where((c) => c.isSynced).length;
+      int pendingCount = _offlineChanges.values
+          .where((c) => !c.isSynced && c.syncFailureCount == 0)
+          .length;
+      int failedCount =
+          _offlineChanges.values.where((c) => c.syncFailureCount > 0).length;
+
+      // 计算缓存大小
+      int cacheSize = 0;
+      DateTime? earliestTime;
+      DateTime? latestTime;
+
+      for (final change in _offlineChanges.values) {
+        cacheSize += change.toString().length; // 简化计算
+        if (earliestTime == null || change.timestamp.isBefore(earliestTime)) {
+          earliestTime = change.timestamp;
+        }
+        if (latestTime == null || change.timestamp.isAfter(latestTime)) {
+          latestTime = change.timestamp;
+        }
+      }
+
+      // 按数据类型统计
+      final changesByType = <String, int>{};
+      for (final entry in _changesByDataType.entries) {
+        changesByType[entry.key] = entry.value.length;
+      }
+
+      // 按数据源统计
+      final changesBySource = <String, int>{};
+      for (final entry in _changesByDataSource.entries) {
+        changesBySource[entry.key] = entry.value.length;
+      }
+
+      // 冲突统计
+      int conflictCount = 0;
+      for (final change in _offlineChanges.values) {
+        if (change.metadata.containsKey('requiresManualResolution')) {
+          conflictCount++;
+        }
+      }
+
+      // 过期变更统计
+      final cutoff = DateTime.now().subtract(const Duration(days: 7));
+      int expiredCount = _offlineChanges.values
+          .where((c) => c.timestamp.isBefore(cutoff))
+          .length;
+
+      return OfflineCacheStats(
+        totalChangesCount: totalCount,
+        syncedChangesCount: syncedCount,
+        pendingChangesCount: pendingCount,
+        failedChangesCount: failedCount,
+        cacheSizeBytes: cacheSize,
+        earliestChangeTime: earliestTime,
+        latestChangeTime: latestTime,
+        changesByDataType: changesByType,
+        changesByDataSource: changesBySource,
+        conflictCount: conflictCount,
+        expiredChangesCount: expiredCount,
+      );
+    } catch (e) {
+      developer.log('❌ 获取缓存统计失败: $e',
+          name: 'DataConsistencyManager', level: 1000);
+      rethrow;
+    }
+  }
+
+  @override
+  Future<OfflineSyncStatus> getOfflineSyncStatus() async {
+    return OfflineSyncStatus(
+      isSyncing: _isOfflineSyncing,
+      progress: _offlineSyncProgress,
+      currentChangeId: _currentOfflineChangeId,
+      estimatedRemainingTime: _offlineSyncStartTime != null && _isOfflineSyncing
+          ? Duration(
+              milliseconds: ((DateTime.now()
+                              .difference(_offlineSyncStartTime!)
+                              .inMilliseconds /
+                          _offlineSyncProgress.clamp(0.01, 1.0)) *
+                      (1 - _offlineSyncProgress))
+                  .round())
+          : null,
+      syncStartTime: _offlineSyncStartTime,
+      lastSyncTime: _lastSyncTimes.values.isNotEmpty
+          ? _lastSyncTimes.values.reduce((a, b) => a.isAfter(b) ? a : b)
+          : null,
+      autoSyncEnabled: _autoOfflineSyncEnabled,
+      nextAutoSyncTime: _nextAutoOfflineSyncTime,
+    );
+  }
+
+  // ===== 离线同步私有辅助方法 =====
+
+  String _generateChangeId() {
+    return 'change_${DateTime.now().millisecondsSinceEpoch}_${math.Random().nextInt(10000)}';
+  }
+
+  String _calculateChecksum(Map<String, dynamic> data) {
+    try {
+      final jsonString = json.encode(data);
+      final bytes = utf8.encode(jsonString);
+      final digest = sha256.convert(bytes);
+      return digest.toString();
+    } catch (e) {
+      return 'checksum_error_${DateTime.now().millisecondsSinceEpoch}';
+    }
+  }
+
+  List<OfflineDataChange> _getChangesToSync(
+      String? sourceId, List<String>? changeIds) {
+    var changes =
+        _offlineChanges.values.where((change) => !change.isSynced).toList();
+
+    if (sourceId != null) {
+      changes = changes.where((change) => change.sourceId == sourceId).toList();
+    }
+
+    if (changeIds != null) {
+      changes = changes
+          .where((change) => changeIds.contains(change.changeId))
+          .toList();
+    }
+
+    // 优先同步失败次数较少的变更
+    changes.sort((a, b) => a.syncFailureCount.compareTo(b.syncFailureCount));
+
+    return changes;
+  }
+
+  Future<bool> _checkChangeConflict(OfflineDataChange change) async {
+    // 这里应该调用实际的远程数据检查
+    // 简化实现：假设没有冲突
+    return false;
+  }
+
+  Future<bool> _resolveChangeConflict(OfflineDataChange change) async {
+    // 这里应该实现实际的冲突解决逻辑
+    // 简化实现：自动使用本地数据
+    return true;
+  }
+
+  Future<void> _syncSingleChange(OfflineDataChange change) async {
+    // 这里应该调用实际的远程同步API
+    // 模拟网络延迟
+    await Future.delayed(
+        Duration(milliseconds: 100 + math.Random().nextInt(400)));
+
+    // 模拟偶尔的同步失败（5%概率）
+    if (math.Random().nextDouble() < 0.05) {
+      throw Exception('模拟网络错误');
+    }
+  }
+
+  void _checkAutoOfflineSync() {
+    if (!_autoOfflineSyncEnabled || _isOfflineSyncing) return;
+
+    final pendingChanges =
+        _offlineChanges.values.where((c) => !c.isSynced).length;
+    if (pendingChanges >= 10) {
+      // 累积10个变更时自动同步
+      _nextAutoOfflineSyncTime =
+          DateTime.now().add(const Duration(seconds: 30));
+      // 这里可以启动定时器进行自动同步
+    }
+  }
+
   /// 释放资源
   @override
   Future<void> dispose() async {
@@ -1983,6 +2524,17 @@ class DataConsistencyManager implements IDataConsistencyManager {
       _consistencyRules.clear();
       _consistencyTrends.clear();
       _metricsCache.clear();
+
+      // 清理离线缓存数据
+      _offlineChanges.clear();
+      _changesByDataKey.clear();
+      _changesByDataType.clear();
+      _changesByDataSource.clear();
+      _isOfflineSyncing = false;
+      _offlineSyncProgress = 0.0;
+      _currentOfflineChangeId = null;
+      _offlineSyncStartTime = null;
+      _nextAutoOfflineSyncTime = null;
 
       _isInitialized = false;
       developer.log('✅ 数据一致性管理器资源释放完成', name: 'DataConsistencyManager');

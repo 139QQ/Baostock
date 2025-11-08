@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_theme.dart' hide PerformanceLevel;
 import '../../domain/entities/fund_ranking.dart';
 import 'fund_ranking_card.dart';
 import 'performance_monitor.dart';
-import '../../../../core/theme/app_theme.dart' hide PerformanceLevel;
 
 /// 增强版基金排行榜卡片
 ///
@@ -13,6 +13,24 @@ import '../../../../core/theme/app_theme.dart' hide PerformanceLevel;
 /// - 性能监控和报告
 /// - 主题适配
 class EnhancedFundRankingCard extends StatefulWidget {
+  /// 创建增强版基金排行榜卡片
+  const EnhancedFundRankingCard({
+    super.key,
+    required this.ranking,
+    required this.position,
+    this.onTap,
+    this.onFavorite,
+    this.animationDelay,
+    this.showFavoriteButton = true,
+    this.showDetailButton = true,
+    this.enableGlassmorphism = true,
+    this.glassmorphismConfig,
+    this.enablePerformanceMonitoring = true,
+    this.performanceThresholds = PerformanceThresholds.balanced,
+    this.debugMode = false,
+    this.enableAutoDowngrade = true,
+  });
+
   /// 排行榜数据
   final FundRanking ranking;
 
@@ -52,23 +70,6 @@ class EnhancedFundRankingCard extends StatefulWidget {
   /// 是否启用自适应降级
   final bool enableAutoDowngrade;
 
-  const EnhancedFundRankingCard({
-    super.key,
-    required this.ranking,
-    required this.position,
-    this.onTap,
-    this.onFavorite,
-    this.animationDelay,
-    this.showFavoriteButton = true,
-    this.showDetailButton = true,
-    this.enableGlassmorphism = true,
-    this.glassmorphismConfig,
-    this.enablePerformanceMonitoring = true,
-    this.performanceThresholds = PerformanceThresholds.balanced,
-    this.debugMode = false,
-    this.enableAutoDowngrade = true,
-  });
-
   @override
   State<EnhancedFundRankingCard> createState() =>
       _EnhancedFundRankingCardState();
@@ -82,7 +83,7 @@ class _EnhancedFundRankingCardState extends State<EnhancedFundRankingCard> {
   void initState() {
     super.initState();
     _currentGlassmorphismConfig =
-        widget.glassmorphismConfig ?? AppTheme.defaultGlassmorphismConfig;
+        widget.glassmorphismConfig ?? FluentAppTheme.defaultGlassmorphismConfig;
   }
 
   void _onPerformanceUpdate(PerformanceMetrics metrics) {
@@ -142,8 +143,16 @@ class _EnhancedFundRankingCardState extends State<EnhancedFundRankingCard> {
 }
 
 /// 毛玻璃基金卡片工厂
+///
+/// 提供多种预设配置的增强卡片创建方法：
+/// - 默认配置：平衡性能和视觉效果
+/// - 性能优先：优化性能表现
+/// - 视觉优先：强调视觉效果
+/// - 调试模式：包含详细性能信息
 class GlassmorphismFundCardFactory {
   /// 创建默认配置的增强卡片
+  ///
+  /// 使用平衡的配置，在性能和视觉效果之间取得最佳平衡
   static EnhancedFundRankingCard createDefault({
     required FundRanking ranking,
     required int position,
@@ -161,6 +170,8 @@ class GlassmorphismFundCardFactory {
   }
 
   /// 创建性能优先的卡片
+  ///
+  /// 优化性能表现，适合低端设备或大量卡片的场景
   static EnhancedFundRankingCard createPerformanceFocused({
     required FundRanking ranking,
     required int position,
@@ -181,6 +192,8 @@ class GlassmorphismFundCardFactory {
   }
 
   /// 创建视觉效果优先的卡片
+  ///
+  /// 强调视觉效果，适合高端设备和少量卡片的场景
   static EnhancedFundRankingCard createVisualFocused({
     required FundRanking ranking,
     required int position,
@@ -201,6 +214,8 @@ class GlassmorphismFundCardFactory {
   }
 
   /// 创建调试模式的卡片
+  ///
+  /// 启用调试模式和详细性能信息，适合开发调试使用
   static EnhancedFundRankingCard createDebug({
     required FundRanking ranking,
     required int position,

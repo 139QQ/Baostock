@@ -286,9 +286,35 @@ class _AdaptiveFundCardState extends State<AdaptiveFundCard>
     _animationLevel = 2;
     _isInitialized = true;
 
+    // 立即初始化所有控制器，避免LateInitializationError
+    _initializeControllers();
+
     // 异步初始化用户偏好设置
     _initializeUserPreferences();
     _isFavorite = widget.fund.isFavorite;
+  }
+
+  /// 立即初始化所有动画控制器
+  void _initializeControllers() {
+    _hoverController = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+
+    _returnController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    _favoriteController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+
+    _scaleController = AnimationController(
+      duration: const Duration(milliseconds: 150),
+      vsync: this,
+    );
   }
 
   /// 初始化用户偏好设置
@@ -493,11 +519,8 @@ class _AdaptiveFundCardState extends State<AdaptiveFundCard>
     try {
       final duration = _animationLevel == 1 ? 100 : 200;
 
-      // 悬停动画控制器
-      _hoverController = AnimationController(
-        duration: Duration(milliseconds: duration),
-        vsync: this,
-      );
+      // 更新悬停动画控制器持续时间
+      _hoverController.duration = Duration(milliseconds: duration);
       _hoverAnimation = Tween<double>(
         begin: 0.0,
         end: _animationLevel == 2 ? -8.0 : -4.0,
@@ -514,11 +537,9 @@ class _AdaptiveFundCardState extends State<AdaptiveFundCard>
         curve: Curves.easeOutCubic,
       ));
 
-      // 收益率数字滚动动画控制器
-      _returnController = AnimationController(
-        duration: Duration(milliseconds: _animationLevel == 1 ? 400 : 800),
-        vsync: this,
-      );
+      // 更新收益率数字滚动动画控制器持续时间
+      _returnController.duration =
+          Duration(milliseconds: _animationLevel == 1 ? 400 : 800);
       _returnAnimation = Tween<double>(
         begin: 0.0,
         end: widget.fund.return1Y,
@@ -527,11 +548,9 @@ class _AdaptiveFundCardState extends State<AdaptiveFundCard>
         curve: Curves.easeOutCubic,
       ));
 
-      // 收藏动画控制器
-      _favoriteController = AnimationController(
-        duration: Duration(milliseconds: _animationLevel == 1 ? 150 : 300),
-        vsync: this,
-      );
+      // 更新收藏动画控制器持续时间
+      _favoriteController.duration =
+          Duration(milliseconds: _animationLevel == 1 ? 150 : 300);
       _favoriteAnimation = Tween<double>(
         begin: 0.0,
         end: 1.0,
@@ -540,11 +559,9 @@ class _AdaptiveFundCardState extends State<AdaptiveFundCard>
         curve: _animationLevel == 2 ? Curves.elasticOut : Curves.easeOut,
       ));
 
-      // 点击缩放动画控制器
-      _scaleController = AnimationController(
-        duration: Duration(milliseconds: _animationLevel == 1 ? 75 : 150),
-        vsync: this,
-      );
+      // 更新点击缩放动画控制器持续时间
+      _scaleController.duration =
+          Duration(milliseconds: _animationLevel == 1 ? 75 : 150);
       _scaleAnimation = Tween<double>(
         begin: 1.0,
         end: _animationLevel == 2 ? 0.98 : 0.99,
@@ -1270,29 +1287,11 @@ class _AdaptiveFundCardState extends State<AdaptiveFundCard>
 
   @override
   void dispose() {
-    // 安全释放所有动画控制器，即使初始化失败也能正常处理
-    if (!_animationInitializationFailed && _enableAnimations) {
-      try {
-        _hoverController.dispose();
-      } catch (e) {
-        debugPrint('AdaptiveFundCard: Error disposing hover controller: $e');
-      }
-      try {
-        _returnController.dispose();
-      } catch (e) {
-        debugPrint('AdaptiveFundCard: Error disposing return controller: $e');
-      }
-      try {
-        _favoriteController.dispose();
-      } catch (e) {
-        debugPrint('AdaptiveFundCard: Error disposing favorite controller: $e');
-      }
-      try {
-        _scaleController.dispose();
-      } catch (e) {
-        debugPrint('AdaptiveFundCard: Error disposing scale controller: $e');
-      }
-    }
+    // 释放所有动画控制器
+    _hoverController.dispose();
+    _returnController.dispose();
+    _favoriteController.dispose();
+    _scaleController.dispose();
     super.dispose();
   }
 }

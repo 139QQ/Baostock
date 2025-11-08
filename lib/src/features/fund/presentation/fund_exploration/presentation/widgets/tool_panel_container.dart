@@ -25,12 +25,16 @@ class ToolPanelContainer extends StatefulWidget {
   /// 面板状态变化回调
   final Function(String panelId, bool isExpanded)? onPanelStateChanged;
 
+  /// 筛选器变化回调
+  final Function(FundFilter)? onFiltersChanged;
+
   const ToolPanelContainer({
     super.key,
     this.showHeader = true,
     this.initialExpandedState,
     this.config,
     this.onPanelStateChanged,
+    this.onFiltersChanged,
   });
 
   @override
@@ -245,7 +249,8 @@ class _ToolPanelContainerState extends State<ToolPanelContainer>
                       icon: Icons.filter_list,
                       builder: () => FundFilterPanel(
                         filters: FundFilter(),
-                        onFiltersChanged: (filter) {},
+                        onFiltersChanged:
+                            widget.onFiltersChanged ?? (filter) {},
                       ),
                       isExpanded: state.isPanelExpanded('filter'),
                       config: config,

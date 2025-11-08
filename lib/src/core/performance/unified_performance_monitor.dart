@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'dart:developer' as developer;
 import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:logger/logger.dart';
-import 'performance_thresholds.dart';
+
 import '../config/app_config.dart';
+import 'performance_thresholds.dart';
 
 /// 统一性能监控管理器
 ///
@@ -33,8 +35,20 @@ class UnifiedPerformanceMonitor {
   static const Duration _monitoringInterval = Duration(seconds: 5);
   static const Duration _reportingInterval = Duration(minutes: 1);
   static const int _maxHistorySize = 1000;
+  static const Duration _uiThrottleInterval =
+      Duration(milliseconds: 500); // UI性能监控节流间隔
 
   final Logger _logger = Logger();
+
+  // UI性能监控节流相关
+  int _frameCount = 0;
+  DateTime? _lastUiMetricTime;
+  double _accumulatedFrameTime = 0;
+  int _accumulatedFrameCount = 0;
+
+  // 性能优化：批量处理指标
+  final List<PerformanceDataPoint> _pendingMetrics = [];
+  bool _batchProcessingScheduled = false;
 
   /// 开始性能监控
   Future<void> startMonitoring() async {
@@ -90,14 +104,73 @@ class UnifiedPerformanceMonitor {
       metadata: metadata ?? {},
     );
 
-    _addToHistory(name, dataPoint);
-    _currentMetrics[name] = dataPoint;
+    // 对于高频指标（如frame_rate, frame_time），使用批量处理
+    if (_isHighFrequencyMetric(name)) {
+      _pendingMetrics.add(dataPoint);
+      _scheduleBatchProcessing();
+      return;
+    }
+
+    // 低频指标直接处理
+    _processMetric(dataPoint);
+  }
+
+  /// 判断是否为高频指标
+  bool _isHighFrequencyMetric(String name) {
+    const highFrequencyMetrics = {
+      'frame_rate',
+      'frame_time',
+      'frame_count',
+    };
+    return highFrequencyMetrics.contains(name);
+  }
+
+  /// 调度批量处理
+  void _scheduleBatchProcessing() {
+    if (_batchProcessingScheduled) return;
+
+    _batchProcessingScheduled = true;
+
+    // 使用微任务异步处理，避免阻塞UI
+    Future.microtask(() {
+      _processBatchMetrics();
+      _batchProcessingScheduled = false;
+    });
+  }
+
+  /// 批量处理指标
+  void _processBatchMetrics() {
+    if (_pendingMetrics.isEmpty) return;
+
+    final metrics = List<PerformanceDataPoint>.from(_pendingMetrics);
+    _pendingMetrics.clear();
+
+    // 按指标名称分组，只保留最新的值
+    final Map<String, PerformanceDataPoint> latestMetrics = {};
+    for (final metric in metrics) {
+      latestMetrics[metric.name] = metric;
+    }
+
+    // 处理每个指标
+    for (final metric in latestMetrics.values) {
+      _processMetric(metric);
+    }
+
+    if (kDebugMode && latestMetrics.isNotEmpty) {
+      _logger.d('📊 批量处理性能指标: ${latestMetrics.length}个');
+    }
+  }
+
+  /// 处理单个指标
+  void _processMetric(PerformanceDataPoint dataPoint) {
+    _addToHistory(dataPoint.name, dataPoint);
+    _currentMetrics[dataPoint.name] = dataPoint;
 
     // 检查阈值并生成警报
     _checkThresholds(dataPoint);
 
     if (kDebugMode) {
-      _logger.d('📊 记录性能指标: $name = ${dataPoint.formattedValue}');
+      _logger.d('📊 记录性能指标: ${dataPoint.name} = ${dataPoint.formattedValue}');
     }
   }
 
@@ -178,25 +251,46 @@ class UnifiedPerformanceMonitor {
 
     try {
       WidgetsBinding.instance.addTimingsCallback((List<FrameTiming> timings) {
-        if (timings.isNotEmpty) {
-          // totalSpan 是 Duration 类型，表示帧的总时间
-          final frameTimeMs = timings.first.totalSpan.inMilliseconds.toDouble();
-          // 计算FPS：1000ms / frameTimeMs
-          final fps = frameTimeMs > 0 ? 1000.0 / frameTimeMs : 60.0;
+        if (timings.isEmpty) return;
 
-          // 确保FPS在合理范围内（通常0-240）
-          final normalizedFps = fps.clamp(0.0, 240.0);
+        // 累积帧数据用于计算平均值
+        _frameCount++;
+        _accumulatedFrameCount++;
+        _accumulatedFrameTime +=
+            timings.first.totalSpan.inMilliseconds.toDouble();
 
+        final now = DateTime.now();
+        final lastTime = _lastUiMetricTime ?? now;
+
+        // 检查是否达到节流间隔
+        if (now.difference(lastTime) >= _uiThrottleInterval) {
+          // 计算平均帧时间
+          final avgFrameTime = _accumulatedFrameTime / _accumulatedFrameCount;
+          // 计算平均FPS
+          final avgFps = avgFrameTime > 0 ? 1000.0 / avgFrameTime : 60.0;
+
+          // 确保FPS在合理范围内
+          final normalizedFps = avgFps.clamp(0.0, 240.0);
+
+          // 记录指标（降低频率）
           recordMetric('frame_rate', normalizedFps);
-          recordMetric('frame_time', frameTimeMs);
+          recordMetric('frame_time', avgFrameTime);
+          recordMetric('frame_count', _frameCount.toDouble());
 
-          if (kDebugMode && fps > 200) {
-            _logger.d('检测到异常高FPS值: $fps, 帧时间: ${frameTimeMs}ms');
+          // 检测性能问题
+          if (kDebugMode && avgFps < 30) {
+            _logger.w(
+                '检测到低FPS值: ${avgFps.toStringAsFixed(1)}, 平均帧时间: ${avgFrameTime.toStringAsFixed(1)}ms - 性能问题');
           }
+
+          // 重置累积数据
+          _lastUiMetricTime = now;
+          _accumulatedFrameTime = 0;
+          _accumulatedFrameCount = 0;
         }
       });
       _uiCallbackRegistered = true;
-      _logger.d('UI性能监控回调注册成功');
+      _logger.d('UI性能监控回调注册成功（节流间隔: ${_uiThrottleInterval.inMilliseconds}ms）');
     } catch (e) {
       _logger.e('注册UI性能监控回调失败: $e');
     }
@@ -367,12 +461,22 @@ class UnifiedPerformanceMonitor {
 
   /// 添加到历史记录
   void _addToHistory(String name, PerformanceDataPoint dataPoint) {
-    _metricsHistory.putIfAbsent(name, () => []).add(dataPoint);
+    final history = _metricsHistory[name];
 
-    // 限制历史记录大小
-    final history = _metricsHistory[name]!;
+    if (history == null) {
+      // 创建新列表，预分配容量
+      _metricsHistory[name] = [dataPoint];
+      return;
+    }
+
+    // 直接添加到列表末尾
+    history.add(dataPoint);
+
+    // 检查历史记录大小，使用更高效的移除方式
     if (history.length > _maxHistorySize) {
-      history.removeAt(0);
+      // 移除多个元素而不是一个一个移除
+      final excessCount = history.length - _maxHistorySize;
+      history.removeRange(0, excessCount);
     }
   }
 

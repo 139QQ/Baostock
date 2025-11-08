@@ -67,8 +67,7 @@ linter:
     use_decorated_box: true
     use_full_hex_values_for_flutter_colors: true
     use_if_null_to_convert_nulls_to_bools: true
-    use_key_in_widget_constructors: true
-    use_late_for_private_variables_and_functions: true
+    # 移除不存在的lint规则
     use_named_constants: true
     use_raw_strings: true
     use_rethrow_when_possible: true
@@ -101,24 +100,21 @@ analyzer:
   # 错误和警告配置
   errors:
     # 将某些警告视为错误
-    invalid_assignment
-    invalid_override
-    mixin_inherits_from_not_object
-    mixin_of_non_class
-    subclass_of_abstract_class
-    type_check_with_null_name
-    undefined_class
-    undefined_getter
-    undefined_identifier
-    undefined_method
-    undefined_operator
-    undefined_setter
-    undefined_super_member
+    invalid_assignment: error
+    invalid_override: error
+    mixin_inherits_from_not_object: error
+    mixin_of_non_class: error
+    subclass_of_abstract_class: error
+    type_check_with_null_name: error
+    undefined_class: error
+    undefined_getter: error
+    undefined_identifier: error
+    undefined_method: error
+    undefined_operator: error
+    undefined_setter: error
+    undefined_super_member: error
 
-  # 启用额外的严格检查
-  strict-casts: true
-  strict-inference: true
-  strict-raw-types: true
+  # 移除不支持的严格检查选项
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options

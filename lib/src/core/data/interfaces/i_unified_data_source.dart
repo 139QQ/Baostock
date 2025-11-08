@@ -171,6 +171,56 @@ enum PreloadPriority {
 }
 
 /// 缓存统计信息
+class CacheStatistics {
+  /// 总缓存项数量
+  final int totalCount;
+
+  /// 有效缓存项数量
+  final int validCount;
+
+  /// 过期缓存项数量
+  final int expiredCount;
+
+  /// 总缓存大小（字节）
+  final int totalSize;
+
+  /// 压缩节省的空间（字节）
+  final int compressedSavings;
+
+  /// 缓存命中率
+  final double hitRate;
+
+  /// 缓存未命中率
+  final double missRate;
+
+  /// 平均响应时间（毫秒）
+  final double averageResponseTime;
+
+  /// 按标签统计的缓存项数量
+  final Map<String, int> tagCounts;
+
+  /// 按优先级统计的缓存项数量
+  final Map<int, int> priorityCounts;
+
+  const CacheStatistics({
+    required this.totalCount,
+    required this.validCount,
+    required this.expiredCount,
+    required this.totalSize,
+    required this.compressedSavings,
+    required this.hitRate,
+    required this.missRate,
+    required this.averageResponseTime,
+    required this.tagCounts,
+    required this.priorityCounts,
+  });
+
+  /// 缓存使用率
+  double get utilizationRate => totalCount > 0 ? validCount / totalCount : 0.0;
+
+  /// 缓存效率分数
+  double get efficiencyScore => (hitRate + utilizationRate) / 2;
+}
 
 /// 数据同步结果
 class DataSyncResult {

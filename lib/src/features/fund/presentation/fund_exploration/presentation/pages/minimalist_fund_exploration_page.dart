@@ -1,20 +1,24 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:math' as math;
 
-import '../../../widgets/fund_search_bar_adapter.dart';
-import '../widgets/fund_filter_panel.dart';
-import '../widgets/hot_funds_section.dart';
-import '../widgets/fund_ranking_wrapper_unified.dart';
-import '../widgets/market_dynamics_section.dart';
-import '../widgets/fund_comparison_tool.dart';
-import '../widgets/investment_calculator.dart';
-import '../widgets/user_onboarding_guide.dart';
-import '../widgets/user_feedback_collector.dart';
-import '../../domain/models/fund_filter.dart';
-import '../cubit/fund_exploration_cubit.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../../../../../bloc/fund_search_bloc.dart';
 import '../../../../../../core/di/injection_container.dart';
+import '../../../../../../core/state/tool_panel/tool_panel_cubit.dart';
+import '../../../../../../features/fund/domain/entities/fund.dart';
+import '../../../../shared/models/fund_ranking.dart';
+import '../../domain/models/fund_filter.dart';
+import '../cubit/fund_exploration_cubit.dart';
+import '../widgets/fund_comparison_tool.dart';
+import '../widgets/fund_filter_panel.dart';
+import '../widgets/hot_funds_section.dart';
+import '../widgets/investment_calculator.dart';
+import '../widgets/one_step_search_bar.dart';
+import '../widgets/responsive_fund_grid.dart';
+import '../widgets/tool_panel_container.dart';
+import '../widgets/user_feedback_collector.dart';
+import '../widgets/user_onboarding_guide.dart';
 
 /// 极简基金探索页面
 ///
@@ -27,6 +31,7 @@ import '../../../../../../core/di/injection_container.dart';
 /// - 卡片流内容展示
 /// - 无限滚动支持
 class MinimalistFundExplorationPage extends StatelessWidget {
+  /// 创建极简基金探索页面
   const MinimalistFundExplorationPage({super.key});
 
   @override
@@ -38,6 +43,9 @@ class MinimalistFundExplorationPage extends StatelessWidget {
         ),
         BlocProvider<FundSearchBloc>(
           create: (context) => sl<FundSearchBloc>(),
+        ),
+        BlocProvider<ToolPanelCubit>(
+          create: (context) => ToolPanelCubit(),
         ),
       ],
       child: const _MinimalistFundExplorationPageContent(),
@@ -60,10 +68,7 @@ class _MinimalistFundExplorationPageContentState
   final FundFilter _currentFilter = FundFilter();
 
   bool _showFilterPanel = false;
-  final bool _showToolsPanel = false;
-  final bool _isGridView = true;
-  final bool _comparisonMode = false;
-  final Set<String> _selectedFunds = {};
+  bool _showToolsPanel = false;
 
   @override
   void initState() {
@@ -123,6 +128,9 @@ class _MinimalistFundExplorationPageContentState
                 // 顶部搜索区域 - 大量留白
                 _buildTopSearchSection(),
 
+                // 折叠工具面板 - Story 1.6 新增
+                if (_showToolsPanel) _buildToolsPanel(),
+
                 // 折叠筛选面板
                 if (_showFilterPanel) _buildFilterPanel(),
 
@@ -155,13 +163,20 @@ class _MinimalistFundExplorationPageContentState
         children: [
           // 优雅搜索框
           Container(
-            constraints: const BoxConstraints(maxWidth: 600),
-            child: FundSearchBarAdapter(
-              searchText: '',
-              onSearch: _handleSearch,
+            constraints: const BoxConstraints(maxWidth: 800),
+            child: OneStepSearchBar(
+              autofocus: false,
+              showSuggestions: true,
+              onSearchChanged: (query) {
+                // 实时搜索处理
+                _handleRealtimeSearch(query);
+              },
+              onSearchSubmitted: (query) {
+                // 提交搜索处理
+                _handleSearchSubmitted(query);
+              },
               onClear: () {
-                _searchController.clear();
-                _handleSearch('');
+                _handleSearchCleared();
               },
             ),
           ),
@@ -201,6 +216,28 @@ class _MinimalistFundExplorationPageContentState
     );
   }
 
+  /// 构建工具面板 - Story 1.6 新增
+  Widget _buildToolsPanel() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 8.0),
+      child: ToolPanelContainer(
+        showHeader: true,
+        config: ToolPanelConfig.compactConfig,
+        onPanelStateChanged: (panelId, isExpanded) {
+          // 记录面板状态变化
+          debugPrint('面板 $panelId 展开状态: $isExpanded');
+        },
+        onFiltersChanged: _handleFilterChanged,
+        // 提供自定义的筛选器回调
+        initialExpandedState: const {
+          'filter': false,
+          'comparison': false,
+          'calculator': false,
+        },
+      ),
+    );
+  }
+
   /// 构建筛选面板
   Widget _buildFilterPanel() {
     return Container(
@@ -224,17 +261,20 @@ class _MinimalistFundExplorationPageContentState
     );
   }
 
-  /// 构建主内容区域 - 卡片流
+  /// 构建主内容区域 - 响应式卡片网格
   Widget _buildContentSection() {
     return BlocBuilder<FundExplorationCubit, FundExplorationState>(
       builder: (context, state) {
-        if (state.isLoading && state.funds.isEmpty) {
+        if (state.isLoading && state.fundRankings.isEmpty) {
           return _buildLoadingState();
         }
 
-        if (state.errorMessage != null && state.funds.isEmpty) {
+        if (state.errorMessage != null && state.fundRankings.isEmpty) {
           return _buildErrorState(state.errorMessage!);
         }
+
+        // 获取当前要显示的数据
+        final currentData = _getCurrentDisplayData(state);
 
         return CustomScrollView(
           controller: _scrollController,
@@ -256,34 +296,9 @@ class _MinimalistFundExplorationPageContentState
 
             const SliverToBoxAdapter(child: SizedBox(height: 32)),
 
-            // 基金排行榜区域
+            // 基金网格区域 - 使用新的响应式布局
             SliverToBoxAdapter(
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 32.0),
-                child: _buildSectionHeader('基金排行', Icons.leaderboard),
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 32.0),
-                child: const FundRankingWrapperUnified(),
-              ),
-            ),
-
-            const SliverToBoxAdapter(child: SizedBox(height: 32)),
-
-            // 市场动态区域
-            SliverToBoxAdapter(
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 32.0),
-                child: _buildSectionHeader('市场动态', Icons.show_chart),
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 32.0),
-                child: const MarketDynamicsSection(),
-              ),
+              child: _buildFundGridSection(currentData, state),
             ),
 
             const SliverToBoxAdapter(
@@ -292,6 +307,162 @@ class _MinimalistFundExplorationPageContentState
         );
       },
     );
+  }
+
+  /// 获取当前要显示的数据
+  List<FundRanking> _getCurrentDisplayData(FundExplorationState state) {
+    switch (state.status) {
+      case FundExplorationStatus.searching:
+      case FundExplorationStatus.searched:
+        return state.searchResults;
+      case FundExplorationStatus.filtering:
+      case FundExplorationStatus.filtered:
+        return state.filteredRankings;
+      case FundExplorationStatus.initial:
+      case FundExplorationStatus.loading:
+      case FundExplorationStatus.loaded:
+      case FundExplorationStatus.error:
+        return state.fundRankings;
+    }
+  }
+
+  /// 构建基金网格区域
+  Widget _buildFundGridSection(
+      List<FundRanking> rankings, FundExplorationState state) {
+    if (rankings.isEmpty) {
+      return _buildEmptyState(state.status);
+    }
+
+    final adaptedFunds =
+        rankings.map((ranking) => _convertToFund(ranking)).toList();
+
+    return ResponsiveFundGrid(
+      funds: adaptedFunds,
+      onFundTap: (fund) => _onFundSelected(fund),
+      onFavoriteToggle: (fund) => _toggleFavorite(fund),
+      onCompareToggle: (fund) => _toggleComparison(fund),
+      favoriteFunds: state.favoriteFunds,
+      comparingFunds: state.comparingFunds,
+      showPerformanceMetrics: true,
+    );
+  }
+
+  /// 构建空状态
+  Widget _buildEmptyState(FundExplorationStatus status) {
+    String message;
+    IconData icon;
+
+    switch (status) {
+      case FundExplorationStatus.searched:
+        message = '未找到匹配的基金';
+        icon = Icons.search_off;
+        break;
+      case FundExplorationStatus.filtered:
+        message = '没有符合筛选条件的基金';
+        icon = Icons.filter_list_off;
+        break;
+      case FundExplorationStatus.initial:
+      case FundExplorationStatus.loading:
+      case FundExplorationStatus.loaded:
+      case FundExplorationStatus.searching:
+      case FundExplorationStatus.filtering:
+      case FundExplorationStatus.error:
+        message = '暂无基金数据';
+        icon = Icons.inbox_outlined;
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(64),
+      child: Column(
+        children: [
+          Icon(icon, size: 64, color: Colors.grey[400]),
+          const SizedBox(height: 16),
+          Text(
+            message,
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 16),
+          if (status == FundExplorationStatus.searched ||
+              status == FundExplorationStatus.filtered)
+            TextButton(
+              onPressed: () {
+                context.read<FundExplorationCubit>().clearSearch();
+              },
+              child: const Text('清除条件'),
+            ),
+        ],
+      ),
+    );
+  }
+
+  /// 将 FundRanking 转换为 Fund
+  Fund _convertToFund(dynamic ranking) {
+    if (ranking is Fund) return ranking;
+
+    // 如果是 FundRanking，进行转换
+    return Fund(
+      code: ranking.fundCode ?? '',
+      name: ranking.fundName ?? '',
+      type: ranking.fundType ?? '',
+      company: ranking.company ?? '',
+      unitNav: ranking.unitNav ?? 0.0,
+      accumulatedNav: ranking.accumulatedNav ?? 0.0,
+      dailyReturn: ranking.dailyReturn ?? 0.0,
+      return1W: ranking.return1W ?? 0.0,
+      return1M: ranking.return1M ?? 0.0,
+      return3M: ranking.return3M ?? 0.0,
+      return1Y: ranking.return1Y ?? 0.0,
+      return2Y: ranking.return2Y ?? 0.0,
+      return3Y: ranking.return3Y ?? 0.0,
+      returnYTD: ranking.returnYTD ?? 0.0,
+      returnSinceInception: ranking.returnSinceInception ?? 0.0,
+      lastUpdate: ranking.rankingDate ?? DateTime.now(),
+    );
+  }
+
+  /// 处理基金选择
+  void _onFundSelected(Fund fund) {
+    // 导航到基金详情页面
+    // TODO: 实现导航逻辑
+    print('选中基金: ${fund.name} (${fund.code})');
+  }
+
+  /// 切换收藏状态
+  void _toggleFavorite(Fund fund) {
+    context.read<FundExplorationCubit>().toggleFavorite(fund.code);
+  }
+
+  /// 切换对比状态
+  void _toggleComparison(Fund fund) {
+    context.read<FundExplorationCubit>().toggleComparisonByCode(fund.code);
+  }
+
+  /// 实时搜索处理
+  void _handleRealtimeSearch(String query) {
+    if (query.trim().isEmpty) {
+      context.read<FundExplorationCubit>().clearSearch();
+      return;
+    }
+
+    // 触发实时搜索，使用防抖处理
+    context.read<FundExplorationCubit>().searchFunds(query);
+  }
+
+  /// 搜索提交处理
+  void _handleSearchSubmitted(String query) {
+    if (query.trim().isEmpty) return;
+
+    // 执行搜索
+    _handleSearch(query);
+  }
+
+  /// 搜索清除处理
+  void _handleSearchCleared() {
+    context.read<FundExplorationCubit>().clearSearch();
+    _searchController.clear();
   }
 
   /// 构建节标题
@@ -392,6 +563,16 @@ class _MinimalistFundExplorationPageContentState
               isActive: _showFilterPanel,
             ),
             _buildToolbarButton(
+              icon: Icons.build_circle_outlined,
+              label: '工具',
+              onTap: () {
+                setState(() {
+                  _showToolsPanel = !_showToolsPanel;
+                });
+              },
+              isActive: _showToolsPanel,
+            ),
+            _buildToolbarButton(
               icon: Icons.compare_arrows,
               label: '对比',
               onTap: () => _showComparisonDialog(context),
@@ -400,11 +581,6 @@ class _MinimalistFundExplorationPageContentState
               icon: Icons.calculate,
               label: '计算',
               onTap: () => _showCalculatorDialog(context),
-            ),
-            _buildToolbarButton(
-              icon: Icons.more_vert,
-              label: '更多',
-              onTap: () => _showMoreToolsMenu(context),
             ),
           ],
         ),
@@ -558,62 +734,6 @@ class _MinimalistFundExplorationPageContentState
             ),
           );
         },
-      ),
-    );
-  }
-
-  /// 显示更多工具菜单
-  void _showMoreToolsMenu(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              '更多工具',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            ListTile(
-              leading: const Icon(Icons.analytics),
-              title: const Text('收益分析'),
-              onTap: () {
-                Navigator.pop(context);
-                // TODO: 实现收益分析
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.assessment),
-              title: const Text('风险评估'),
-              onTap: () {
-                Navigator.pop(context);
-                // TODO: 实现风险评估
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.school),
-              title: const Text('投资学堂'),
-              onTap: () {
-                Navigator.pop(context);
-                // TODO: 实现投资学堂
-              },
-            ),
-          ],
-        ),
       ),
     );
   }

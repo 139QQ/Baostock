@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
-/// 性能等级枚举
-enum PerformanceLevel {
-  excellent,
-  good,
-  fair,
-  poor,
-}
+// 导入设计令牌
+import 'design_tokens/app_colors.dart';
+import 'design_tokens/app_typography.dart';
+import 'design_tokens/app_spacing.dart';
+import '../performance/performance_detector.dart';
 
 extension PerformanceLevelExtension on PerformanceLevel {
   String get displayName {
@@ -25,18 +24,18 @@ extension PerformanceLevelExtension on PerformanceLevel {
   Color get color {
     switch (this) {
       case PerformanceLevel.excellent:
-        return Colors.green;
+        return SemanticColors.success500;
       case PerformanceLevel.good:
-        return Colors.blue;
+        return BaseColors.primary500;
       case PerformanceLevel.fair:
-        return Colors.orange;
+        return SemanticColors.warning500;
       case PerformanceLevel.poor:
-        return Colors.red;
+        return SemanticColors.error500;
     }
   }
 }
 
-/// 毛玻璃效果配置
+/// 毛玻璃效果配置 (基于Fluent Design)
 class GlassmorphismConfig {
   final double blur;
   final double opacity;
@@ -51,8 +50,8 @@ class GlassmorphismConfig {
     this.opacity = 0.1,
     this.borderRadius = 12.0,
     this.borderWidth = 1.0,
-    this.borderColor = Colors.white,
-    this.backgroundColor = Colors.white,
+    this.borderColor = BaseColors.primary500,
+    this.backgroundColor = BaseColors.primary50,
     this.enablePerformanceOptimization = true,
   });
 
@@ -62,6 +61,7 @@ class GlassmorphismConfig {
     opacity: 0.05,
     borderRadius: 8.0,
     borderWidth: 0.5,
+    backgroundColor: BaseColors.primary50,
   );
 
   /// 中等毛玻璃配置
@@ -70,6 +70,7 @@ class GlassmorphismConfig {
     opacity: 0.1,
     borderRadius: 12.0,
     borderWidth: 1.0,
+    backgroundColor: BaseColors.primary100,
   );
 
   /// 强烈毛玻璃配置
@@ -78,6 +79,7 @@ class GlassmorphismConfig {
     opacity: 0.15,
     borderRadius: 16.0,
     borderWidth: 1.5,
+    backgroundColor: BaseColors.primary200,
   );
 
   /// 性能优先配置
@@ -95,69 +97,317 @@ class GlassmorphismConfig {
     opacity: 0.08,
     borderRadius: 12.0,
     borderWidth: 1.0,
-    borderColor: Color(0xFF333333),
-    backgroundColor: Color(0xFF1A1A1A),
+    borderColor: NeutralColors.neutral600,
+    backgroundColor: NeutralColors.neutral800,
   );
 }
 
-class AppTheme {
-  static Color primaryColor = const Color(0xFF2563EB);
-  static Color successColor = const Color(0xFF16A34A);
-  static Color warningColor = const Color(0xFFCA8A04);
-  static Color errorColor = const Color(0xFFDC2626);
-  static Color neutralColor = const Color(0xFF6B7280);
-  static Color backgroundColor = const Color(0xFFF9FAFB);
-  static Color cardColor = const Color(0xFFFFFFFF);
+/// Fluent Design 主题配置
+class FluentAppTheme {
+  FluentAppTheme._();
+
+  // 主色调
+  static const Color primaryColor = BaseColors.primary500;
+  static const Color primaryLightColor = BaseColors.primary400;
+  static const Color primaryDarkColor = BaseColors.primary600;
+
+  // 语义色
+  static const Color successColor = SemanticColors.success500;
+  static const Color warningColor = SemanticColors.warning500;
+  static const Color errorColor = SemanticColors.error500;
+  static const Color infoColor = SemanticColors.info500;
+
+  // 中性色
+  static const Color backgroundColor = NeutralColors.neutral50;
+  static const Color surfaceColor = NeutralColors.white;
+  static const Color cardColor = NeutralColors.white;
+
+  // 文本色
+  static const Color textPrimaryColor = NeutralColors.neutral900;
+  static const Color textSecondaryColor = NeutralColors.neutral700;
+  static const Color textTertiaryColor = NeutralColors.neutral500;
+
+  // 金融色
+  static const Color positiveColor = FinancialColors.positive;
+  static const Color negativeColor = FinancialColors.negative;
+  static const Color flatColor = FinancialColors.neutral;
 
   /// 默认毛玻璃配置
-  static GlassmorphismConfig defaultGlassmorphismConfig =
+  static const GlassmorphismConfig defaultGlassmorphismConfig =
       GlassmorphismConfig.medium;
-
-  /// 浅色主题毛玻璃配置
-  static GlassmorphismConfig lightGlassmorphismConfig =
+  static const GlassmorphismConfig lightGlassmorphismConfig =
       GlassmorphismConfig.light;
-
-  /// 深色主题毛玻璃配置
-  static GlassmorphismConfig darkGlassmorphismConfig = GlassmorphismConfig.dark;
-
-  /// 性能优化毛玻璃配置
-  static GlassmorphismConfig performanceGlassmorphismConfig =
+  static const GlassmorphismConfig darkGlassmorphismConfig =
+      GlassmorphismConfig.dark;
+  static const GlassmorphismConfig performanceGlassmorphismConfig =
       GlassmorphismConfig.performance;
 
-  static ThemeData lightTheme = ThemeData(
-    brightness: Brightness.light,
-    primaryColor: primaryColor,
-    scaffoldBackgroundColor: backgroundColor,
-    cardColor: cardColor,
-    fontFamily: 'Microsoft YaHei',
-  );
+  /// 浅色主题
+  static ThemeData get lightTheme {
+    return ThemeData(
+      brightness: Brightness.light,
+      useMaterial3: true,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: primaryColor,
+        brightness: Brightness.light,
+        primary: primaryColor,
+        secondary: BaseColors.primary300,
+        surface: surfaceColor,
+        background: backgroundColor,
+        error: errorColor,
+        onPrimary: NeutralColors.white,
+        onSecondary: textPrimaryColor,
+        onSurface: textPrimaryColor,
+        onBackground: textPrimaryColor,
+        onError: NeutralColors.white,
+      ),
 
-  static TextStyle headlineLarge = const TextStyle(
-    fontSize: 24,
-    fontWeight: FontWeight.bold,
-    color: Color(0xFF000000),
-  );
+      // 文本主题
+      textTheme: TextTheme(
+        displayLarge: AppTextStyles.h1,
+        displayMedium: AppTextStyles.h2,
+        displaySmall: AppTextStyles.h3,
+        headlineLarge: AppTextStyles.h4,
+        headlineMedium: AppTextStyles.h5,
+        headlineSmall: AppTextStyles.h6,
+        bodyLarge: AppTextStyles.bodyLarge,
+        bodyMedium: AppTextStyles.body,
+        bodySmall: AppTextStyles.bodySmall,
+        labelLarge: AppTextStyles.label,
+        labelMedium: AppTextStyles.label,
+        labelSmall: AppTextStyles.caption,
+      ),
 
-  static TextStyle headlineMedium = const TextStyle(
-    fontSize: 20,
-    fontWeight: FontWeight.w600,
-    color: Color(0xFF000000),
-  );
+      // 字体
+      fontFamily: FontFamilies.defaultFamily,
 
-  static TextStyle bodyLarge = const TextStyle(
-    fontSize: 16,
-    color: Color(0xDD000000),
-  );
+      // AppBar 主题
+      appBarTheme: AppBarTheme(
+        backgroundColor: surfaceColor,
+        foregroundColor: textPrimaryColor,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+        titleTextStyle: AppTextStyles.h5.copyWith(color: textPrimaryColor),
+        systemOverlayStyle: SystemUiOverlayStyle.dark,
+      ),
 
-  static TextStyle bodyMedium = const TextStyle(
-    fontSize: 14,
-    color: Color(0x8A000000),
-  );
+      // 卡片主题
+      cardTheme: CardTheme(
+        color: cardColor,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(BorderRadiusTokens.card),
+          side: BorderSide(color: NeutralColors.neutral200, width: 1),
+        ),
+        margin: EdgeInsets.zero,
+      ),
 
-  static TextStyle bodySmall = const TextStyle(
-    fontSize: 12,
-    color: Color(0x73000000),
-  );
+      // 按钮主题
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primaryColor,
+          foregroundColor: NeutralColors.white,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(BorderRadiusTokens.button),
+          ),
+          padding: const EdgeInsets.symmetric(
+            horizontal: ComponentSpacing.buttonPaddingH,
+            vertical: ComponentSpacing.buttonPaddingV,
+          ),
+          textStyle: AppTextStyles.button,
+        ),
+      ),
+
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: primaryColor,
+          side: BorderSide(color: primaryColor),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(BorderRadiusTokens.button),
+          ),
+          padding: const EdgeInsets.symmetric(
+            horizontal: ComponentSpacing.buttonPaddingH,
+            vertical: ComponentSpacing.buttonPaddingV,
+          ),
+          textStyle: AppTextStyles.button,
+        ),
+      ),
+
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: primaryColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(BorderRadiusTokens.button),
+          ),
+          padding: const EdgeInsets.symmetric(
+            horizontal: ComponentSpacing.buttonPaddingH,
+            vertical: ComponentSpacing.buttonPaddingV,
+          ),
+          textStyle: AppTextStyles.button,
+        ),
+      ),
+
+      // 输入框主题
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: NeutralColors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(BorderRadiusTokens.input),
+          borderSide: BorderSide(color: NeutralColors.neutral300),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(BorderRadiusTokens.input),
+          borderSide: BorderSide(color: NeutralColors.neutral300),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(BorderRadiusTokens.input),
+          borderSide: BorderSide(color: primaryColor, width: 2),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(BorderRadiusTokens.input),
+          borderSide: BorderSide(color: errorColor),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(BorderRadiusTokens.input),
+          borderSide: BorderSide(color: errorColor, width: 2),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: ComponentSpacing.inputPaddingH,
+          vertical: ComponentSpacing.inputPaddingV,
+        ),
+        hintStyle:
+            AppTextStyles.input.copyWith(color: NeutralColors.neutral500),
+        labelStyle:
+            AppTextStyles.label.copyWith(color: NeutralColors.neutral700),
+        errorStyle: AppTextStyles.caption.copyWith(color: errorColor),
+      ),
+
+      // 分割线主题
+      dividerTheme: DividerThemeData(
+        color: NeutralColors.neutral200,
+        thickness: 1,
+        space: 1,
+      ),
+
+      // 图标主题
+      iconTheme: IconThemeData(
+        color: NeutralColors.neutral700,
+        size: StandardSizes.iconMd,
+      ),
+
+      // 浮动操作按钮主题
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: primaryColor,
+        foregroundColor: NeutralColors.white,
+        elevation: 6,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+      ),
+
+      // 对话框主题
+      dialogTheme: DialogTheme(
+        backgroundColor: surfaceColor,
+        elevation: 24,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(BorderRadiusTokens.dialog),
+        ),
+        titleTextStyle: AppTextStyles.h5.copyWith(color: textPrimaryColor),
+        contentTextStyle:
+            AppTextStyles.body.copyWith(color: textSecondaryColor),
+      ),
+
+      // 底部导航栏主题
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        backgroundColor: surfaceColor,
+        selectedItemColor: primaryColor,
+        unselectedItemColor: NeutralColors.neutral500,
+        type: BottomNavigationBarType.fixed,
+        elevation: 8,
+        selectedLabelStyle:
+            AppTextStyles.caption.copyWith(fontWeight: FontWeights.medium),
+        unselectedLabelStyle: AppTextStyles.caption,
+      ),
+
+      // Tab 主题
+      tabBarTheme: TabBarTheme(
+        labelColor: primaryColor,
+        unselectedLabelColor: NeutralColors.neutral500,
+        indicatorColor: primaryColor,
+        labelStyle:
+            AppTextStyles.label.copyWith(fontWeight: FontWeights.medium),
+        unselectedLabelStyle: AppTextStyles.label,
+        indicatorSize: TabBarIndicatorSize.label,
+      ),
+
+      // Chip 主题
+      chipTheme: ChipThemeData(
+        backgroundColor: NeutralColors.neutral100,
+        selectedColor: BaseColors.primary100,
+        disabledColor: NeutralColors.neutral50,
+        labelStyle:
+            AppTextStyles.label.copyWith(color: NeutralColors.neutral700),
+        secondaryLabelStyle: AppTextStyles.label.copyWith(color: primaryColor),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(BorderRadiusTokens.chip),
+        ),
+      ),
+
+      // 扩展：毛玻璃主题
+      extensions: [
+        GlassmorphismThemeData.light,
+      ],
+    );
+  }
+
+  /// 深色主题
+  static ThemeData get darkTheme {
+    return lightTheme.copyWith(
+      brightness: Brightness.dark,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: primaryColor,
+        brightness: Brightness.dark,
+        primary: BaseColors.primary400,
+        secondary: BaseColors.primary300,
+        surface: NeutralColors.neutral900,
+        background: NeutralColors.neutral950,
+        error: errorColor,
+        onPrimary: NeutralColors.neutral900,
+        onSecondary: NeutralColors.neutral900,
+        onSurface: NeutralColors.neutral100,
+        onBackground: NeutralColors.neutral100,
+        onError: NeutralColors.neutral100,
+      ),
+
+      // AppBar 主题
+      appBarTheme: AppBarTheme(
+        backgroundColor: NeutralColors.neutral900,
+        foregroundColor: NeutralColors.neutral100,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+        titleTextStyle:
+            AppTextStyles.h5.copyWith(color: NeutralColors.neutral100),
+        systemOverlayStyle: SystemUiOverlayStyle.light,
+      ),
+
+      // 卡片主题
+      cardTheme: CardTheme(
+        color: NeutralColors.neutral900,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(BorderRadiusTokens.card),
+          side: BorderSide(color: NeutralColors.neutral700, width: 1),
+        ),
+      ),
+
+      // 扩展：毛玻璃主题
+      extensions: [
+        GlassmorphismThemeData.dark,
+      ],
+    );
+  }
 
   /// 获取当前主题的毛玻璃配置
   static GlassmorphismConfig getCurrentGlassmorphismConfig(
@@ -177,8 +427,7 @@ class AppTheme {
     Brightness brightness = Brightness.light,
     GlassmorphismThemeData? glassmorphismTheme,
   }) {
-    final baseTheme =
-        brightness == Brightness.dark ? _darkThemeBase : lightTheme;
+    final baseTheme = brightness == Brightness.dark ? darkTheme : lightTheme;
 
     return baseTheme.copyWith(
       extensions: [
@@ -190,14 +439,49 @@ class AppTheme {
     );
   }
 
-  /// 深色主题基础配置
-  static ThemeData get _darkThemeBase => ThemeData(
-        brightness: Brightness.dark,
-        primaryColor: const Color(0xFF1E40AF),
-        scaffoldBackgroundColor: const Color(0xFF111827),
-        cardColor: const Color(0xFF1F2937),
-        fontFamily: 'Microsoft YaHei',
-      );
+  /// 获取响应式文本样式
+  static TextStyle getResponsiveTextStyle(
+    BuildContext context, {
+    TextStyle? baseStyle,
+    double scaleFactor = 1.0,
+  }) {
+    final width = MediaQuery.of(context).size.width;
+    double responsiveScale = 1.0;
+
+    if (width < BreakpointTokens.tablet) {
+      responsiveScale = 0.875; // 移动端缩小
+    } else if (width < BreakpointTokens.desktopMD) {
+      responsiveScale = 0.9375; // 平板端略小
+    } else if (width > BreakpointTokens.desktopXL) {
+      responsiveScale = 1.125; // 超大桌面放大
+    }
+
+    final finalScale = responsiveScale * scaleFactor;
+    return baseStyle?.copyWith(
+          fontSize: (baseStyle.fontSize ?? 14) * finalScale,
+        ) ??
+        AppTextStyles.body.copyWith(
+          fontSize: FontSizes.body * finalScale,
+        );
+  }
+
+  /// 获取响应式间距
+  static double getResponsiveSpacing(
+    BuildContext context,
+    double baseSpacing, {
+    double scaleFactor = 1.0,
+  }) {
+    final width = MediaQuery.of(context).size.width;
+    double responsiveScale = 1.0;
+
+    if (width < BreakpointTokens.tablet) {
+      responsiveScale = 0.75; // 移动端间距缩小
+    } else if (width < BreakpointTokens.desktopMD) {
+      responsiveScale = 0.875; // 平板端间距略小
+    }
+
+    return baseSpacing * responsiveScale * scaleFactor;
+  }
 }
 
 /// 毛玻璃主题数据
@@ -275,4 +559,41 @@ class GlassmorphismThemeData extends ThemeExtension<GlassmorphismThemeData> {
     navigationConfig: GlassmorphismConfig.performance,
     backgroundConfig: GlassmorphismConfig.dark,
   );
+}
+
+/// 向后兼容的 AppTheme 类
+@Deprecated('使用 FluentAppTheme 替代')
+class AppTheme {
+  static Color get primaryColor => FluentAppTheme.primaryColor;
+  static Color get successColor => FluentAppTheme.successColor;
+  static Color get warningColor => FluentAppTheme.warningColor;
+  static Color get errorColor => FluentAppTheme.errorColor;
+  static Color get neutralColor => FluentAppTheme.textSecondaryColor;
+  static Color get backgroundColor => FluentAppTheme.backgroundColor;
+  static Color get cardColor => FluentAppTheme.cardColor;
+
+  static TextStyle get headlineLarge => AppTextStyles.h4;
+  static TextStyle get headlineMedium => AppTextStyles.h5;
+  static TextStyle get bodyLarge => AppTextStyles.bodyLarge;
+  static TextStyle get bodyMedium => AppTextStyles.body;
+  static TextStyle get bodySmall => AppTextStyles.bodySmall;
+
+  static ThemeData get lightTheme => FluentAppTheme.lightTheme;
+
+  /// 获取当前主题的毛玻璃配置
+  static GlassmorphismConfig getCurrentGlassmorphismConfig(
+      BuildContext context) {
+    return FluentAppTheme.getCurrentGlassmorphismConfig(context);
+  }
+
+  /// 创建支持毛玻璃的主题数据
+  static ThemeData createGlassmorphismTheme({
+    Brightness brightness = Brightness.light,
+    GlassmorphismThemeData? glassmorphismTheme,
+  }) {
+    return FluentAppTheme.createGlassmorphismTheme(
+      brightness: brightness,
+      glassmorphismTheme: glassmorphismTheme,
+    );
+  }
 }

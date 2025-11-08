@@ -32,6 +32,7 @@ dependencies:
   retrofit: ^4.0.3
   json_annotation: ^4.8.1
   http: ^1.1.0
+  web_socket_channel: ^2.4.0
 
   # 拼音搜索支持
   pinyin: ^3.0.0
@@ -57,10 +58,17 @@ dependencies:
 
   # 动画效果
   flutter_animate: ^4.1.0
-  
+
   # UI组件
-  google_fonts: ^6.1.0
+  google_fonts: ^5.1.0
   cupertino_icons: ^1.0.6
+
+  # Windows桌面功能
+  window_manager: ^0.4.2
+  system_theme: ^2.3.1
+  local_notifier: ^0.1.1
+  flutter_acrylic: ^1.1.1
+  fluent_ui: ^4.8.6
   
   # 工具
   intl: ^0.18.1

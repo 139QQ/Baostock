@@ -1,11 +1,12 @@
 import 'dart:async';
 import 'dart:developer' as developer;
+
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
 
+import '../../features/fund/data/models/optimized_fund_api_response.dart';
 import '../loading/lazy_loading_manager.dart';
 import '../memory/memory_optimization_manager.dart';
-import '../../features/fund/data/models/optimized_fund_api_response.dart';
 
 /// 性能管理状态
 enum PerformanceStatus {

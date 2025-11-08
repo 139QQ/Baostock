@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../performance/performance_detector.dart';
 import 'app_theme.dart';
 
 /// 毛玻璃主题管理器
@@ -14,7 +16,8 @@ class GlassmorphismThemeManager extends ChangeNotifier {
   factory GlassmorphismThemeManager() => _instance;
   GlassmorphismThemeManager._internal();
 
-  GlassmorphismConfig _currentConfig = AppTheme.defaultGlassmorphismConfig;
+  GlassmorphismConfig _currentConfig =
+      FluentAppTheme.defaultGlassmorphismConfig;
   ThemeMode _themeMode = ThemeMode.system;
   bool _isDarkTheme = false;
   bool _enableAdaptiveConfig = true;
@@ -76,14 +79,14 @@ class GlassmorphismThemeManager extends ChangeNotifier {
   /// 获取主题基础配置
   GlassmorphismConfig _getBaseConfigForTheme() {
     if (_themeMode == ThemeMode.dark) {
-      return AppTheme.darkGlassmorphismConfig;
+      return FluentAppTheme.darkGlassmorphismConfig;
     } else if (_themeMode == ThemeMode.light) {
-      return AppTheme.lightGlassmorphismConfig;
+      return FluentAppTheme.lightGlassmorphismConfig;
     } else {
       // 系统主题
       return _isDarkTheme
-          ? AppTheme.darkGlassmorphismConfig
-          : AppTheme.lightGlassmorphismConfig;
+          ? FluentAppTheme.darkGlassmorphismConfig
+          : FluentAppTheme.lightGlassmorphismConfig;
     }
   }
 
@@ -158,7 +161,7 @@ class GlassmorphismThemeManager extends ChangeNotifier {
 
   /// 重置为默认配置
   void resetToDefault() {
-    _currentConfig = AppTheme.defaultGlassmorphismConfig;
+    _currentConfig = FluentAppTheme.defaultGlassmorphismConfig;
     _themeMode = ThemeMode.system;
     _enableAdaptiveConfig = true;
     _userIntensityPreference = 1.0;
@@ -208,6 +211,8 @@ class ResponsiveGlassmorphismConfig {
       case PerformanceLevel.poor:
         return GlassmorphismConfig.performance;
     }
+    // 添加默认返回确保函数总是有返回值
+    return GlassmorphismConfig.medium;
   }
 
   /// 根据内容类型生成配置

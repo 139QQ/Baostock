@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_theme.dart';
 import '../../domain/entities/fund_ranking.dart';
 import 'glassmorphism_card.dart';
-import '../../../../core/theme/app_theme.dart';
 
 /// 优化版基金排行榜卡片组件
 ///
@@ -13,6 +13,20 @@ import '../../../../core/theme/app_theme.dart';
 /// - 优化内存使用
 /// - 支持懒加载和回收利用
 class OptimizedFundRankingCard extends StatelessWidget {
+  /// 创建优化版基金排行榜卡片
+  const OptimizedFundRankingCard({
+    super.key,
+    required this.ranking,
+    required this.position,
+    this.onTap,
+    this.isFavorite = false,
+    this.onFavorite,
+    this.showFavoriteButton = true,
+    this.showDetailButton = true,
+    this.enableGlassmorphism = true, // 默认启用毛玻璃效果
+    this.glassmorphismConfig,
+  });
+
   /// 排行榜数据
   final FundRanking ranking;
 
@@ -44,19 +58,6 @@ class OptimizedFundRankingCard extends StatelessWidget {
   static final Map<int, Color> _badgeColorCache = {};
   static final Map<int, LinearGradient> _gradientCache = {};
 
-  const OptimizedFundRankingCard({
-    super.key,
-    required this.ranking,
-    required this.position,
-    this.onTap,
-    this.isFavorite = false,
-    this.onFavorite,
-    this.showFavoriteButton = true,
-    this.showDetailButton = true,
-    this.enableGlassmorphism = true, // 默认启用毛玻璃效果
-    this.glassmorphismConfig,
-  });
-
   /// 获取排名徽章颜色（缓存优化）
   Color _getRankingBadgeColor(int position) {
     return _badgeColorCache.putIfAbsent(position, () {
@@ -70,49 +71,6 @@ class OptimizedFundRankingCard extends StatelessWidget {
         return Colors.blue; // 前10名蓝色
       } else {
         return Colors.grey; // 其他灰色
-      }
-    });
-  }
-
-  /// 获取卡片渐变色（缓存优化）
-  LinearGradient _getCardGradient(BuildContext context, int position) {
-    return _gradientCache.putIfAbsent(position, () {
-      if (position == 1) {
-        // 金色渐变
-        return const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
-        );
-      } else if (position == 2) {
-        // 银色渐变
-        return const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFC0C0C0), Color(0xFF808080)],
-        );
-      } else if (position == 3) {
-        // 铜色渐变
-        return const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFFCD7F32), Color(0xFF8B4513)],
-        );
-      } else if (position <= 10) {
-        // 前10名主题色渐变
-        final theme = Theme.of(context);
-        return LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [theme.primaryColor, theme.primaryColor.withOpacity(0.7)],
-        );
-      } else {
-        // 其他灰色渐变
-        return const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF757575), Color(0xFF616161)],
-        );
       }
     });
   }
@@ -176,7 +134,8 @@ class OptimizedFundRankingCard extends StatelessWidget {
 
     // 如果启用毛玻璃效果
     if (enableGlassmorphism) {
-      final config = glassmorphismConfig ?? AppTheme.defaultGlassmorphismConfig;
+      final config =
+          glassmorphismConfig ?? FluentAppTheme.defaultGlassmorphismConfig;
 
       return GlassmorphismCard(
         margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -207,7 +166,7 @@ class OptimizedFundRankingCard extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
-      child: Container(
+      child: DecoratedBox(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           gradient: _getCardGradientFromPosition(position),

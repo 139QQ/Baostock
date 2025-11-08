@@ -134,6 +134,13 @@ class FundExplorationState extends Equatable {
   /// 排序字段
   final String sortBy;
 
+  /// 收藏基金集合
+  final Set<String> favoriteFunds;
+
+  /// 对比基金集合
+  final Set<String> comparingFunds;
+
+  /// 创建基金探索状态
   const FundExplorationState({
     this.status = FundExplorationStatus.initial,
     this.fundRankings = const [],
@@ -161,6 +168,8 @@ class FundExplorationState extends Equatable {
     this.moneyFundsError,
     this.activeView = FundExplorationView.ranking,
     this.sortBy = 'return1Y',
+    this.favoriteFunds = const {},
+    this.comparingFunds = const {},
   });
 
   /// 初始状态构造函数
@@ -218,6 +227,8 @@ class FundExplorationState extends Equatable {
     this.moneyFundsError,
     this.activeView = FundExplorationView.ranking,
     this.sortBy = 'return1Y',
+    this.favoriteFunds = const {},
+    this.comparingFunds = const {},
   })  : status = FundExplorationStatus.loading,
         isLoading = true,
         isLoadingMore = false,
@@ -247,6 +258,8 @@ class FundExplorationState extends Equatable {
     this.moneyFundsError,
     this.activeView = FundExplorationView.ranking,
     this.sortBy = 'return1Y',
+    this.favoriteFunds = const {},
+    this.comparingFunds = const {},
   })  : status = FundExplorationStatus.error,
         isLoading = false,
         isLoadingMore = false,
@@ -280,6 +293,8 @@ class FundExplorationState extends Equatable {
     String? moneyFundsError,
     FundExplorationView? activeView,
     String? sortBy,
+    Set<String>? favoriteFunds,
+    Set<String>? comparingFunds,
     bool clearErrorMessage = false,
   }) {
     return FundExplorationState(
@@ -311,6 +326,8 @@ class FundExplorationState extends Equatable {
       moneyFundsError: moneyFundsError ?? this.moneyFundsError,
       activeView: activeView ?? this.activeView,
       sortBy: sortBy ?? this.sortBy,
+      favoriteFunds: favoriteFunds ?? this.favoriteFunds,
+      comparingFunds: comparingFunds ?? this.comparingFunds,
     );
   }
 
@@ -332,7 +349,12 @@ class FundExplorationState extends Equatable {
     switch (activeView) {
       case FundExplorationView.moneyFunds:
         return isMoneyFundsSearching ? moneyFundSearchResults : moneyFunds;
-      default:
+      case FundExplorationView.search:
+      case FundExplorationView.filtered:
+      case FundExplorationView.comparison:
+      case FundExplorationView.all:
+      case FundExplorationView.hot:
+      case FundExplorationView.ranking:
         switch (status) {
           case FundExplorationStatus.searching:
           case FundExplorationStatus.searched:
@@ -341,7 +363,11 @@ class FundExplorationState extends Equatable {
             return filteredRankings.isNotEmpty
                 ? filteredRankings
                 : searchResults;
-          default:
+          case FundExplorationStatus.initial:
+          case FundExplorationStatus.loading:
+          case FundExplorationStatus.loaded:
+          case FundExplorationStatus.filtering:
+          case FundExplorationStatus.error:
             return fundRankings;
         }
     }

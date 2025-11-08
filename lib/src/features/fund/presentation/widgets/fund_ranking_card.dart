@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_theme.dart';
 import '../../domain/entities/fund_ranking.dart';
 import 'glassmorphism_card.dart';
-import '../../../../core/theme/app_theme.dart';
 
 /// 基金排行榜卡片组件
 ///
@@ -12,6 +12,20 @@ import '../../../../core/theme/app_theme.dart';
 /// - 收益率数据
 /// - 操作按钮（收藏、详情）
 class FundRankingCard extends StatefulWidget {
+  /// 创建基金排行榜卡片
+  const FundRankingCard({
+    super.key,
+    required this.ranking,
+    required this.position,
+    this.onTap,
+    this.onFavorite,
+    this.animationDelay,
+    this.showFavoriteButton = true,
+    this.showDetailButton = true,
+    this.enableGlassmorphism = false,
+    this.glassmorphismConfig,
+  });
+
   /// 排行榜数据
   final FundRanking ranking;
 
@@ -38,19 +52,6 @@ class FundRankingCard extends StatefulWidget {
 
   /// 毛玻璃配置（如果为null则使用默认配置）
   final GlassmorphismConfig? glassmorphismConfig;
-
-  const FundRankingCard({
-    super.key,
-    required this.ranking,
-    required this.position,
-    this.onTap,
-    this.onFavorite,
-    this.animationDelay,
-    this.showFavoriteButton = true,
-    this.showDetailButton = true,
-    this.enableGlassmorphism = false,
-    this.glassmorphismConfig,
-  });
 
   @override
   State<FundRankingCard> createState() => _FundRankingCardState();
@@ -158,8 +159,8 @@ class _FundRankingCardState extends State<FundRankingCard>
 
     // 如果启用毛玻璃效果
     if (widget.enableGlassmorphism) {
-      final config =
-          widget.glassmorphismConfig ?? AppTheme.defaultGlassmorphismConfig;
+      final config = widget.glassmorphismConfig ??
+          FluentAppTheme.defaultGlassmorphismConfig;
 
       return GlassmorphismCard(
         blur: config.blur,

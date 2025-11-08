@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'package:dio/dio.dart';
 import '../utils/logger.dart';
 import '../config/app_config.dart';
+import 'hybrid/fund_api_adapter.dart';
+import 'hybrid/data_type.dart';
 // import 'multi_source_api_config.dart'; // 暂时注释掉，避免循环依赖
 
 /// 基金API客户端 - 增强版本，支持重试和超时处理
@@ -70,6 +72,56 @@ class FundApiClient {
 
   /// 公共Dio访问器（用于需要特殊处理的请求）
   static Dio get dio => _dio;
+
+  /// 混合数据适配器
+  static FundApiAdapter? _hybridAdapter;
+
+  /// 是否启用混合数据功能
+  static bool _hybridEnabled = false;
+
+  /// 初始化混合数据功能
+  static Future<void> initializeHybridData({bool enabled = true}) async {
+    _hybridEnabled = enabled;
+
+    if (enabled) {
+      try {
+        _hybridAdapter = FundApiAdapter();
+        AppLogger.info('FundApiClient: 混合数据功能已启用');
+
+        // 检查API兼容性
+        final compatibilityReport =
+            await _hybridAdapter!.checkApiCompatibility();
+        if (compatibilityReport.overallStatus != 'error') {
+          AppLogger.info('FundApiClient: API兼容性检查通过');
+        } else {
+          AppLogger.warn(
+              'FundApiClient: API兼容性检查发现问题', compatibilityReport.errorMessage);
+        }
+      } catch (e) {
+        AppLogger.error('FundApiClient: 混合数据功能初始化失败', e);
+        _hybridEnabled = false;
+        _hybridAdapter = null;
+      }
+    } else {
+      _hybridAdapter = null;
+      AppLogger.info('FundApiClient: 混合数据功能已禁用');
+    }
+  }
+
+  /// 启用/禁用混合数据缓存
+  static void setHybridDataEnabled(bool enabled) {
+    _hybridEnabled = enabled;
+    if (!enabled) {
+      _hybridAdapter = null;
+    }
+    AppLogger.info('FundApiClient: 混合数据缓存${enabled ? '启用' : '禁用'}');
+  }
+
+  /// 检查是否启用混合数据
+  static bool get isHybridDataEnabled => _hybridEnabled;
+
+  /// 获取混合数据适配器
+  static FundApiAdapter? get hybridAdapter => _hybridAdapter;
 
   /// 构建完整URL
   static String _buildUrl(String endpoint) {
@@ -139,7 +191,23 @@ class FundApiClient {
 
   /// GET请求
   static Future<Map<String, dynamic>> get(String endpoint,
-      {Map<String, String>? headers}) async {
+      {Map<String, String>? headers,
+      bool useHybridCache = true,
+      DataType? dataType}) async {
+    // 如果启用混合数据且适配器可用，使用适配器
+    if (_hybridEnabled && _hybridAdapter != null && useHybridCache) {
+      try {
+        return await _hybridAdapter!.get(endpoint,
+            headers: headers,
+            useHybridCache: useHybridCache,
+            dataType: dataType);
+      } catch (e) {
+        AppLogger.warn('混合数据GET请求失败，回退到标准请求', e);
+        // 继续使用标准请求
+      }
+    }
+
+    // 标准HTTP请求流程
     try {
       final url = _buildUrl(endpoint);
       AppLogger.network('GET', url);
@@ -171,6 +239,18 @@ class FundApiClient {
   /// POST请求
   static Future<Map<String, dynamic>> post(String endpoint,
       {Map<String, dynamic>? data, Map<String, String>? headers}) async {
+    // 如果启用混合数据且适配器可用，使用适配器
+    if (_hybridEnabled && _hybridAdapter != null) {
+      try {
+        return await _hybridAdapter!
+            .post(endpoint, data: data, headers: headers);
+      } catch (e) {
+        AppLogger.warn('混合数据POST请求失败，回退到标准请求', e);
+        // 继续使用标准请求
+      }
+    }
+
+    // 标准HTTP请求流程
     try {
       final url = _buildUrl(endpoint);
       AppLogger.network('POST', url);
@@ -393,10 +473,61 @@ class FundApiClient {
       {String symbol = "全部"}) async {
     try {
       // symbol选项: '全部', '股票型', '混合型', '债券型', '指数型', 'QDII', 'ETF联接', 'LOF', '场内交易基金'
+      // 参考：docs/api/fund_public.md 中的 fund_value_estimation_em 接口规范
       final endpoint = '/api/public/fund_value_estimation_em?symbol=$symbol';
       return await get(endpoint);
     } catch (e) {
       AppLogger.error('获取基金估值数据失败', e);
+      rethrow;
+    }
+  }
+
+  /// 获取ETF实时行情数据 - 东方财富
+  /// 参考：docs/api/fund_public.md 中的 fund_etf_spot_em 接口规范
+  static Future<Map<String, dynamic>> getEtfSpotData() async {
+    try {
+      const endpoint = '/api/public/fund_etf_spot_em';
+      return await get(endpoint);
+    } catch (e) {
+      AppLogger.error('获取ETF实时行情失败', e);
+      rethrow;
+    }
+  }
+
+  /// 获取ETF实时行情数据 - 同花顺
+  /// 参考：docs/api/fund_public.md 中的 fund_etf_spot_ths 接口规范
+  static Future<Map<String, dynamic>> getEtfSpotDataThs({String? date}) async {
+    try {
+      final endpoint = date != null
+          ? '/api/public/fund_etf_spot_ths?date=$date'
+          : '/api/public/fund_etf_spot_ths';
+      return await get(endpoint);
+    } catch (e) {
+      AppLogger.error('获取ETF实时行情(同花顺)失败', e);
+      rethrow;
+    }
+  }
+
+  /// 获取LOF实时行情数据 - 东方财富
+  /// 参考：docs/api/fund_public.md 中的 fund_lof_spot_em 接口规范
+  static Future<Map<String, dynamic>> getLofSpotData() async {
+    try {
+      const endpoint = '/api/public/fund_lof_spot_em';
+      return await get(endpoint);
+    } catch (e) {
+      AppLogger.error('获取LOF实时行情失败', e);
+      rethrow;
+    }
+  }
+
+  /// 获取场内交易基金实时数据
+  /// 参考：docs/api/fund_public.md 中的 fund_etf_fund_daily_em 接口规范
+  static Future<Map<String, dynamic>> getTradingFundsDaily() async {
+    try {
+      const endpoint = '/api/public/fund_etf_fund_daily_em';
+      return await get(endpoint);
+    } catch (e) {
+      AppLogger.error('获取场内交易基金实时数据失败', e);
       rethrow;
     }
   }
@@ -414,6 +545,58 @@ class FundApiClient {
       AppLogger.warn('健康检查失败', e);
       return false;
     }
+  }
+
+  /// 混合数据专用方法：获取基金排行榜数据（带缓存）
+  static Future<Map<String, dynamic>> getFundRankingWithHybridCache(
+      {String symbol = "全部", bool useCache = true}) async {
+    return await get('/api/public/fund_open_fund_rank_em',
+        useHybridCache: useCache, dataType: DataType.fundRanking);
+  }
+
+  /// 混合数据专用方法：获取ETF实时行情数据（带缓存）
+  static Future<Map<String, dynamic>> getEtfSpotDataWithHybridCache(
+      {bool useCache = true}) async {
+    return await get('/api/public/fund_etf_spot_em',
+        useHybridCache: useCache, dataType: DataType.etfSpotData);
+  }
+
+  /// 混合数据专用方法：获取LOF实时行情数据（带缓存）
+  static Future<Map<String, dynamic>> getLofSpotDataWithHybridCache(
+      {bool useCache = true}) async {
+    return await get('/api/public/fund_lof_spot_em',
+        useHybridCache: useCache, dataType: DataType.lofSpotData);
+  }
+
+  /// 获取混合数据统计信息
+  static Map<String, dynamic>? getHybridDataStats() {
+    if (_hybridAdapter != null) {
+      return {
+        'enabled': _hybridEnabled,
+        'apiStats': _hybridAdapter!.getApiStats(),
+        'healthStatus': _hybridAdapter!.getHealthStatus(),
+      };
+    }
+    return null;
+  }
+
+  /// 清理混合数据统计
+  static void cleanupHybridDataStats(
+      {Duration olderThan = const Duration(hours: 24)}) {
+    _hybridAdapter?.cleanupApiStats(olderThan: olderThan);
+  }
+
+  /// 获取网络层集成状态
+  static Map<String, dynamic> getNetworkIntegrationStatus() {
+    return {
+      'baseUrl': baseUrl,
+      'dioInitialized': _dio.options.baseUrl.isNotEmpty,
+      'hybridDataEnabled': _hybridEnabled,
+      'hybridAdapterAvailable': _hybridAdapter != null,
+      'maxRetries': maxRetries,
+      'connectTimeout': connectTimeout.inSeconds,
+      'receiveTimeout': receiveTimeout.inSeconds,
+    };
   }
 
   /// 判断状态码是否可重试

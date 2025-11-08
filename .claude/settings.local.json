@@ -36,7 +36,17 @@
       "Bash(python:*)",
       "Bash(flutter:*)",
       "Bash(mkdir:*)",
-      "Bash(android/local.properties)"
+      "Bash(android/local.properties)",
+      "Bash(nul:*)",
+      "Bash(mv:*)",
+      "SlashCommand(/bmad:bmm:workflows:workflow-status mode:data data_request:project_config)",
+      "Bash(touch:*)",
+      "SlashCommand(/bmad:bmm:workflows:sprint-planning)",
+      "SlashCommand(/bmad:bmm:workflows:workflow-status)",
+      "SlashCommand(/bmad:bmm:agents:tea)",
+      "WebSearch",
+      "Bash(rm:*)",
+      "SlashCommand(/bmad:bmm:workflows:create-story)"
     ],
     "deny": [],
     "ask": []
