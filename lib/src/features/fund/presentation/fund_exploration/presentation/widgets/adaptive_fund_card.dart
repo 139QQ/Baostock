@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:jisu_fund_analyzer/src/core/utils/logger.dart';
 import '../../domain/models/fund.dart';
 
 /// 用户偏好管理服务
@@ -286,8 +287,9 @@ class _AdaptiveFundCardState extends State<AdaptiveFundCard>
     _animationLevel = 2;
     _isInitialized = true;
 
-    // 立即初始化所有控制器，避免LateInitializationError
+    // 立即初始化所有控制器和动画，避免LateInitializationError
     _initializeControllers();
+    _initializeAnimationsSync();
 
     // 异步初始化用户偏好设置
     _initializeUserPreferences();
@@ -315,6 +317,67 @@ class _AdaptiveFundCardState extends State<AdaptiveFundCard>
       duration: const Duration(milliseconds: 150),
       vsync: this,
     );
+  }
+
+  /// 同步初始化所有动画对象，避免LateInitializationError
+  void _initializeAnimationsSync() {
+    try {
+      // 总是初始化所有动画对象，避免LateInitializationError
+      // 悬停动画
+      _hoverAnimation = Tween<double>(
+        begin: 0.0,
+        end: -8.0,
+      ).animate(CurvedAnimation(
+        parent: _hoverController,
+        curve: Curves.easeOutCubic,
+      ));
+
+      _shadowAnimation = Tween<double>(
+        begin: 2.0,
+        end: 12.0,
+      ).animate(CurvedAnimation(
+        parent: _hoverController,
+        curve: Curves.easeOutCubic,
+      ));
+
+      // 收益率动画
+      _returnAnimation = Tween<double>(
+        begin: 0.0,
+        end: widget.fund.return1Y,
+      ).animate(CurvedAnimation(
+        parent: _returnController,
+        curve: Curves.easeOutCubic,
+      ));
+
+    // 收藏动画
+    _favoriteAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _favoriteController,
+      curve: Curves.elasticOut,
+    ));
+
+    // 缩放动画
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.95,
+    ).animate(CurvedAnimation(
+      parent: _scaleController,
+      curve: Curves.easeInOut,
+    ));
+
+    AppLogger.info('AdaptiveFundCard动画初始化成功: ${widget.fund.name}');
+    } catch (e) {
+      AppLogger.error('AdaptiveFundCard动画初始化失败: ${widget.fund.name}', e);
+      _animationInitializationFailed = true;
+      // 设置默认值以避免null引用
+      _hoverAnimation = AlwaysStoppedAnimation(0.0);
+      _shadowAnimation = AlwaysStoppedAnimation(2.0);
+      _returnAnimation = AlwaysStoppedAnimation(widget.fund.return1Y);
+      _favoriteAnimation = AlwaysStoppedAnimation(0.0);
+      _scaleAnimation = AlwaysStoppedAnimation(1.0);
+    }
   }
 
   /// 初始化用户偏好设置
@@ -612,8 +675,11 @@ class _AdaptiveFundCardState extends State<AdaptiveFundCard>
   void _updateReturnAnimation() {
     if (!_enableAnimations) return;
 
+    // 确保动画已初始化
+    if (_returnAnimation == null) return;
+
     _returnAnimation = Tween<double>(
-      begin: _returnAnimation.value,
+      begin: _returnAnimation?.value ?? 0.0,
       end: widget.fund.return1Y,
     ).animate(CurvedAnimation(
       parent: _returnController,
@@ -756,12 +822,17 @@ class _AdaptiveFundCardState extends State<AdaptiveFundCard>
           _scaleController,
         ]),
         builder: (context, child) {
+          // 确保动画已初始化，避免LateInitializationError
+          if (!_isInitialized || _animationInitializationFailed) {
+            return _buildFallbackCard(context);
+          }
+
           return Transform.translate(
-            offset: Offset(0, _hoverAnimation.value),
+            offset: Offset(0, _hoverAnimation?.value ?? 0.0),
             child: Transform.scale(
-              scale: _isPressed ? _scaleAnimation.value : 1.0,
+              scale: _isPressed ? (_scaleAnimation?.value ?? 1.0) : 1.0,
               child: Card(
-                elevation: _shadowAnimation.value,
+                elevation: _shadowAnimation?.value ?? 2.0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -854,6 +925,24 @@ class _AdaptiveFundCardState extends State<AdaptiveFundCard>
             ),
           );
         },
+      ),
+    );
+  }
+
+  /// 构建备用卡片（当动画初始化失败时）
+  Widget _buildFallbackCard(BuildContext context) {
+    return Card(
+      elevation: 2.0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: InkWell(
+        onTap: widget.onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: _buildOptimizedContent(context),
+        ),
       ),
     );
   }
@@ -993,9 +1082,9 @@ class _AdaptiveFundCardState extends State<AdaptiveFundCard>
     }
 
     return AnimatedBuilder(
-      animation: _returnAnimation,
+      animation: _returnAnimation ?? AlwaysStoppedAnimation(0.0),
       builder: (context, child) {
-        final currentValue = _returnAnimation.value;
+        final currentValue = _returnAnimation?.value ?? widget.fund.return1Y;
         return Text(
           '${currentValue > 0 ? '+' : ''}${currentValue.toStringAsFixed(2)}%',
           style: TextStyle(
