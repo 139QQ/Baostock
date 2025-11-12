@@ -16,8 +16,13 @@ class KeyboardShortcuts {
     // 注册默认快捷键
     registerDefaultShortcuts();
 
-    // 监听键盘事件
-    HardwareKeyboard.instance.addHandler(_handleKeyEvent);
+    // 监听键盘事件 - 添加防重复注册机制
+    try {
+      HardwareKeyboard.instance.addHandler(_handleKeyEvent);
+    } catch (e) {
+      // 如果处理器已经存在，忽略错误
+      print('键盘事件处理器已存在或添加失败: $e');
+    }
   }
 
   /// 注册默认快捷键
@@ -286,18 +291,29 @@ class KeyboardShortcuts {
 
   /// 处理键盘事件
   static bool _handleKeyEvent(KeyEvent event) {
-    if (event is KeyDownEvent) {
-      final keys = HardwareKeyboard.instance.logicalKeysPressed;
-      final keySet = LogicalKeySet.fromSet(keys);
+    try {
+      if (event is KeyDownEvent) {
+        // 检查物理键状态，避免重复触发
+        if (!HardwareKeyboard.instance.physicalKeysPressed
+            .contains(event.physicalKey)) {
+          return false;
+        }
 
-      final keyString = _keySetToString(keySet);
+        final keys = HardwareKeyboard.instance.logicalKeysPressed;
+        final keySet = LogicalKeySet.fromSet(keys);
 
-      // 查找匹配的快捷键
-      final action = _globalShortcuts[keyString];
-      if (action != null) {
-        _executeAction(action);
-        return true;
+        final keyString = _keySetToString(keySet);
+
+        // 查找匹配的快捷键
+        final action = _globalShortcuts[keyString];
+        if (action != null && action.isEnabled) {
+          _executeAction(action);
+          return true;
+        }
       }
+    } catch (e) {
+      // 捕获键盘事件处理异常，避免应用崩溃
+      print('键盘事件处理异常: $e');
     }
 
     return false;
@@ -305,11 +321,11 @@ class KeyboardShortcuts {
 
   /// 执行快捷键动作
   static void _executeAction(ShortcutAction action) {
-    // 防止重复触发
+    // 防止重复触发 - 增加更严格的检查
     final now = DateTime.now();
     if (_lastTriggeredAction?.id == action.id &&
         _lastTriggerTime != null &&
-        now.difference(_lastTriggerTime!).inMilliseconds < 100) {
+        now.difference(_lastTriggerTime!).inMilliseconds < 200) {
       return;
     }
 
@@ -317,7 +333,9 @@ class KeyboardShortcuts {
     _lastTriggerTime = now;
 
     try {
-      action.onPressed?.call();
+      if (action.isEnabled && action.onPressed != null) {
+        action.onPressed!();
+      }
     } catch (e) {
       print('快捷键执行失败: ${action.id} - $e');
     }
@@ -400,10 +418,18 @@ class KeyboardShortcuts {
 
   /// 清理资源
   static void dispose() {
-    HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
+    try {
+      HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
+    } catch (e) {
+      // 如果移除失败，忽略错误（可能在测试环境中）
+      print('移除键盘事件处理器失败: $e');
+    }
+
     _shortcuts.clear();
     _globalShortcuts.clear();
     _registeredKeys.clear();
+    _lastTriggeredAction = null;
+    _lastTriggerTime = null;
   }
 }
 

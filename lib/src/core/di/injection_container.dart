@@ -62,6 +62,8 @@ import '../../features/portfolio/data/adapters/fund_favorite_adapter.dart'
 import '../../features/portfolio/data/services/fund_favorite_service.dart';
 import '../../features/portfolio/presentation/cubit/portfolio_analysis_cubit.dart';
 import '../../features/portfolio/presentation/cubit/fund_favorite_cubit.dart';
+// 推送相关导入
+import '../../features/alerts/data/managers/push_history_manager.dart';
 import 'package:hive/hive.dart';
 // Week 6 服务导入
 import '../../services/fund_analysis_service.dart';
@@ -414,6 +416,20 @@ Future<void> initDependencies() async {
 
   // 自选基金管理Cubit
   sl.registerLazySingleton(() => FundFavoriteCubit(sl()));
+
+  // ===== 推送和通知相关依赖 =====
+
+  // 推送历史管理器
+  if (!sl.isRegistered<PushHistoryManager>()) {
+    sl.registerLazySingleton<PushHistoryManager>(() {
+      final manager = PushHistoryManager.instance;
+      // 异步初始化，不阻塞依赖注入过程
+      manager.initialize().catchError((e) {
+        AppLogger.debug('PushHistoryManager initialization failed: $e');
+      });
+      return manager;
+    });
+  }
 
   // ===== Week 5 数据源层核心组件 =====
   // 注意：Week 5 组件具有复杂的依赖关系，暂时不直接集成到主DI容器中

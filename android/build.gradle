@@ -1,18 +1,24 @@
 buildscript {
-    ext.kotlin_version = '1.9.10'
+    ext.kotlin_version = '1.9.20' // 保持不变（支持 Java 17）
     repositories {
+        // 1. 阿里云公共仓库（无需授权，优先下载）
+        maven { url 'https://maven.aliyun.com/repository/public' }
+        // 2. Google 官方仓库（AGP 插件源头，网络能访问则生效）
         google()
+        // 3. 兜底：Maven Central（所有开源依赖都有）
         mavenCentral()
     }
-
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.1.0'
+        // 保持 AGP 8.2.0（稳定版，无需授权的仓库中必存在）
+        classpath "com.android.tools.build:gradle:8.2.0"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
 
 allprojects {
     repositories {
+        // 同步仓库配置（与 buildscript 一致，无需授权）
+        maven { url 'https://maven.aliyun.com/repository/public' }
         google()
         mavenCentral()
     }

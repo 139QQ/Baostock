@@ -8,7 +8,7 @@ if (localPropertiesFile.exists()) {
 
 def flutterRoot = localProperties.getProperty('flutter.sdk')
 if (flutterRoot == null) {
-    throw new GradleException("Flutter SDK not found. Define location with flutter.sdk in the local.properties file.")
+    throw new IllegalStateException("Flutter SDK not found. Define location with flutter.sdk in the local.properties file.")
 }
 
 def flutterVersionCode = localProperties.getProperty('flutter.versionCode')
@@ -21,22 +21,26 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
+// 修复1：重新定义 Kotlin 版本变量（与项目级 build.gradle 保持一致）
+def kotlin_version = rootProject.ext.kotlin_version ?: '1.9.20'
+
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
 android {
     namespace "com.example.jisu_fund_analyzer"
-    compileSdkVersion 34
-    ndkVersion flutter.ndkVersion
+    compileSdkVersion 34 // 匹配 path_provider_android 插件要求
+    ndkVersion "25.1.8937393" // 匹配插件所需 NDK 版本
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+        coreLibraryDesugaringEnabled true
     }
 
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = '17'
     }
 
     sourceSets {
@@ -44,10 +48,7 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId "com.example.jisu_fund_analyzer"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
         minSdkVersion flutter.minSdkVersion
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
@@ -57,10 +58,12 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works with signing configs.
             signingConfig signingConfigs.debug
         }
+    }
+
+    buildFeatures {
+        viewBinding false
     }
 }
 
@@ -69,6 +72,8 @@ flutter {
 }
 
 dependencies {
+    // 修复2：替换为 AndroidX 版本 Multidex（删除旧版 support 库）
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation 'com.android.support:multidex:1.0.3'
+    implementation 'androidx.multidex:multidex:2.0.1' // 与 AndroidX 兼容的官方 Multidex
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4' // 核心库脱糖支持
 }

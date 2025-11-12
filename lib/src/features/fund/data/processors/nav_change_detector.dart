@@ -42,9 +42,12 @@ class NavChangeDetector {
     Decimal? volatilityThreshold,
     this.enableTrendAnalysis = true,
     this.trendWindowSize = 10,
-  }) : significantThreshold = significantThreshold ?? _defaultSignificantThreshold,
-       largeChangeThreshold = largeChangeThreshold ?? _defaultLargeChangeThreshold,
-       volatilityThreshold = volatilityThreshold ?? _defaultVolatilityThreshold;
+  })  : significantThreshold =
+            significantThreshold ?? _defaultSignificantThreshold,
+        largeChangeThreshold =
+            largeChangeThreshold ?? _defaultLargeChangeThreshold,
+        volatilityThreshold =
+            volatilityThreshold ?? _defaultVolatilityThreshold;
 
   /// 检测净值变化
   NavChangeInfo detectChange(FundNavData previousNav, FundNavData currentNav) {
@@ -52,7 +55,8 @@ class NavChangeDetector {
       // 计算基础变化指标
       final Decimal changeAmount = currentNav.nav - previousNav.nav;
       final Decimal changeRate = previousNav.nav > Decimal.zero
-          ? Decimal.parse((changeAmount.toDouble() / previousNav.nav.toDouble()).toString())
+          ? Decimal.parse(
+              (changeAmount.toDouble() / previousNav.nav.toDouble()).toString())
           : Decimal.zero;
 
       // 确定变化类型
@@ -62,10 +66,12 @@ class NavChangeDetector {
       final changeIntensity = _calculateChangeIntensity(changeRate);
 
       // 检测是否为显著变化
-      final isSignificant = (changeRate.abs() as Decimal) >= significantThreshold;
+      final isSignificant =
+          (changeRate.abs() as Decimal) >= significantThreshold;
 
       // 检测是否为大幅变化
-      final isLargeChange = (changeRate.abs() as Decimal) >= largeChangeThreshold;
+      final isLargeChange =
+          (changeRate.abs() as Decimal) >= largeChangeThreshold;
 
       // 检测是否为剧烈变化
       final isVolatile = (changeRate.abs() as Decimal) >= volatilityThreshold;
@@ -212,7 +218,8 @@ class NavChangeDetector {
       final x = data.indexOf(item).toDouble();
       return sum + (x * item.nav.toDouble());
     });
-    final sumX2 = (n * (n - 1) * (2 * n - 1) / 6).toDouble(); // 0^2 + 1^2 + 2^2 + ... + (n-1)^2
+    final sumX2 = (n * (n - 1) * (2 * n - 1) / 6)
+        .toDouble(); // 0^2 + 1^2 + 2^2 + ... + (n-1)^2
 
     final slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
 
@@ -242,8 +249,9 @@ class NavChangeDetector {
 
     final mean = returns.reduce((a, b) => a + b) / returns.length;
     final variance = returns.fold(0.0, (sum, ret) {
-      return sum + (ret - mean) * (ret - mean);
-    }) / returns.length;
+          return sum + (ret - mean) * (ret - mean);
+        }) /
+        returns.length;
 
     return variance > 0 ? variance : 0.0;
   }
@@ -259,7 +267,8 @@ class NavChangeDetector {
   }
 
   /// 计算趋势强度
-  double _calculateTrendStrength(List<FundNavData> data, TrendDirection direction) {
+  double _calculateTrendStrength(
+      List<FundNavData> data, TrendDirection direction) {
     if (data.length < 3) return 0.0;
 
     // 计算趋势一致性
@@ -268,7 +277,8 @@ class NavChangeDetector {
       final change = data[i].nav - data[i - 1].nav;
       if ((direction == TrendDirection.upward && change > Decimal.zero) ||
           (direction == TrendDirection.downward && change < Decimal.zero) ||
-          (direction == TrendDirection.sideways && change.abs() <= Decimal.parse('0.001'))) {
+          (direction == TrendDirection.sideways &&
+              change.abs() <= Decimal.parse('0.001'))) {
         consistentCount++;
       }
     }
@@ -277,13 +287,16 @@ class NavChangeDetector {
   }
 
   /// 计算趋势持续时间
-  int _calculateTrendDuration(List<FundNavData> data, TrendDirection direction) {
+  int _calculateTrendDuration(
+      List<FundNavData> data, TrendDirection direction) {
     int duration = 0;
     for (int i = data.length - 1; i >= 1; i--) {
       final change = data[i].nav - data[i - 1].nav;
-      final isConsistent = (direction == TrendDirection.upward && change > Decimal.zero) ||
-                         (direction == TrendDirection.downward && change < Decimal.zero) ||
-                         (direction == TrendDirection.sideways && change.abs() <= Decimal.parse('0.001'));
+      final isConsistent =
+          (direction == TrendDirection.upward && change > Decimal.zero) ||
+              (direction == TrendDirection.downward && change < Decimal.zero) ||
+              (direction == TrendDirection.sideways &&
+                  change.abs() <= Decimal.parse('0.001'));
 
       if (isConsistent) {
         duration++;
@@ -295,7 +308,8 @@ class NavChangeDetector {
   }
 
   /// 计算趋势置信度
-  double _calculateTrendConfidence(List<FundNavData> data, TrendDirection direction) {
+  double _calculateTrendConfidence(
+      List<FundNavData> data, TrendDirection direction) {
     if (data.length < 3) return 0.0;
 
     final strength = _calculateTrendStrength(data, direction);
@@ -347,8 +361,8 @@ class NavChangeDetector {
     }
 
     // 计算置信度 (基于变化幅度)
-    final confidence = (changeRate.abs() / volatilityThreshold).toDouble()
-        .clamp(0.0, 1.0);
+    final confidence =
+        (changeRate.abs() / volatilityThreshold).toDouble().clamp(0.0, 1.0);
 
     return NavAnomalyInfo(
       isAnomaly: true,

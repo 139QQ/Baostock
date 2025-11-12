@@ -17,7 +17,8 @@ import '../../models/fund_nav_data.dart';
 /// 支持多种压缩算法和智能批量处理策略
 class NavDataCompressionOptimizer {
   /// 单例实例
-  static final NavDataCompressionOptimizer _instance = NavDataCompressionOptimizer._internal();
+  static final NavDataCompressionOptimizer _instance =
+      NavDataCompressionOptimizer._internal();
 
   factory NavDataCompressionOptimizer() => _instance;
 
@@ -102,7 +103,8 @@ class NavDataCompressionOptimizer {
   }
 
   /// 解压缩NAV数据
-  Future<List<FundNavData>> decompressNavData(CompressedData compressedData) async {
+  Future<List<FundNavData>> decompressNavData(
+      CompressedData compressedData) async {
     try {
       final stopwatch = Stopwatch()..start();
 
@@ -170,7 +172,8 @@ class NavDataCompressionOptimizer {
 
       // 2. 数据压缩（可选）
       CompressedData? compressedData;
-      if (enableCompression && navDataList.length >= _config.compressionThreshold) {
+      if (enableCompression &&
+          navDataList.length >= _config.compressionThreshold) {
         compressedData = await compressNavData(navDataList);
       }
 
@@ -252,7 +255,8 @@ class NavDataCompressionOptimizer {
 
   /// 处理批量队列
   Future<void> _processBatchQueue() async {
-    if (_batchQueue.isEmpty || _processingBatches.length >= _batchConfig.maxConcurrentBatches) {
+    if (_batchQueue.isEmpty ||
+        _processingBatches.length >= _batchConfig.maxConcurrentBatches) {
       return;
     }
 
@@ -364,7 +368,8 @@ class NavDataCompressionOptimizer {
 
     if (navDataList.isEmpty) {
       errors.add('数据列表为空');
-      return BatchValidationResult(isValid: false, errors: errors, warnings: warnings);
+      return BatchValidationResult(
+          isValid: false, errors: errors, warnings: warnings);
     }
 
     // 检查数据完整性
@@ -376,7 +381,8 @@ class NavDataCompressionOptimizer {
         errors.add('第${i + 1}项数据缺少基金代码');
       }
 
-      if (navData.navDate.isAfter(DateTime.now().add(const Duration(days: 1)))) {
+      if (navData.navDate
+          .isAfter(DateTime.now().add(const Duration(days: 1)))) {
         warnings.add('第${i + 1}项数据日期异常: ${navData.navDate}');
       }
 
@@ -496,7 +502,8 @@ class CompressedData {
   });
 
   /// 获取压缩比
-  double get compressionRatio => originalSize > 0 ? compressedSize / originalSize : 1.0;
+  double get compressionRatio =>
+      originalSize > 0 ? compressedSize / originalSize : 1.0;
 
   /// 获取空间节省百分比
   double get spaceSavedPercentage => (1.0 - compressionRatio) * 100;
@@ -743,8 +750,10 @@ class PerformanceStatistics {
       'averageCompressionTime': averageCompressionTime.round(),
       'averageDecompressionTime': averageDecompressionTime.round(),
       'batchOperationSuccessRate': batchOperationSuccessRate,
-      'totalOriginalSizeMB': (totalOriginalSize / (1024 * 1024)).toStringAsFixed(2),
-      'totalCompressedSizeMB': (totalCompressedSize / (1024 * 1024)).toStringAsFixed(2),
+      'totalOriginalSizeMB':
+          (totalOriginalSize / (1024 * 1024)).toStringAsFixed(2),
+      'totalCompressedSizeMB':
+          (totalCompressedSize / (1024 * 1024)).toStringAsFixed(2),
     };
   }
 

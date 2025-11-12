@@ -265,9 +265,10 @@ class _MinimalistFundExplorationPageContentState
   Widget _buildContentSection() {
     return BlocBuilder<FundExplorationCubit, FundExplorationState>(
       builder: (context, state) {
-        if (state.isLoading && state.fundRankings.isEmpty) {
-          return _buildLoadingState();
-        }
+        // 移除统一加载界面 - 直接显示空列表
+        // if (state.isLoading && state.fundRankings.isEmpty) {
+        //   return _buildLoadingState();
+        // }
 
         if (state.errorMessage != null && state.fundRankings.isEmpty) {
           return _buildErrorState(state.errorMessage!);
@@ -402,25 +403,106 @@ class _MinimalistFundExplorationPageContentState
   Fund _convertToFund(dynamic ranking) {
     if (ranking is Fund) return ranking;
 
-    // 如果是 FundRanking，进行转换
+    // 安全地处理各种可能的类型
+    String code = '';
+    String name = '';
+    String type = '';
+    String company = '';
+    double unitNav = 0.0;
+    double accumulatedNav = 0.0;
+    double dailyReturn = 0.0;
+    double return1W = 0.0;
+    double return1M = 0.0;
+    double return3M = 0.0;
+    double return1Y = 0.0;
+    double return2Y = 0.0;
+    double return3Y = 0.0;
+    double returnYTD = 0.0;
+    double returnSinceInception = 0.0;
+    DateTime lastUpdate = DateTime.now();
+
+    if (ranking is FundRanking) {
+      // 直接访问 FundRanking 的属性
+      code = ranking.fundCode;
+      name = ranking.fundName;
+      type = ranking.fundType;
+      company = ranking.fundCompany;
+      unitNav = ranking.nav;
+      accumulatedNav = ranking.nav; // 使用单位净值作为累计净值的替代
+      dailyReturn = ranking.dailyReturn;
+      return1W = ranking.dailyReturn; // 使用日收益率作为1周收益率的替代
+      return1M = ranking.dailyReturn; // 使用日收益率作为1月收益率的替代
+      return3M = ranking.threeYearReturn; // 使用3年收益率作为3月收益率的替代
+      return1Y = ranking.oneYearReturn;
+      return2Y = ranking.threeYearReturn; // 使用3年收益率作为2年收益率的替代
+      return3Y = ranking.threeYearReturn;
+      returnYTD = ranking.dailyReturn; // 使用日收益率作为今年来收益率的替代
+      returnSinceInception = ranking.sinceInceptionReturn;
+      lastUpdate = ranking.updateDate;
+    } else {
+      // 尝试通过动态访问获取属性
+      try {
+        code = _parseString(ranking.fundCode ?? ranking.code);
+        name = _parseString(ranking.fundName ?? ranking.name);
+        type = _parseString(ranking.fundType ?? ranking.type);
+        company = _parseString(ranking.fundCompany ?? ranking.company);
+        unitNav = _parseDouble(ranking.nav ?? ranking.unitNav);
+        accumulatedNav = _parseDouble(ranking.accumulatedNav ?? ranking.nav);
+        dailyReturn = _parseDouble(ranking.dailyReturn);
+        return1W = _parseDouble(ranking.return1W ?? ranking.dailyReturn);
+        return1M = _parseDouble(ranking.return1M ?? ranking.dailyReturn);
+        return3M = _parseDouble(ranking.return3M ?? ranking.threeYearReturn);
+        return1Y = _parseDouble(ranking.return1Y ?? ranking.oneYearReturn);
+        return2Y = _parseDouble(ranking.return2Y ?? ranking.threeYearReturn);
+        return3Y = _parseDouble(ranking.return3Y ?? ranking.threeYearReturn);
+        returnYTD = _parseDouble(ranking.returnYTD ?? ranking.dailyReturn);
+        returnSinceInception = _parseDouble(
+            ranking.returnSinceInception ?? ranking.sinceInceptionReturn);
+        lastUpdate = _parseDateTime(ranking.updateDate ?? ranking.rankingDate);
+      } catch (e) {
+        // 如果访问属性失败，使用默认值
+        print('Error accessing ranking properties: $e');
+      }
+    }
+
     return Fund(
-      code: ranking.fundCode ?? '',
-      name: ranking.fundName ?? '',
-      type: ranking.fundType ?? '',
-      company: ranking.company ?? '',
-      unitNav: ranking.unitNav ?? 0.0,
-      accumulatedNav: ranking.accumulatedNav ?? 0.0,
-      dailyReturn: ranking.dailyReturn ?? 0.0,
-      return1W: ranking.return1W ?? 0.0,
-      return1M: ranking.return1M ?? 0.0,
-      return3M: ranking.return3M ?? 0.0,
-      return1Y: ranking.return1Y ?? 0.0,
-      return2Y: ranking.return2Y ?? 0.0,
-      return3Y: ranking.return3Y ?? 0.0,
-      returnYTD: ranking.returnYTD ?? 0.0,
-      returnSinceInception: ranking.returnSinceInception ?? 0.0,
-      lastUpdate: ranking.rankingDate ?? DateTime.now(),
+      code: code,
+      name: name,
+      type: type,
+      company: company,
+      unitNav: unitNav,
+      accumulatedNav: accumulatedNav,
+      dailyReturn: dailyReturn,
+      return1W: return1W,
+      return1M: return1M,
+      return3M: return3M,
+      return1Y: return1Y,
+      return2Y: return2Y,
+      return3Y: return3Y,
+      returnYTD: returnYTD,
+      returnSinceInception: returnSinceInception,
+      lastUpdate: lastUpdate,
     );
+  }
+
+  /// 安全解析字符串值
+  String _parseString(dynamic value) {
+    return value?.toString() ?? '';
+  }
+
+  /// 安全解析double值
+  double _parseDouble(dynamic value) {
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0.0;
+    return 0.0;
+  }
+
+  /// 安全解析DateTime值
+  DateTime _parseDateTime(dynamic value) {
+    if (value is DateTime) return value;
+    if (value is String) return DateTime.tryParse(value) ?? DateTime.now();
+    return DateTime.now();
   }
 
   /// 处理基金选择
@@ -485,17 +567,57 @@ class _MinimalistFundExplorationPageContentState
 
   /// 构建加载状态
   Widget _buildLoadingState() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircularProgressIndicator(color: Color(0xFF2E7D32)),
-          SizedBox(height: 16),
-          Text(
-            '正在加载基金数据...',
-            style: TextStyle(fontSize: 16, color: Color(0xFF666666)),
-          ),
-        ],
+    return Center(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // 根据可用空间自适应布局
+          if (constraints.maxHeight < 60) {
+            // 极小空间：只显示加载指示器
+            return const SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                color: Color(0xFF2E7D32),
+                strokeWidth: 2,
+              ),
+            );
+          } else if (constraints.maxHeight < 100) {
+            // 小空间：紧凑布局
+            return const Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    color: Color(0xFF2E7D32),
+                    strokeWidth: 2,
+                  ),
+                ),
+                SizedBox(width: 8),
+                Text(
+                  '加载中...',
+                  style: TextStyle(fontSize: 12, color: Color(0xFF666666)),
+                ),
+              ],
+            );
+          } else {
+            // 正常空间：完整布局
+            return const Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(color: Color(0xFF2E7D32)),
+                SizedBox(height: 12),
+                Text(
+                  '正在加载基金数据...',
+                  style: TextStyle(fontSize: 14, color: Color(0xFF666666)),
+                ),
+              ],
+            );
+          }
+        },
       ),
     );
   }
@@ -503,31 +625,67 @@ class _MinimalistFundExplorationPageContentState
   /// 构建错误状态
   Widget _buildErrorState(String errorMessage) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.error_outline, size: 48, color: Color(0xFFD32F2F)),
-          const SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32.0),
-            child: Text(
-              errorMessage,
-              style: const TextStyle(color: Color(0xFFD32F2F), fontSize: 16),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () {
-              context.read<FundExplorationCubit>().initialize();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2E7D32),
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            ),
-            child: const Text('重新加载'),
-          ),
-        ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // 根据可用空间自适应布局
+          if (constraints.maxHeight < 80) {
+            // 极小空间：只显示错误图标
+            return const Icon(
+              Icons.error_outline,
+              size: 24,
+              color: Color(0xFFD32F2F),
+            );
+          } else if (constraints.maxHeight < 140) {
+            // 小空间：紧凑布局
+            return const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.error_outline,
+                  size: 20,
+                  color: Color(0xFFD32F2F),
+                ),
+                SizedBox(width: 8),
+                Text(
+                  '加载失败',
+                  style: TextStyle(color: Color(0xFFD32F2F), fontSize: 12),
+                ),
+              ],
+            );
+          } else {
+            // 正常空间：完整布局
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline,
+                    size: 48, color: Color(0xFFD32F2F)),
+                const SizedBox(height: 16),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                  child: Text(
+                    errorMessage,
+                    style:
+                        const TextStyle(color: Color(0xFFD32F2F), fontSize: 16),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () {
+                    context.read<FundExplorationCubit>().initialize();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2E7D32),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 12),
+                  ),
+                  child: const Text('重新加载'),
+                ),
+              ],
+            );
+          }
+        },
       ),
     );
   }

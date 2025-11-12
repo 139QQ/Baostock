@@ -104,8 +104,9 @@ analyzer:
     invalid_override: error
     mixin_inherits_from_not_object: error
     mixin_of_non_class: error
-    subclass_of_abstract_class: error
-    type_check_with_null_name: error
+    # 移除不存在的错误代码
+    # subclass_of_abstract_class: error  # 此错误代码不存在
+    # type_check_with_null_name: error   # 此错误代码不存在
     undefined_class: error
     undefined_getter: error
     undefined_identifier: error

@@ -285,11 +285,15 @@ class _AdaptiveFundCardState extends State<AdaptiveFundCard>
     _enableAnimations = true;
     _enableHoverEffects = true;
     _animationLevel = 2;
-    _isInitialized = true;
 
     // 立即初始化所有控制器和动画，避免LateInitializationError
     _initializeControllers();
     _initializeAnimationsSync();
+
+    // 只有在动画初始化成功后才设置 _isInitialized
+    if (!_animationInitializationFailed) {
+      _isInitialized = true;
+    }
 
     // 异步初始化用户偏好设置
     _initializeUserPreferences();
@@ -322,59 +326,76 @@ class _AdaptiveFundCardState extends State<AdaptiveFundCard>
   /// 同步初始化所有动画对象，避免LateInitializationError
   void _initializeAnimationsSync() {
     try {
-      // 总是初始化所有动画对象，避免LateInitializationError
-      // 悬停动画
-      _hoverAnimation = Tween<double>(
-        begin: 0.0,
-        end: -8.0,
-      ).animate(CurvedAnimation(
-        parent: _hoverController,
-        curve: Curves.easeOutCubic,
-      ));
-
-      _shadowAnimation = Tween<double>(
-        begin: 2.0,
-        end: 12.0,
-      ).animate(CurvedAnimation(
-        parent: _hoverController,
-        curve: Curves.easeOutCubic,
-      ));
-
-      // 收益率动画
-      _returnAnimation = Tween<double>(
-        begin: 0.0,
-        end: widget.fund.return1Y,
-      ).animate(CurvedAnimation(
-        parent: _returnController,
-        curve: Curves.easeOutCubic,
-      ));
-
-    // 收藏动画
-    _favoriteAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _favoriteController,
-      curve: Curves.elasticOut,
-    ));
-
-    // 缩放动画
-    _scaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 0.95,
-    ).animate(CurvedAnimation(
-      parent: _scaleController,
-      curve: Curves.easeInOut,
-    ));
-
-    AppLogger.info('AdaptiveFundCard动画初始化成功: ${widget.fund.name}');
-    } catch (e) {
-      AppLogger.error('AdaptiveFundCard动画初始化失败: ${widget.fund.name}', e);
-      _animationInitializationFailed = true;
-      // 设置默认值以避免null引用
+      // 首先设置默认值，确保动画对象永远不会为 null
+      final defaultValue = widget.fund.return1Y ?? 0.0;
       _hoverAnimation = AlwaysStoppedAnimation(0.0);
       _shadowAnimation = AlwaysStoppedAnimation(2.0);
-      _returnAnimation = AlwaysStoppedAnimation(widget.fund.return1Y);
+      _returnAnimation = AlwaysStoppedAnimation(defaultValue);
+      _favoriteAnimation = AlwaysStoppedAnimation(0.0);
+      _scaleAnimation = AlwaysStoppedAnimation(1.0);
+
+      // 然后尝试创建实际的动画对象
+      try {
+        // 悬停动画
+        _hoverAnimation = Tween<double>(
+          begin: 0.0,
+          end: -8.0,
+        ).animate(CurvedAnimation(
+          parent: _hoverController,
+          curve: Curves.easeOutCubic,
+        ));
+
+        _shadowAnimation = Tween<double>(
+          begin: 2.0,
+          end: 12.0,
+        ).animate(CurvedAnimation(
+          parent: _hoverController,
+          curve: Curves.easeOutCubic,
+        ));
+
+        // 收益率动画
+        _returnAnimation = Tween<double>(
+          begin: 0.0,
+          end: defaultValue,
+        ).animate(CurvedAnimation(
+          parent: _returnController,
+          curve: Curves.easeOutCubic,
+        ));
+
+        // 收藏动画
+        _favoriteAnimation = Tween<double>(
+          begin: 0.0,
+          end: 1.0,
+        ).animate(CurvedAnimation(
+          parent: _favoriteController,
+          curve: Curves.elasticOut,
+        ));
+
+        // 缩放动画
+        _scaleAnimation = Tween<double>(
+          begin: 1.0,
+          end: 0.95,
+        ).animate(CurvedAnimation(
+          parent: _scaleController,
+          curve: Curves.easeInOut,
+        ));
+
+        AppLogger.info('AdaptiveFundCard动画初始化成功: ${widget.fund.name}');
+      } catch (animationError) {
+        // 如果具体动画创建失败，保持使用默认的 AlwaysStoppedAnimation
+        AppLogger.warn('AdaptiveFundCard部分动画创建失败，使用默认动画: ${widget.fund.name}',
+            animationError);
+        // _hoverAnimation, _shadowAnimation 等已经设置为默认值，无需重新设置
+      }
+    } catch (e) {
+      AppLogger.error('AdaptiveFundCard动画初始化严重失败: ${widget.fund.name}', e);
+      _animationInitializationFailed = true;
+
+      // 确保所有动画对象都有安全的默认值
+      final defaultValue = widget.fund.return1Y ?? 0.0;
+      _hoverAnimation = AlwaysStoppedAnimation(0.0);
+      _shadowAnimation = AlwaysStoppedAnimation(2.0);
+      _returnAnimation = AlwaysStoppedAnimation(defaultValue);
       _favoriteAnimation = AlwaysStoppedAnimation(0.0);
       _scaleAnimation = AlwaysStoppedAnimation(1.0);
     }
@@ -429,24 +450,46 @@ class _AdaptiveFundCardState extends State<AdaptiveFundCard>
     final performanceScore = _calculatePerformanceScore();
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
+    final orientation = MediaQuery.of(context).orientation;
     final isSmallScreen = screenWidth < 600 || screenHeight < 800;
+    final isMobile = screenWidth < 768;
+    final isTablet = screenWidth >= 768 && screenWidth < 1024;
 
-    debugPrint('AdaptiveFundCard: Device performance score: $performanceScore');
+    debugPrint(
+        'AdaptiveFundCard: 设备分析 - 性能评分: $performanceScore, 屏幕: ${screenWidth}x${screenHeight}, 方向: ${orientation.name}');
 
-    // 基于性能评分的智能决策
-    if (performanceScore < 30) {
-      // 低性能设备 (0-29分)
-      _animationLevel = 0;
-      _enableAnimations = false;
-      _enableHoverEffects = false;
-    } else if (performanceScore < 60) {
-      // 中等性能设备 (30-59分)
-      _animationLevel = 1;
+    // 基于设备类型和性能评分的智能决策
+    if (isMobile) {
+      // 移动设备优化
+      if (orientation == Orientation.landscape) {
+        // 横屏模式：优先保证流畅性
+        _animationLevel = performanceScore < 50 ? 0 : 1;
+        _enableAnimations = performanceScore >= 50;
+        _enableHoverEffects = false; // 横屏移动设备禁用悬停
+      } else {
+        // 竖屏模式：平衡体验和性能
+        if (performanceScore < 40) {
+          _animationLevel = 0;
+          _enableAnimations = false;
+          _enableHoverEffects = false;
+        } else if (performanceScore < 70) {
+          _animationLevel = 1;
+          _enableAnimations = true;
+          _enableHoverEffects = false;
+        } else {
+          _animationLevel = 2;
+          _enableAnimations = true;
+          _enableHoverEffects = true;
+        }
+      }
+    } else if (isTablet) {
+      // 平板设备：中等配置
+      _animationLevel = performanceScore < 45 ? 1 : 2;
       _enableAnimations = true;
-      _enableHoverEffects = !isSmallScreen; // 小屏幕禁用悬停效果
+      _enableHoverEffects = performanceScore >= 60;
     } else {
-      // 高性能设备 (60-100分)
-      _animationLevel = 2;
+      // 桌面设备：高配置
+      _animationLevel = performanceScore < 35 ? 1 : 2;
       _enableAnimations = true;
       _enableHoverEffects = true;
     }
@@ -458,6 +501,9 @@ class _AdaptiveFundCardState extends State<AdaptiveFundCard>
       _enableAnimations = false;
       _enableHoverEffects = false;
     }
+
+    debugPrint(
+        'AdaptiveFundCard: 最终设置 - 动画级别: $_animationLevel, 动画: $_enableAnimations, 悬停: $_enableHoverEffects');
   }
 
   /// 检测低端设备 - 增强的性能检测算法
@@ -948,16 +994,23 @@ class _AdaptiveFundCardState extends State<AdaptiveFundCard>
   }
 
   Widget _buildOptimizedContent(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 768;
+    final isCompact = widget.compactMode || isMobile;
+
+    // 响应式间距
+    final spacing = isCompact ? 6.0 : (_animationLevel > 1 ? 12.0 : 8.0);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         // 头部信息
         _buildOptimizedHeader(),
-        SizedBox(height: _animationLevel > 1 ? 10 : 8),
+        SizedBox(height: spacing),
         // 基金经理和规模
         _buildOptimizedManagerInfo(),
-        SizedBox(height: _animationLevel > 1 ? 10 : 8),
+        SizedBox(height: spacing),
         // 快速操作按钮
         if (widget.showQuickActions) ...[
           _buildOptimizedQuickActions(),

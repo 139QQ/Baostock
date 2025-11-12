@@ -50,6 +50,9 @@ class UnifiedPerformanceMonitor {
   final List<PerformanceDataPoint> _pendingMetrics = [];
   bool _batchProcessingScheduled = false;
 
+  // 回调函数引用，用于避免重复注册
+  static void Function(List<FrameTiming>)? _timingsCallback;
+
   /// 开始性能监控
   Future<void> startMonitoring() async {
     if (_isMonitoring) {
@@ -247,66 +250,86 @@ class UnifiedPerformanceMonitor {
 
   /// 注册UI性能监控回调
   void _registerUiPerformanceCallback() {
-    if (_uiCallbackRegistered) return;
+    if (_uiCallbackRegistered || _timingsCallback != null) return;
 
     try {
-      WidgetsBinding.instance.addTimingsCallback((List<FrameTiming> timings) {
+      // 创建回调函数并保存引用
+      _timingsCallback = (List<FrameTiming> timings) {
         if (timings.isEmpty) return;
 
-        // 累积帧数据用于计算平均值
-        _frameCount++;
-        _accumulatedFrameCount++;
-        _accumulatedFrameTime +=
-            timings.first.totalSpan.inMilliseconds.toDouble();
+        try {
+          // 累积帧数据用于计算平均值
+          _frameCount++;
+          _accumulatedFrameCount++;
 
-        final now = DateTime.now();
-        final lastTime = _lastUiMetricTime ?? now;
-
-        // 检查是否达到节流间隔
-        if (now.difference(lastTime) >= _uiThrottleInterval) {
-          // 计算平均帧时间
-          final avgFrameTime = _accumulatedFrameTime / _accumulatedFrameCount;
-          // 计算平均FPS
-          final avgFps = avgFrameTime > 0 ? 1000.0 / avgFrameTime : 60.0;
-
-          // 确保FPS在合理范围内
-          final normalizedFps = avgFps.clamp(0.0, 240.0);
-
-          // 记录指标（降低频率）
-          recordMetric('frame_rate', normalizedFps);
-          recordMetric('frame_time', avgFrameTime);
-          recordMetric('frame_count', _frameCount.toDouble());
-
-          // 检测性能问题
-          if (kDebugMode && avgFps < 30) {
-            _logger.w(
-                '检测到低FPS值: ${avgFps.toStringAsFixed(1)}, 平均帧时间: ${avgFrameTime.toStringAsFixed(1)}ms - 性能问题');
+          // 安全地获取帧时间，避免空列表异常
+          if (timings.isNotEmpty) {
+            _accumulatedFrameTime +=
+                timings.first.totalSpan.inMilliseconds.toDouble();
           }
 
-          // 重置累积数据
-          _lastUiMetricTime = now;
-          _accumulatedFrameTime = 0;
-          _accumulatedFrameCount = 0;
+          final now = DateTime.now();
+          final lastTime = _lastUiMetricTime ?? now;
+
+          // 检查是否达到节流间隔
+          if (now.difference(lastTime) >= _uiThrottleInterval &&
+              _accumulatedFrameCount > 0) {
+            // 计算平均帧时间
+            final avgFrameTime = _accumulatedFrameTime / _accumulatedFrameCount;
+            // 计算平均FPS
+            final avgFps = avgFrameTime > 0 ? 1000.0 / avgFrameTime : 60.0;
+
+            // 确保FPS在合理范围内
+            final normalizedFps = avgFps.clamp(0.0, 240.0);
+
+            // 记录指标（降低频率）
+            recordMetric('frame_rate', normalizedFps);
+            recordMetric('frame_time', avgFrameTime);
+            recordMetric('frame_count', _frameCount.toDouble());
+
+            // 检测性能问题
+            if (kDebugMode && avgFps < 30) {
+              _logger.w(
+                  '检测到低FPS值: ${avgFps.toStringAsFixed(1)}, 平均帧时间: ${avgFrameTime.toStringAsFixed(1)}ms - 性能问题');
+            }
+
+            // 重置累积数据
+            _lastUiMetricTime = now;
+            _accumulatedFrameTime = 0;
+            _accumulatedFrameCount = 0;
+          }
+        } catch (e) {
+          _logger.e('UI性能回调处理异常: $e');
         }
-      });
+      };
+
+      WidgetsBinding.instance.addTimingsCallback(_timingsCallback!);
       _uiCallbackRegistered = true;
       _logger.d('UI性能监控回调注册成功（节流间隔: ${_uiThrottleInterval.inMilliseconds}ms）');
     } catch (e) {
       _logger.e('注册UI性能监控回调失败: $e');
+      _uiCallbackRegistered = false;
     }
   }
 
   /// 注销UI性能监控回调
   void _unregisterUiPerformanceCallback() {
-    if (!_uiCallbackRegistered) return;
+    if (!_uiCallbackRegistered && _timingsCallback == null) return;
 
     try {
-      // 注意：由于addTimingsCallback没有返回标识符，我们无法精确移除
-      // 这是Flutter框架的限制，在实际应用中，这个回调会在应用停止时自动清理
+      // 尝试移除回调函数
+      if (_timingsCallback != null) {
+        WidgetsBinding.instance.removeTimingsCallback(_timingsCallback!);
+        _timingsCallback = null;
+      }
+
       _uiCallbackRegistered = false;
-      _logger.d('UI性能监控回调已标记为未注册');
+      _logger.d('UI性能监控回调已成功注销');
     } catch (e) {
       _logger.e('注销UI性能监控回调失败: $e');
+      // 即使失败也要重置状态，避免重复注销
+      _uiCallbackRegistered = false;
+      _timingsCallback = null;
     }
   }
 

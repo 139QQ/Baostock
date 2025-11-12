@@ -161,7 +161,7 @@ class _NavAwareFundCardState extends State<NavAwareFundCard>
 
     // 检查是否有新的变化信息
     return widget.changeInfo != oldWidget.changeInfo &&
-           widget.changeInfo!.hasChange;
+        widget.changeInfo!.hasChange;
   }
 
   /// 触发变化动画
@@ -661,26 +661,27 @@ class _NavListeningFundCardState extends State<NavListeningFundCard> {
   @override
   Widget build(BuildContext context) {
     // 如果没有基金数据，创建一个默认的
-    final fund = widget.fund ?? Fund(
-      code: widget.fundCode,
-      name: '基金 ${widget.fundCode}',
-      type: '混合型',
-      company: '未知公司',
-      manager: '未知经理',
-      return1W: 0.0,
-      return1M: 0.0,
-      return3M: 0.0,
-      return6M: 0.0,
-      return1Y: 0.0,
-      return3Y: 0.0,
-      scale: 0.0,
-      riskLevel: '未知',
-      status: '正常',
-      unitNav: _currentNavData?.nav.toDouble(),
-      accumulatedNav: _currentNavData?.accumulatedNav.toDouble(),
-      establishDate: DateTime.now(),
-      isFavorite: false,
-    );
+    final fund = widget.fund ??
+        Fund(
+          code: widget.fundCode,
+          name: '基金 ${widget.fundCode}',
+          type: '混合型',
+          company: '未知公司',
+          manager: '未知经理',
+          return1W: 0.0,
+          return1M: 0.0,
+          return3M: 0.0,
+          return6M: 0.0,
+          return1Y: 0.0,
+          return3Y: 0.0,
+          scale: 0.0,
+          riskLevel: '未知',
+          status: '正常',
+          unitNav: _currentNavData?.nav.toDouble(),
+          accumulatedNav: _currentNavData?.accumulatedNav.toDouble(),
+          establishDate: DateTime.now(),
+          isFavorite: false,
+        );
 
     return NavAwareFundCard(
       fund: fund,

@@ -32,6 +32,11 @@ class NavigationSidebar extends StatelessWidget {
       'description': '市场概览和今日行情',
     },
     {
+      'icon': Icons.trending_up,
+      'label': '市场指数',
+      'description': '主要指数准实时行情',
+    },
+    {
       'icon': Icons.search,
       'label': '基金探索',
       'description': '浏览和搜索基金产品',

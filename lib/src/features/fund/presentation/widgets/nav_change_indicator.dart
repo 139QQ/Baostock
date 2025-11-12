@@ -68,8 +68,8 @@ class _NavChangeIndicatorState extends State<NavChangeIndicator>
 
   /// 初始化动画
   void _initializeAnimation() {
-    final duration = widget.animationConfig?.duration ??
-        _getDefaultDurationForChangeType();
+    final duration =
+        widget.animationConfig?.duration ?? _getDefaultDurationForChangeType();
 
     _animationController = AnimationController(
       duration: duration,
@@ -205,7 +205,8 @@ class _NavChangeIndicatorState extends State<NavChangeIndicator>
           ],
           if (widget.showPercentage)
             Text(
-              widget.customText ?? '${widget.changeInfo.changePercentage.toStringAsFixed(2)}%',
+              widget.customText ??
+                  '${widget.changeInfo.changePercentage.toStringAsFixed(2)}%',
               style: const TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.bold,
@@ -296,7 +297,8 @@ class _NavChangeIndicatorState extends State<NavChangeIndicator>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: Text(
-        widget.customText ?? '${widget.changeInfo.changePercentage.toStringAsFixed(2)}%',
+        widget.customText ??
+            '${widget.changeInfo.changePercentage.toStringAsFixed(2)}%',
         style: TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.bold,

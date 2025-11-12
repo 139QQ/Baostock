@@ -70,8 +70,10 @@ class FundNavData {
       fundCode: json['fundCode'] as String,
       nav: Decimal.tryParse(json['nav'].toString()) ?? Decimal.zero,
       navDate: DateTime.parse(json['navDate'] as String),
-      accumulatedNav: Decimal.tryParse(json['accumulatedNav'].toString()) ?? Decimal.zero,
-      changeRate: Decimal.tryParse(json['changeRate'].toString()) ?? Decimal.zero,
+      accumulatedNav:
+          Decimal.tryParse(json['accumulatedNav'].toString()) ?? Decimal.zero,
+      changeRate:
+          Decimal.tryParse(json['changeRate'].toString()) ?? Decimal.zero,
       timestamp: DateTime.parse(json['timestamp'] as String),
       dataSource: json['dataSource'] as String?,
       qualityScore: (json['qualityScore'] as num?)?.toDouble(),
@@ -445,8 +447,10 @@ class NavFilter {
 
     if (minNav != null) params['min_nav'] = minNav!.toString();
     if (maxNav != null) params['max_nav'] = maxNav!.toString();
-    if (minChangeRate != null) params['min_change_rate'] = minChangeRate!.toString();
-    if (maxChangeRate != null) params['max_change_rate'] = maxChangeRate!.toString();
+    if (minChangeRate != null)
+      params['min_change_rate'] = minChangeRate!.toString();
+    if (maxChangeRate != null)
+      params['max_change_rate'] = maxChangeRate!.toString();
     if (tradingStatus != null) params['trading_status'] = tradingStatus!.name;
     if (fundStatus != null) params['fund_status'] = fundStatus!.name;
     if (minQualityScore != null) params['min_quality_score'] = minQualityScore;

@@ -197,9 +197,10 @@ class _FundExplorationPageContentState
                         previous.activeView != current.activeView;
                   },
                   builder: (context, state) {
-                    if (state.isLoading && state.funds.isEmpty) {
-                      return _buildLoadingWidget();
-                    }
+                    // 移除统一加载界面 - 直接显示空列表
+                    // if (state.isLoading && state.funds.isEmpty) {
+                    //   return _buildLoadingWidget();
+                    // }
                     if (state.errorMessage != null && state.funds.isEmpty) {
                       return _buildErrorWidget(state.errorMessage!);
                     }

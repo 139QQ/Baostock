@@ -26,7 +26,6 @@ class FundNavCacheManager {
     _initialize();
   }
 
-  
   /// L1内存缓存 (快速访问)
   final Map<String, CachedNavData> _l1Cache = {};
 
@@ -46,7 +45,8 @@ class FundNavCacheManager {
   Future<void> _initialize() async {
     try {
       // 打开Hive缓存盒
-      _navCacheBox = await Hive.openBox<Map<dynamic, dynamic>>('fund_nav_cache');
+      _navCacheBox =
+          await Hive.openBox<Map<dynamic, dynamic>>('fund_nav_cache');
 
       // 启动清理定时器
       _startCleanupTimer();
@@ -56,7 +56,8 @@ class FundNavCacheManager {
 
       AppLogger.info('FundNavCacheManager initialized successfully');
     } catch (e) {
-      AppLogger.error('Failed to initialize FundNavCacheManager', e, StackTrace.current);
+      AppLogger.error(
+          'Failed to initialize FundNavCacheManager', e, StackTrace.current);
       rethrow;
     }
   }
@@ -85,7 +86,8 @@ class FundNavCacheManager {
       return l2Success;
     } catch (e) {
       _statistics.recordStore(Duration.zero, false);
-      AppLogger.error('Failed to store NAV data for fund ${navData.fundCode}', e, StackTrace.current);
+      AppLogger.error('Failed to store NAV data for fund ${navData.fundCode}',
+          e, StackTrace.current);
       return false;
     }
   }
@@ -123,13 +125,15 @@ class FundNavCacheManager {
       AppLogger.debug('Cache miss for fund $fundCode');
       return null;
     } catch (e) {
-      AppLogger.error('Failed to get NAV data for fund $fundCode', e, StackTrace.current);
+      AppLogger.error(
+          'Failed to get NAV data for fund $fundCode', e, StackTrace.current);
       return null;
     }
   }
 
   /// 批量获取净值数据
-  Future<Map<String, FundNavData>> getBatchNavData(List<String> fundCodes) async {
+  Future<Map<String, FundNavData>> getBatchNavData(
+      List<String> fundCodes) async {
     final stopwatch = Stopwatch()..start();
     final results = <String, FundNavData>{};
     final l1Hits = <String>[];
@@ -158,7 +162,8 @@ class FundNavCacheManager {
       }
 
       // 更新统计信息
-      _statistics.recordBatchHit(stopwatch.elapsed, l1Hits.length, l2Hits.length, misses.length);
+      _statistics.recordBatchHit(
+          stopwatch.elapsed, l1Hits.length, l2Hits.length, misses.length);
 
       AppLogger.debug(
           'Batch cache retrieval: ${l1Hits.length} L1 hits, ${l2Hits.length} L2 hits, ${misses.length} misses');
@@ -193,7 +198,8 @@ class FundNavCacheManager {
           final navData = FundNavData.fromJson(record);
 
           // 日期过滤
-          if (startDate != null && navData.navDate.isBefore(startDate)) continue;
+          if (startDate != null && navData.navDate.isBefore(startDate))
+            continue;
           if (endDate != null && navData.navDate.isAfter(endDate)) continue;
 
           navDataList.add(navData);
@@ -204,16 +210,19 @@ class FundNavCacheManager {
       navDataList.sort((a, b) => b.navDate.compareTo(a.navDate));
       return navDataList.take(limit).toList();
     } catch (e) {
-      AppLogger.error('Failed to get historical NAV data for fund $fundCode', e, StackTrace.current);
+      AppLogger.error('Failed to get historical NAV data for fund $fundCode', e,
+          StackTrace.current);
       return [];
     }
   }
 
   /// 存储历史净值数据
-  Future<bool> storeHistoricalNavData(String fundCode, List<FundNavData> navDataList) async {
+  Future<bool> storeHistoricalNavData(
+      String fundCode, List<FundNavData> navDataList) async {
     try {
       final historicalKey = _buildHistoricalKey(fundCode);
-      final existingData = _navCacheBox.get(historicalKey) ?? <String, dynamic>{};
+      final existingData =
+          _navCacheBox.get(historicalKey) ?? <String, dynamic>{};
 
       // 合并现有数据
       final existingRecords = existingData['records'] as List<dynamic>? ?? [];
@@ -244,7 +253,8 @@ class FundNavCacheManager {
       }
 
       // 按日期排序
-      allRecords.sort((a, b) => (b['navDate'] as String).compareTo(a['navDate'] as String));
+      allRecords.sort(
+          (a, b) => (b['navDate'] as String).compareTo(a['navDate'] as String));
 
       // 限制历史记录数量
       final maxHistoricalRecords = _config.maxHistoricalRecords;
@@ -260,11 +270,13 @@ class FundNavCacheManager {
       };
 
       await _navCacheBox.put(historicalKey, historicalData);
-      AppLogger.debug('Stored ${allRecords.length} historical records for fund $fundCode');
+      AppLogger.debug(
+          'Stored ${allRecords.length} historical records for fund $fundCode');
 
       return true;
     } catch (e) {
-      AppLogger.error('Failed to store historical NAV data for fund $fundCode', e, StackTrace.current);
+      AppLogger.error('Failed to store historical NAV data for fund $fundCode',
+          e, StackTrace.current);
       return false;
     }
   }
@@ -365,7 +377,8 @@ class FundNavCacheManager {
     DateTime? oldestAccess;
 
     for (final entry in _l1Cache.entries) {
-      if (oldestAccess == null || entry.value.lastAccessed.isBefore(oldestAccess)) {
+      if (oldestAccess == null ||
+          entry.value.lastAccessed.isBefore(oldestAccess)) {
         oldestAccess = entry.value.lastAccessed;
         lruKey = entry.key;
       }
@@ -406,7 +419,8 @@ class FundNavCacheManager {
       for (int i = 0; i < preloadCount; i++) {
         try {
           final data = recentData[i];
-          final navData = FundNavData.fromJson(data['navData'] as Map<String, dynamic>);
+          final navData =
+              FundNavData.fromJson(data['navData'] as Map<String, dynamic>);
 
           final cachedData = CachedNavData(
             navData: navData,
@@ -421,7 +435,8 @@ class FundNavCacheManager {
         }
       }
 
-      AppLogger.info('Preloaded ${_l1Cache.length} hot NAV data items to L1 cache');
+      AppLogger.info(
+          'Preloaded ${_l1Cache.length} hot NAV data items to L1 cache');
     } catch (e) {
       AppLogger.error('Failed to preload hot NAV data', e, StackTrace.current);
     }
@@ -479,7 +494,8 @@ class FundNavCacheManager {
         AppLogger.debug('Cleaned up $cleanedCount expired NAV cache items');
       }
     } catch (e) {
-      AppLogger.error('Failed to cleanup expired NAV cache', e, StackTrace.current);
+      AppLogger.error(
+          'Failed to cleanup expired NAV cache', e, StackTrace.current);
     }
   }
 
@@ -499,7 +515,8 @@ class FundNavCacheManager {
 
       AppLogger.info('Cleared cache for fund $fundCode');
     } catch (e) {
-      AppLogger.error('Failed to clear cache for fund $fundCode', e, StackTrace.current);
+      AppLogger.error(
+          'Failed to clear cache for fund $fundCode', e, StackTrace.current);
     }
   }
 
@@ -527,7 +544,8 @@ class FundNavCacheManager {
       'l1Cache': {
         'size': _l1Cache.length,
         'maxSize': _maxL1CacheSize,
-        'usage': '${(_l1Cache.length / _maxL1CacheSize * 100).toStringAsFixed(1)}%',
+        'usage':
+            '${(_l1Cache.length / _maxL1CacheSize * 100).toStringAsFixed(1)}%',
       },
       'l2Cache': {
         'size': _navCacheBox.length,
@@ -583,6 +601,7 @@ class CachedNavData {
 enum CacheLevel {
   /// L1内存缓存级别
   l1,
+
   /// L2磁盘缓存级别
   l2,
 }
@@ -673,7 +692,8 @@ class NavCacheStatistics {
   }
 
   /// 记录批量缓存命中
-  void recordBatchHit(Duration accessTime, int l1HitCount, int l2HitCount, int missCount) {
+  void recordBatchHit(
+      Duration accessTime, int l1HitCount, int l2HitCount, int missCount) {
     totalRequests += l1HitCount + l2HitCount + missCount;
     totalAccessTime += accessTime.inMilliseconds;
     l1Hits += l1HitCount;

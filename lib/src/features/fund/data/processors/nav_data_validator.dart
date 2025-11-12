@@ -62,16 +62,19 @@ class NavDataValidator {
 
       // 6. 历史数据交叉验证 (如果有历史数据)
       if (config.enableCrossValidation) {
-        await _performCrossValidation(navData, errors, warnings, confidenceScore);
+        await _performCrossValidation(
+            navData, errors, warnings, confidenceScore);
       }
 
       // 7. 异常检测
       _detectAnomalies(navData, errors, warnings, confidenceScore);
 
       // 计算最终置信度
-      confidenceScore = _calculateFinalConfidence(errors, warnings, confidenceScore);
+      confidenceScore =
+          _calculateFinalConfidence(errors, warnings, confidenceScore);
 
-      final isValid = errors.isEmpty && confidenceScore >= config.minConfidenceScore;
+      final isValid =
+          errors.isEmpty && confidenceScore >= config.minConfidenceScore;
 
       AppLogger.debug(
           'NAV validation completed for ${navData.fundCode}: valid=$isValid, confidence=${confidenceScore.toStringAsFixed(1)}%, errors=${errors.length}, warnings=${warnings.length}');
@@ -123,13 +126,15 @@ class NavDataValidator {
     if (navData.navDate.isAfter(DateTime.now().add(_maxFutureTime))) {
       errors.add('净值日期不能超过未来${_maxFutureTime.inDays}天');
       confidenceScore -= 25.0;
-    } else if (navData.navDate.isBefore(DateTime.now().subtract(_maxPastTime))) {
+    } else if (navData.navDate
+        .isBefore(DateTime.now().subtract(_maxPastTime))) {
       errors.add('净值日期不能早于${_maxPastTime.inDays}天前');
       confidenceScore -= 20.0;
     }
 
     // 数据时间戳验证
-    if (navData.timestamp.isAfter(DateTime.now().add(const Duration(minutes: 5)))) {
+    if (navData.timestamp
+        .isAfter(DateTime.now().add(const Duration(minutes: 5)))) {
       warnings.add('数据时间戳略超过当前时间，可能存在时钟偏差');
       confidenceScore -= 5.0;
     }
@@ -155,7 +160,8 @@ class NavDataValidator {
     } else if (navData.nav > _maxNav) {
       errors.add('单位净值过高 (${navData.nav} > ${_maxNav})');
       confidenceScore -= 30.0;
-    } else if (navData.nav < Decimal.parse('0.01')) { // < 0.01
+    } else if (navData.nav < Decimal.parse('0.01')) {
+      // < 0.01
       warnings.add('单位净值异常偏低');
       confidenceScore -= 10.0;
     }
@@ -167,16 +173,19 @@ class NavDataValidator {
     } else if (navData.accumulatedNav < navData.nav) {
       warnings.add('累计净值小于单位净值，可能是新基金');
       confidenceScore -= 5.0;
-    } else if (navData.accumulatedNav > Decimal.fromInt(100)) { // > 100
+    } else if (navData.accumulatedNav > Decimal.fromInt(100)) {
+      // > 100
       warnings.add('累计净值较高，请确认是否正确');
       confidenceScore -= 3.0;
     }
 
     // 变化率验证
     if (navData.changeRate.abs() > _maxChangeRate) {
-      errors.add('单日变化率异常 (${(navData.changeRate * Decimal.fromInt(100)).toStringAsFixed(2)}%)');
+      errors.add(
+          '单日变化率异常 (${(navData.changeRate * Decimal.fromInt(100)).toStringAsFixed(2)}%)');
       confidenceScore -= 45.0;
-    } else if (navData.changeRate.abs() > Decimal.parse('0.1')) { // > 10%
+    } else if (navData.changeRate.abs() > Decimal.parse('0.1')) {
+      // > 10%
       warnings.add('单日变化率较大，请确认数据准确性');
       confidenceScore -= 15.0;
     }
@@ -202,11 +211,15 @@ class NavDataValidator {
     double confidenceScore,
   ) {
     // 基金类型特定验证
-    if (navData.fundCode.startsWith('00')) { // 货币基金
+    if (navData.fundCode.startsWith('00')) {
+      // 货币基金
       _validateMoneyMarketFund(navData, errors, warnings, confidenceScore);
-    } else if (navData.fundCode.startsWith('51') || navData.fundCode.startsWith('50')) { // ETF
+    } else if (navData.fundCode.startsWith('51') ||
+        navData.fundCode.startsWith('50')) {
+      // ETF
       _validateETF(navData, errors, warnings, confidenceScore);
-    } else { // 普通基金
+    } else {
+      // 普通基金
       _validateOrdinaryFund(navData, errors, warnings, confidenceScore);
     }
 
@@ -217,7 +230,8 @@ class NavDataValidator {
     }
 
     // 基金状态验证
-    if (navData.fundStatus != FundStatus.normal && navData.changeRate != Decimal.zero) {
+    if (navData.fundStatus != FundStatus.normal &&
+        navData.changeRate != Decimal.zero) {
       warnings.add('基金状态异常但净值有变化，请确认状态信息');
       confidenceScore -= 8.0;
     }
@@ -231,13 +245,15 @@ class NavDataValidator {
     double confidenceScore,
   ) {
     // 货币基金净值通常在1.0附近
-    if (navData.nav < Decimal.parse('0.99') || navData.nav > Decimal.parse('1.01')) {
+    if (navData.nav < Decimal.parse('0.99') ||
+        navData.nav > Decimal.parse('1.01')) {
       warnings.add('货币基金净值异常 (应在1.0附近)');
       confidenceScore -= 15.0;
     }
 
     // 货币基金变化率通常很小
-    if (navData.changeRate.abs() > Decimal.parse('0.01')) { // > 1%
+    if (navData.changeRate.abs() > Decimal.parse('0.01')) {
+      // > 1%
       warnings.add('货币基金日变化率过大');
       confidenceScore -= 20.0;
     }
@@ -251,7 +267,8 @@ class NavDataValidator {
     double confidenceScore,
   ) {
     // ETF净值与市场价格差异通常不大
-    if (navData.nav < Decimal.parse('0.1') || navData.nav > Decimal.fromInt(100)) {
+    if (navData.nav < Decimal.parse('0.1') ||
+        navData.nav > Decimal.fromInt(100)) {
       warnings.add('ETF净值可能异常');
       confidenceScore -= 10.0;
     }
@@ -296,8 +313,11 @@ class NavDataValidator {
     }
 
     // 净值更新时间通常在交易结束后
-    if (navDate.year == now.year && navDate.month == now.month && navDate.day == now.day) {
-      if (timestamp.hour < 15) { // 当天净值在下午3点前更新
+    if (navDate.year == now.year &&
+        navDate.month == now.month &&
+        navDate.day == now.day) {
+      if (timestamp.hour < 15) {
+        // 当天净值在下午3点前更新
         warnings.add('净值更新时间过早，可能非最终净值');
         confidenceScore -= 5.0;
       }
@@ -366,10 +386,12 @@ class NavDataValidator {
       _validateContinuity(navData, lastNav, errors, warnings, confidenceScore);
 
       // 2. 变化合理性验证
-      _validateChangeReasonableness(navData, lastNav, recentData, errors, warnings, confidenceScore);
+      _validateChangeReasonableness(
+          navData, lastNav, recentData, errors, warnings, confidenceScore);
 
       // 3. 趋势一致性验证
-      _validateTrendConsistency(navData, recentData, errors, warnings, confidenceScore);
+      _validateTrendConsistency(
+          navData, recentData, errors, warnings, confidenceScore);
 
       // 添加到历史缓存
       _addToHistory(navData);
@@ -412,15 +434,14 @@ class NavDataValidator {
     double confidenceScore,
   ) {
     // 计算最近变化的统计信息
-    final recentChanges = recentData
-        .take(4)
-        .map((data) => data.changeRate.abs())
-        .toList();
+    final recentChanges =
+        recentData.take(4).map((data) => data.changeRate.abs()).toList();
 
     if (recentChanges.isEmpty) return;
 
     // 转换为double进行计算，避免Decimal类型问题
-    final sumDouble = recentChanges.map((d) => d.toDouble()).reduce((a, b) => a + b);
+    final sumDouble =
+        recentChanges.map((d) => d.toDouble()).reduce((a, b) => a + b);
     final avgRecentChangeDouble = sumDouble / recentChanges.length;
     final avgRecentChange = Decimal.parse(avgRecentChangeDouble.toString());
     final currentChange = navData.changeRate.abs();
@@ -468,7 +489,8 @@ class NavDataValidator {
     if (currentChange > Decimal.zero && negativeChanges > positiveChanges * 2) {
       warnings.add('当前上涨与近期下跌趋势不一致');
       confidenceScore -= 10.0;
-    } else if (currentChange < Decimal.zero && positiveChanges > negativeChanges * 2) {
+    } else if (currentChange < Decimal.zero &&
+        positiveChanges > negativeChanges * 2) {
       warnings.add('当前下跌与近期上涨趋势不一致');
       confidenceScore -= 10.0;
     }
@@ -482,7 +504,8 @@ class NavDataValidator {
     double confidenceScore,
   ) {
     // 异常值检测
-    if (navData.changeRate.abs() > Decimal.parse('0.2')) { // > 20%
+    if (navData.changeRate.abs() > Decimal.parse('0.2')) {
+      // > 20%
       warnings.add('检测到异常变化，请确认数据准确性');
       confidenceScore -= 30.0;
     }
@@ -490,7 +513,8 @@ class NavDataValidator {
     // 重复数据检测
     final history = _historicalData[navData.fundCode] ?? [];
     for (final historical in history.take(5)) {
-      if (historical.navDate == navData.navDate && historical.nav == navData.nav) {
+      if (historical.navDate == navData.navDate &&
+          historical.nav == navData.nav) {
         warnings.add('检测到重复的净值数据');
         confidenceScore -= 20.0;
         break;
@@ -532,7 +556,8 @@ class NavDataValidator {
     if (lastNav.nav == Decimal.zero) return null;
 
     // 转换为double计算变化率，避免Decimal类型转换问题
-    final changeRateDouble = (navData.nav.toDouble() - lastNav.nav.toDouble()) / lastNav.nav.toDouble();
+    final changeRateDouble = (navData.nav.toDouble() - lastNav.nav.toDouble()) /
+        lastNav.nav.toDouble();
     return Decimal.parse(changeRateDouble.toString());
   }
 

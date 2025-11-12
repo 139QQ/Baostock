@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import '../../../auth/domain/entities/user.dart';
 import '../../../../core/navigation/navigation_manager.dart';
@@ -156,13 +157,17 @@ class GlobalNavigationBar extends StatelessWidget
       children: [
         _buildNavItem(context, '市场概览', Icons.dashboard_outlined, 0),
         const SizedBox(width: 16),
-        _buildNavItem(context, '基金筛选', Icons.filter_alt_outlined, 1),
+        _buildNavItem(context, '市场指数', Icons.trending_up_outlined, 1),
         const SizedBox(width: 16),
-        _buildNavItem(context, '自选基金', Icons.star_outline, 2),
+        _buildNavItem(context, '基金筛选', Icons.filter_alt_outlined, 2),
         const SizedBox(width: 16),
-        _buildNavItem(context, '持仓分析', Icons.analytics_outlined, 3),
+        _buildNavItem(context, '自选基金', Icons.star_outline, 3),
         const SizedBox(width: 16),
-        _buildNavItem(context, '系统设置', Icons.settings_outlined, 4),
+        _buildNavItem(context, '持仓分析', Icons.analytics_outlined, 4),
+        const SizedBox(width: 16),
+        _buildNavItem(context, '推送通知', Icons.notifications_outlined, 5),
+        const SizedBox(width: 16),
+        _buildNavItem(context, '系统设置', Icons.settings_outlined, 6),
       ],
     );
   }
@@ -171,63 +176,73 @@ class GlobalNavigationBar extends StatelessWidget
       BuildContext context, String label, IconData icon, int index) {
     final isSelected = selectedIndex == index;
 
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: () {
-          if (onNavigate != null) {
-            onNavigate!(index);
-          }
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            color: isSelected
-                ? Theme.of(context).primaryColor.withOpacity(0.1)
-                : Colors.transparent,
-            border: isSelected
-                ? Border.all(
-                    color: Theme.of(context).primaryColor.withOpacity(0.3),
-                    width: 1,
-                  )
-                : null,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                size: 18,
+    Widget navItem = GestureDetector(
+      onTap: () {
+        if (onNavigate != null) {
+          onNavigate!(index);
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          color: isSelected
+              ? Theme.of(context).primaryColor.withOpacity(0.1)
+              : Colors.transparent,
+          border: isSelected
+              ? Border.all(
+                  color: Theme.of(context).primaryColor.withOpacity(0.3),
+                  width: 1,
+                )
+              : null,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 18,
+              color: isSelected
+                  ? Theme.of(context).primaryColor
+                  : const Color(0xFF64748B),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                 color: isSelected
                     ? Theme.of(context).primaryColor
-                    : const Color(0xFF64748B),
+                    : const Color(0xFF475569),
               ),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                  color: isSelected
-                      ? Theme.of(context).primaryColor
-                      : const Color(0xFF475569),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
+
+    // 只在Web和桌面平台添加鼠标效果
+    if (kIsWeb) {
+      return MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: navItem,
+      );
+    }
+
+    return navItem;
   }
 
   Widget _buildSearchBox(BuildContext context) {
+    // 在移动平台上使用更紧凑的搜索框设计
+    final isMobile = !kIsWeb;
+
     return Container(
-      width: 300,
+      width: isMobile ? 200 : 300, // 移动平台使用更小的宽度
       height: 36,
       decoration: BoxDecoration(
         color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(isMobile ? 8 : 18), // 移动平台使用更小的圆角
         border: Border.all(
           color: const Color(0xFFE2E8F0),
           width: 1,

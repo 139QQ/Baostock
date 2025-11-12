@@ -73,11 +73,11 @@ class NavigationConfig {
       _enableWebNavigation = true;
       _enableMobileNavigation = false;
     } else {
-      // 移动环境暂时使用传统导航，未来可启用移动导航
-      _enableMultiPlatformNavigation = false;
-      _useResponsiveNavigation = false;
+      // 移动环境启用移动导航特性
+      _enableMultiPlatformNavigation = true;
+      _useResponsiveNavigation = true;
       _enableWebNavigation = false;
-      _enableMobileNavigation = false;
+      _enableMobileNavigation = true;
     }
   }
 

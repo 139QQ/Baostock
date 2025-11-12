@@ -21,10 +21,13 @@ class HiveCacheAdapter {
   }
 
   /// 缓存管理器引用
-  late final UnifiedHiveCacheManager _cacheManager;
+  UnifiedHiveCacheManager? _cacheManager;
 
   /// 是否已初始化
   bool _isInitialized = false;
+
+  /// 是否正在初始化
+  bool _isInitializing = false;
 
   /// 数据类型缓存前缀映射
   static const Map<DataType, String> _cachePrefixMap = {
@@ -61,20 +64,36 @@ class HiveCacheAdapter {
   Future<void> _initialize() async {
     if (_isInitialized) return;
 
+    // 使用互斥锁防止并发初始化
+    if (_isInitializing) {
+      while (_isInitializing) {
+        await Future.delayed(const Duration(milliseconds: 10));
+      }
+      return;
+    }
+
+    _isInitializing = true;
+
     try {
       AppLogger.info('HiveCacheAdapter: 初始化Hive缓存适配器');
 
-      // 获取缓存管理器实例
+      // 确保缓存管理器实例已初始化
       _cacheManager = UnifiedHiveCacheManager.instance;
+      if (!_cacheManager!.isInitialized) {
+        await _cacheManager!.initialize();
+      }
 
       // 初始化统计信息
+      _typeStats.clear();
       for (final dataType in DataType.values) {
         _typeStats[dataType] = _CacheTypeStats(dataType);
       }
 
       _isInitialized = true;
+      _isInitializing = false;
       AppLogger.info('HiveCacheAdapter: 初始化完成');
     } catch (e) {
+      _isInitializing = false;
       AppLogger.error('HiveCacheAdapter: 初始化失败', e);
       rethrow;
     }
@@ -87,14 +106,20 @@ class HiveCacheAdapter {
     }
 
     try {
-      final cacheKey = _generateCacheKey(dataItem.dataType, dataItem.dataKey);
+      // 避免重复生成缓存键前缀，直接使用dataItem.dataKey
+      final cacheKey = dataItem.dataKey.startsWith('hybrid_')
+          ? dataItem.dataKey
+          : _generateCacheKey(dataItem.dataType, dataItem.dataKey);
       final ttl = _getCacheTtl(dataItem.dataType);
 
       // 序列化数据
       final serializedData = _serializeDataItem(dataItem);
 
       // 存储到Hive缓存
-      await _cacheManager.put(
+      if (_cacheManager == null) {
+        throw StateError('HiveCacheAdapter: 缓存管理器未初始化');
+      }
+      await _cacheManager!.put(
         cacheKey,
         serializedData,
         expiration: ttl,
@@ -121,10 +146,16 @@ class HiveCacheAdapter {
     }
 
     try {
-      final cacheKey = _generateCacheKey(dataType, dataKey);
+      // 避免重复生成缓存键前缀，直接使用传入的dataKey
+      final cacheKey = dataKey.startsWith('hybrid_')
+          ? dataKey
+          : _generateCacheKey(dataType, dataKey);
 
       // 从Hive缓存获取数据
-      final cachedData = await _cacheManager.get(cacheKey);
+      if (_cacheManager == null) {
+        throw StateError('HiveCacheAdapter: 缓存管理器未初始化');
+      }
+      final cachedData = await _cacheManager!.get(cacheKey);
 
       if (cachedData == null) {
         _updateTypeStats(dataType, false, isHit: false);
@@ -204,8 +235,14 @@ class HiveCacheAdapter {
     }
 
     try {
-      final cacheKey = _generateCacheKey(dataType, dataKey);
-      await _cacheManager.remove(cacheKey);
+      // 避免重复生成缓存键前缀，直接使用传入的dataKey
+      final cacheKey = dataKey.startsWith('hybrid_')
+          ? dataKey
+          : _generateCacheKey(dataType, dataKey);
+      if (_cacheManager == null) {
+        throw StateError('HiveCacheAdapter: 缓存管理器未初始化');
+      }
+      await _cacheManager!.remove(cacheKey);
 
       AppLogger.debug('HiveCacheAdapter: 数据删除成功', cacheKey);
       return true;
@@ -227,8 +264,11 @@ class HiveCacheAdapter {
       }
 
       // 批量删除
+      if (_cacheManager == null) {
+        throw StateError('HiveCacheAdapter: 缓存管理器未初始化');
+      }
       for (final key in cacheKeys) {
-        await _cacheManager.remove(key);
+        await _cacheManager!.remove(key);
       }
 
       AppLogger.info('HiveCacheAdapter: 缓存清空完成',
@@ -248,8 +288,14 @@ class HiveCacheAdapter {
     }
 
     try {
-      final cacheKey = _generateCacheKey(dataType, dataKey);
-      return await _cacheManager.containsKey(cacheKey);
+      // 避免重复生成缓存键前缀，直接使用传入的dataKey
+      final cacheKey = dataKey.startsWith('hybrid_')
+          ? dataKey
+          : _generateCacheKey(dataType, dataKey);
+      if (_cacheManager == null) {
+        throw StateError('HiveCacheAdapter: 缓存管理器未初始化');
+      }
+      return await _cacheManager!.containsKey(cacheKey);
     } catch (e) {
       AppLogger.error('HiveCacheAdapter: 检查数据存在性失败', e);
       return false;
@@ -262,7 +308,7 @@ class HiveCacheAdapter {
   }
 
   /// 获取适配器健康状态
-  Map<String, dynamic> getHealthStatus() {
+  Future<Map<String, dynamic>> getHealthStatus() async {
     return {
       'initialized': _isInitialized,
       'totalDataTypeCount': DataType.values.length,
@@ -272,7 +318,7 @@ class HiveCacheAdapter {
       'totalRequests':
           _typeStats.values.fold(0, (sum, stats) => sum + stats.totalRequests),
       'totalHits': _typeStats.values.fold(0, (sum, stats) => sum + stats.hits),
-      'cacheManagerStatus': _getCacheManagerStatus(),
+      'cacheManagerStatus': await _getCacheManagerStatus(),
     };
   }
 
@@ -365,9 +411,12 @@ class HiveCacheAdapter {
   /// 获取缓存管理器状态
   Future<Map<String, dynamic>> _getCacheManagerStatus() async {
     try {
-      final stats = await _cacheManager.getStats();
+      if (_cacheManager == null) {
+        return {'error': '缓存管理器未初始化'};
+      }
+      final stats = await _cacheManager!.getStats();
       return {
-        'size': _cacheManager.size,
+        'size': _cacheManager!.size,
         'stats': stats,
       };
     } catch (e) {
@@ -403,7 +452,10 @@ class HiveCacheAdapter {
         for (final cacheKey in cacheKeys) {
           try {
             // 获取缓存项并检查是否过期
-            final cacheItem = await _cacheManager.get(cacheKey);
+            if (_cacheManager == null) {
+              throw StateError('HiveCacheAdapter: 缓存管理器未初始化');
+            }
+            final cacheItem = await _cacheManager!.get(cacheKey);
             if (cacheItem != null) {
               // 简单的过期检查逻辑
               // 这里可以根据实际需求实现更复杂的检查
@@ -423,6 +475,7 @@ class HiveCacheAdapter {
   /// 释放资源
   Future<void> dispose() async {
     _typeStats.clear();
+    _cacheManager = null;
     _isInitialized = false;
     AppLogger.info('HiveCacheAdapter: 资源已释放');
   }

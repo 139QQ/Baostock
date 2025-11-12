@@ -305,11 +305,41 @@ class FundRanking extends Equatable {
   /// 基金名称别名（兼容性）
   String get name => fundName;
 
+  /// 基金公司别名（兼容性）- 修复NoSuchMethodError
+  String get company => fundCompany;
+
   /// 基金经理别名（兼容性）
   String get manager => fundManager;
 
   /// 近1年收益率别名（兼容性）
   double get return1Y => oneYearReturn;
+
+  /// 单位净值别名（兼容性）- 修复NoSuchMethodError
+  double get unitNav => nav;
+
+  /// 累计净值别名（兼容性）- 修复NoSuchMethodError（临时使用unitNav）
+  double get accumulatedNav => nav;
+
+  /// 排名日期别名（兼容性）- 修复NoSuchMethodError
+  DateTime get rankingDate => updateDate;
+
+  /// 近1周收益率别名（兼容性）- 修复NoSuchMethodError（临时使用dailyReturn）
+  double get return1W => dailyReturn;
+
+  /// 近1月收益率别名（兼容性）- 修复NoSuchMethodError（临时使用dailyReturn）
+  double get return1M => dailyReturn;
+
+  /// 近3月收益率别名（兼容性）- 修复NoSuchMethodError（临时使用threeYearReturn）
+  double get return3M => threeYearReturn;
+
+  /// 近2年收益率别名（兼容性）- 修复NoSuchMethodError（临时使用threeYearReturn）
+  double get return2Y => threeYearReturn;
+
+  /// 今年来收益率别名（兼容性）- 修复NoSuchMethodError（临时使用dailyReturn）
+  double get returnYTD => dailyReturn;
+
+  /// 成立来收益率别名（兼容性）- 修复NoSuchMethodError
+  double get returnSinceInception => sinceInceptionReturn;
 
   /// 是否为热门基金
   bool get isHot {

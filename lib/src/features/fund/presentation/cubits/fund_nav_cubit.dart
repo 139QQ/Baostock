@@ -50,12 +50,12 @@ class FundNavLoaded extends FundNavState {
 
   @override
   List<Object?> get props => [
-    navData,
-    changeInfo,
-    status,
-    lastUpdate,
-    errorMessage,
-  ];
+        navData,
+        changeInfo,
+        status,
+        lastUpdate,
+        errorMessage,
+      ];
 
   FundNavLoaded copyWith({
     Map<String, FundNavData>? navData,
@@ -109,7 +109,8 @@ enum FundNavStatus {
   final String description;
 
   /// 是否为活跃状态
-  bool get isActive => this == FundNavStatus.polling || this == FundNavStatus.updating;
+  bool get isActive =>
+      this == FundNavStatus.polling || this == FundNavStatus.updating;
 }
 
 /// 基金净值事件
@@ -237,9 +238,8 @@ class FundNavCubit extends Bloc<FundNavEvent, FundNavState> {
     FundNavDataManager? navManager,
     GlobalCubitManager? globalCubitManager,
   })  : _navManager = navManager ?? FundNavDataManager(),
-      _globalCubitManager = globalCubitManager ?? GlobalCubitManager.instance,
-      super(const FundNavInitial()) {
-
+        _globalCubitManager = globalCubitManager ?? GlobalCubitManager.instance,
+        super(const FundNavInitial()) {
     _initialize();
 
     // 注册事件处理器
@@ -275,8 +275,10 @@ class FundNavCubit extends Bloc<FundNavEvent, FundNavState> {
 
     final currentState = state;
     if (currentState is FundNavLoaded) {
-      final updatedNavData = Map<String, FundNavData>.from(currentState.navData);
-      final updatedChangeInfo = Map<String, NavChangeInfo?>.from(currentState.changeInfo);
+      final updatedNavData =
+          Map<String, FundNavData>.from(currentState.navData);
+      final updatedChangeInfo =
+          Map<String, NavChangeInfo?>.from(currentState.changeInfo);
 
       // 更新数据
       updatedNavData[fundCode] = updateEvent.currentNav;
@@ -318,7 +320,8 @@ class FundNavCubit extends Bloc<FundNavEvent, FundNavState> {
   }
 
   /// 处理添加基金代码
-  Future<void> _onAddFundCode(AddFundCode event, Emitter<FundNavState> emit) async {
+  Future<void> _onAddFundCode(
+      AddFundCode event, Emitter<FundNavState> emit) async {
     try {
       emit(const FundNavLoading());
 
@@ -354,7 +357,6 @@ class FundNavCubit extends Bloc<FundNavEvent, FundNavState> {
         status: FundNavStatus.polling,
         lastUpdate: DateTime.now(),
       ));
-
     } catch (e) {
       _lastErrorMessage = e.toString();
       emit(FundNavError(
@@ -365,15 +367,18 @@ class FundNavCubit extends Bloc<FundNavEvent, FundNavState> {
   }
 
   /// 处理移除基金代码
-  Future<void> _onRemoveFundCode(RemoveFundCode event, Emitter<FundNavState> emit) async {
+  Future<void> _onRemoveFundCode(
+      RemoveFundCode event, Emitter<FundNavState> emit) async {
     try {
       await _navManager.removeFundCode(event.fundCode);
       _trackedFundCodes.remove(event.fundCode);
 
       final currentState = state;
       if (currentState is FundNavLoaded) {
-        final updatedNavData = Map<String, FundNavData>.from(currentState.navData);
-        final updatedChangeInfo = Map<String, NavChangeInfo?>.from(currentState.changeInfo);
+        final updatedNavData =
+            Map<String, FundNavData>.from(currentState.navData);
+        final updatedChangeInfo =
+            Map<String, NavChangeInfo?>.from(currentState.changeInfo);
 
         updatedNavData.remove(event.fundCode);
         updatedChangeInfo.remove(event.fundCode);
@@ -387,7 +392,6 @@ class FundNavCubit extends Bloc<FundNavEvent, FundNavState> {
           ));
         }
       }
-
     } catch (e) {
       _lastErrorMessage = e.toString();
       if (state is FundNavLoaded) {
@@ -405,7 +409,8 @@ class FundNavCubit extends Bloc<FundNavEvent, FundNavState> {
   }
 
   /// 处理批量添加基金代码
-  Future<void> _onAddFundCodes(AddFundCodes event, Emitter<FundNavState> emit) async {
+  Future<void> _onAddFundCodes(
+      AddFundCodes event, Emitter<FundNavState> emit) async {
     try {
       emit(FundNavLoading());
 
@@ -431,7 +436,6 @@ class FundNavCubit extends Bloc<FundNavEvent, FundNavState> {
         status: FundNavStatus.polling,
         lastUpdate: DateTime.now(),
       ));
-
     } catch (e) {
       _lastErrorMessage = e.toString();
       emit(FundNavError(
@@ -442,7 +446,8 @@ class FundNavCubit extends Bloc<FundNavEvent, FundNavState> {
   }
 
   /// 处理开始轮询
-  Future<void> _onStartPolling(StartPolling event, Emitter<FundNavState> emit) async {
+  Future<void> _onStartPolling(
+      StartPolling event, Emitter<FundNavState> emit) async {
     try {
       await _navManager.startPolling();
 
@@ -452,7 +457,6 @@ class FundNavCubit extends Bloc<FundNavEvent, FundNavState> {
           status: FundNavStatus.polling,
         ));
       }
-
     } catch (e) {
       _lastErrorMessage = e.toString();
       if (state is FundNavLoaded) {
@@ -470,7 +474,8 @@ class FundNavCubit extends Bloc<FundNavEvent, FundNavState> {
   }
 
   /// 处理停止轮询
-  Future<void> _onStopPolling(StopPolling event, Emitter<FundNavState> emit) async {
+  Future<void> _onStopPolling(
+      StopPolling event, Emitter<FundNavState> emit) async {
     try {
       await _navManager.stopPolling();
 
@@ -480,7 +485,6 @@ class FundNavCubit extends Bloc<FundNavEvent, FundNavState> {
           status: FundNavStatus.idle,
         ));
       }
-
     } catch (e) {
       _lastErrorMessage = e.toString();
       if (state is FundNavLoaded) {
@@ -498,7 +502,8 @@ class FundNavCubit extends Bloc<FundNavEvent, FundNavState> {
   }
 
   /// 处理暂停轮询
-  Future<void> _onPausePolling(PausePolling event, Emitter<FundNavState> emit) async {
+  Future<void> _onPausePolling(
+      PausePolling event, Emitter<FundNavState> emit) async {
     try {
       await _navManager.stopPolling();
 
@@ -508,7 +513,6 @@ class FundNavCubit extends Bloc<FundNavEvent, FundNavState> {
           status: FundNavStatus.paused,
         ));
       }
-
     } catch (e) {
       _lastErrorMessage = e.toString();
       if (state is FundNavLoaded) {
@@ -526,7 +530,8 @@ class FundNavCubit extends Bloc<FundNavEvent, FundNavState> {
   }
 
   /// 处理恢复轮询
-  Future<void> _onResumePolling(ResumePolling event, Emitter<FundNavState> emit) async {
+  Future<void> _onResumePolling(
+      ResumePolling event, Emitter<FundNavState> emit) async {
     try {
       await _navManager.startPolling();
 
@@ -536,7 +541,6 @@ class FundNavCubit extends Bloc<FundNavEvent, FundNavState> {
           status: FundNavStatus.polling,
         ));
       }
-
     } catch (e) {
       _lastErrorMessage = e.toString();
       if (state is FundNavLoaded) {
@@ -554,7 +558,8 @@ class FundNavCubit extends Bloc<FundNavEvent, FundNavState> {
   }
 
   /// 处理设置轮询间隔
-  Future<void> _onSetPollingInterval(SetPollingInterval event, Emitter<FundNavState> emit) async {
+  Future<void> _onSetPollingInterval(
+      SetPollingInterval event, Emitter<FundNavState> emit) async {
     try {
       _pollingInterval = event.interval;
       await _navManager.setPollingInterval(event.interval);
@@ -564,7 +569,6 @@ class FundNavCubit extends Bloc<FundNavEvent, FundNavState> {
       if (currentState is FundNavLoaded) {
         emit(currentState);
       }
-
     } catch (e) {
       _lastErrorMessage = e.toString();
       if (state is FundNavLoaded) {
@@ -582,7 +586,8 @@ class FundNavCubit extends Bloc<FundNavEvent, FundNavState> {
   }
 
   /// 处理刷新数据
-  Future<void> _onRefreshData(RefreshData event, Emitter<FundNavState> emit) async {
+  Future<void> _onRefreshData(
+      RefreshData event, Emitter<FundNavState> emit) async {
     try {
       emit(FundNavLoading());
 
@@ -620,7 +625,6 @@ class FundNavCubit extends Bloc<FundNavEvent, FundNavState> {
           lastUpdate: DateTime.now(),
         ));
       }
-
     } catch (e) {
       _lastErrorMessage = e.toString();
       emit(FundNavError(
@@ -631,7 +635,8 @@ class FundNavCubit extends Bloc<FundNavEvent, FundNavState> {
   }
 
   /// 处理清除错误
-  Future<void> _onClearError(ClearError event, Emitter<FundNavState> emit) async {
+  Future<void> _onClearError(
+      ClearError event, Emitter<FundNavState> emit) async {
     _lastErrorMessage = null;
 
     final currentState = state;
@@ -643,7 +648,8 @@ class FundNavCubit extends Bloc<FundNavEvent, FundNavState> {
   }
 
   /// 处理重置状态
-  Future<void> _onResetState(ResetState event, Emitter<FundNavState> emit) async {
+  Future<void> _onResetState(
+      ResetState event, Emitter<FundNavState> emit) async {
     try {
       // 停止所有轮询
       await _navManager.stopPolling();
@@ -655,7 +661,6 @@ class FundNavCubit extends Bloc<FundNavEvent, FundNavState> {
       _trackedFundCodes.clear();
 
       emit(FundNavInitial());
-
     } catch (e) {
       _lastErrorMessage = e.toString();
       emit(FundNavError(
@@ -740,9 +745,9 @@ class FundNavProvider extends BlocProvider<FundNavCubit> {
     FundNavDataManager? navManager,
     GlobalCubitManager? globalCubitManager,
   }) : super(
-    create: (_) => FundNavCubit(
-      navManager: navManager,
-      globalCubitManager: globalCubitManager,
-    ),
-  );
+          create: (_) => FundNavCubit(
+            navManager: navManager,
+            globalCubitManager: globalCubitManager,
+          ),
+        );
 }

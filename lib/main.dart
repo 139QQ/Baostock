@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:hive_flutter/hive_flutter.dart';
@@ -9,6 +11,11 @@ import 'src/core/config/app_config.dart';
 import 'src/core/performance/unified_performance_monitor.dart';
 import 'src/models/fund_info.dart';
 import 'src/features/portfolio/data/adapters/fund_favorite_adapter.dart';
+import 'src/features/alerts/data/services/android_permission_service.dart';
+import 'src/core/permissions/simple_permission_requester.dart';
+import 'src/core/permissions/permission_history_manager.dart';
+import 'src/core/notifications/real_flutter_notification_service.dart';
+import 'src/core/notifications/simple_local_notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,6 +51,8 @@ Future<void> main() async {
       if (kIsWeb) {
         AppLogger.debug('Web平台检测，跳过Hive初始化');
         // Web平台使用内存缓存，跳过Hive
+      } else if (Platform.isAndroid) {
+        AppLogger.debug('Android平台，初始化Hive缓存');
       } else {
         AppLogger.debug('桌面平台，尝试初始化Hive缓存');
         try {
@@ -116,6 +125,58 @@ Future<void> main() async {
     // 初始化依赖注入
     await initDependencies();
     AppLogger.debug('依赖注入初始化完成');
+
+    // 初始化Android权限服务（仅在非Web平台）
+    try {
+      if (!kIsWeb) {
+        await AndroidPermissionService.instance.initialize();
+        AppLogger.debug('✅ Android权限服务初始化成功');
+      } else {
+        AppLogger.debug('Web平台跳过Android权限服务初始化');
+      }
+    } catch (e) {
+      AppLogger.warn('⚠️ Android权限服务初始化失败，但不影响应用基本功能: $e');
+    }
+
+    // 初始化权限历史记录管理器
+    try {
+      await PermissionHistoryManager.instance.initialize();
+      AppLogger.debug('✅ 权限历史记录管理器初始化成功');
+    } catch (e) {
+      AppLogger.warn('⚠️ 权限历史记录管理器初始化失败，但不影响应用基本功能: $e');
+    }
+
+    // 检查权限状态（不主动申请）
+    try {
+      if (!kIsWeb) {
+        AppLogger.debug('🔍 开始检查权限状态');
+        await SimplePermissionRequester.checkPermissionsOnStartup();
+        AppLogger.debug('🔍 权限状态检查完成');
+      } else {
+        AppLogger.debug('Web平台跳过权限检查');
+      }
+    } catch (e) {
+      AppLogger.warn('⚠️ 权限状态检查失败，但不影响应用基本功能: $e');
+    }
+
+    // 初始化通知服务（根据平台选择合适的服务）
+    try {
+      if (!kIsWeb) {
+        if (Platform.isWindows) {
+          // Windows平台使用本地通知服务
+          await SimpleLocalNotificationService.instance.initialize();
+          AppLogger.debug('✅ Windows本地通知服务初始化成功');
+        } else {
+          // 其他平台使用Flutter通知服务
+          await RealFlutterNotificationService.instance.initialize();
+          AppLogger.debug('✅ Flutter通知服务初始化成功');
+        }
+      } else {
+        AppLogger.debug('Web平台跳过通知服务初始化');
+      }
+    } catch (e) {
+      AppLogger.warn('⚠️ 通知服务初始化失败，但不影响应用基本功能: $e');
+    }
 
     // 初始化全局Cubit管理器，确保状态持久化
     AppLogger.debug('初始化全局Cubit管理器');

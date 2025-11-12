@@ -154,11 +154,11 @@ class FundNavDataManager {
     }
 
     _trackedFundCodes.add(fundCode);
-    _navControllers[fundCode] =
-        StreamController<FundNavData>.broadcast();
+    _navControllers[fundCode] = StreamController<FundNavData>.broadcast();
 
     // 注册智能缓存策略
-    _cacheStrategy.registerFundStrategy(fundCode, strategy.CacheStrategy.balanced);
+    _cacheStrategy.registerFundStrategy(
+        fundCode, strategy.CacheStrategy.balanced);
 
     AppLogger.info('Added fund code to tracking: $fundCode');
 
@@ -214,7 +214,8 @@ class FundNavDataManager {
       }
 
       // 创建批量轮询任务
-      _batchPollingTaskId = 'batch_fund_nav_${DateTime.now().millisecondsSinceEpoch}';
+      _batchPollingTaskId =
+          'batch_fund_nav_${DateTime.now().millisecondsSinceEpoch}';
 
       final pollingTask = PollingTask(
         dataType: DataType.fundNetValue,
@@ -239,7 +240,8 @@ class FundNavDataManager {
       );
 
       _pollingManager.addTask(pollingTask);
-      AppLogger.info('Started batch NAV polling for ${_trackedFundCodes.length} funds');
+      AppLogger.info(
+          'Started batch NAV polling for ${_trackedFundCodes.length} funds');
     } catch (e) {
       _updateState(FundNavManagerState.error);
       AppLogger.error('Failed to start batch NAV polling', e);
@@ -285,33 +287,40 @@ class FundNavDataManager {
       return;
     }
 
-    final operationId = _latencyMonitor.startOperation('process_single_fund_nav', {
+    final operationId =
+        _latencyMonitor.startOperation('process_single_fund_nav', {
       'fundCode': fundCode,
       'dataSize': fundData.length,
     });
 
     try {
       // 解析净值数据
-      final parseId = _latencyMonitor.startOperation('parse_nav_data', {'fundCode': fundCode});
+      final parseId = _latencyMonitor
+          .startOperation('parse_nav_data', {'fundCode': fundCode});
       final navData = _parseNavData(fundData);
       _latencyMonitor.endOperation(parseId);
 
       if (navData == null) {
-        _latencyMonitor.recordError('process_single_fund_nav', 'Failed to parse NAV data', context: {'fundCode': fundCode});
+        _latencyMonitor.recordError(
+            'process_single_fund_nav', 'Failed to parse NAV data',
+            context: {'fundCode': fundCode});
         AppLogger.warn('Failed to parse NAV data for fund $fundCode');
         return;
       }
 
       // 基础数据验证
-      final validationId = _latencyMonitor.startOperation('validate_nav_data', {'fundCode': fundCode});
+      final validationId = _latencyMonitor
+          .startOperation('validate_nav_data', {'fundCode': fundCode});
       final validationResult = await _dataValidator.validateNavData(navData);
       _latencyMonitor.endOperation(validationId);
 
       if (!validationResult.isValid) {
-        _latencyMonitor.recordError('process_single_fund_nav', 'NAV data validation failed', context: {
-          'fundCode': fundCode,
-          'errors': validationResult.errors,
-        });
+        _latencyMonitor.recordError(
+            'process_single_fund_nav', 'NAV data validation failed',
+            context: {
+              'fundCode': fundCode,
+              'errors': validationResult.errors,
+            });
         AppLogger.warn(
             'NAV data validation failed for fund $fundCode: ${validationResult.errors}');
         return;
@@ -319,12 +328,14 @@ class FundNavDataManager {
 
       // 多源数据验证 (异步执行，不阻塞主要流程)
       _performMultiSourceValidation(navData).catchError((e) {
-        _latencyMonitor.recordError('multi_source_validation', e.toString(), context: {'fundCode': fundCode});
+        _latencyMonitor.recordError('multi_source_validation', e.toString(),
+            context: {'fundCode': fundCode});
         AppLogger.warn('Multi-source validation failed for fund $fundCode: $e');
       });
 
       // 获取前一个净值数据用于变化检测
-      final cacheId = _latencyMonitor.startOperation('get_cached_nav_data', {'fundCode': fundCode});
+      final cacheId = _latencyMonitor
+          .startOperation('get_cached_nav_data', {'fundCode': fundCode});
       final previousNav = await _navCacheManager.getNavData(fundCode);
       _latencyMonitor.endOperation(cacheId);
 
@@ -335,17 +346,21 @@ class FundNavDataManager {
       }
 
       // 缓存新数据
-      final storeId = _latencyMonitor.startOperation('cache_nav_data', {'fundCode': fundCode});
+      final storeId = _latencyMonitor
+          .startOperation('cache_nav_data', {'fundCode': fundCode});
       await _cacheNavData(fundCode, navData);
       _latencyMonitor.endOperation(storeId);
 
       // 更新智能缓存策略（异步执行，不阻塞主要流程）
-      _cacheStrategy.analyzeAndUpdateStrategy(fundCode, navData: navData).catchError((e) {
+      _cacheStrategy
+          .analyzeAndUpdateStrategy(fundCode, navData: navData)
+          .catchError((e) {
         AppLogger.warn('智能缓存策略更新失败: $fundCode - $e');
       });
 
       // 检测变化
-      final detectId = _latencyMonitor.startOperation('detect_change', {'fundCode': fundCode});
+      final detectId = _latencyMonitor
+          .startOperation('detect_change', {'fundCode': fundCode});
       final changeInfo = previousNav != null
           ? _changeDetector.detectChange(previousNav, navData)
           : null;
@@ -375,19 +390,22 @@ class FundNavDataManager {
       }
 
       // 异步存储到Hive缓存 (L2)
-      final hiveStoreId = _latencyMonitor.startOperation('store_to_hive_cache', {'fundCode': fundCode});
+      final hiveStoreId = _latencyMonitor
+          .startOperation('store_to_hive_cache', {'fundCode': fundCode});
       _storeToHiveCache(navData).then((_) {
         _latencyMonitor.endOperation(hiveStoreId);
       }).catchError((e) {
         _latencyMonitor.endOperation(hiveStoreId, success: false);
-        _latencyMonitor.recordError('store_to_hive_cache', e.toString(), context: {'fundCode': fundCode});
+        _latencyMonitor.recordError('store_to_hive_cache', e.toString(),
+            context: {'fundCode': fundCode});
         AppLogger.warn('Failed to store NAV data to Hive cache', e);
       });
 
       _latencyMonitor.endOperation(operationId, success: true);
     } catch (e) {
       _latencyMonitor.endOperation(operationId, success: false);
-      _latencyMonitor.recordError('process_single_fund_nav', e.toString(), context: {'fundCode': fundCode});
+      _latencyMonitor.recordError('process_single_fund_nav', e.toString(),
+          context: {'fundCode': fundCode});
       AppLogger.error('Failed to process single fund NAV data', e);
     }
   }
@@ -480,7 +498,8 @@ class FundNavDataManager {
   }
 
   /// 批量获取缓存净值数据
-  Future<Map<String, FundNavData>> getBatchCachedNavData(List<String> fundCodes) async {
+  Future<Map<String, FundNavData>> getBatchCachedNavData(
+      List<String> fundCodes) async {
     try {
       final results = <String, FundNavData>{};
 
@@ -489,7 +508,8 @@ class FundNavDataManager {
       results.addAll(navResults);
 
       // 2. 对于未命中的基金，从统一缓存管理器获取
-      final missingCodes = fundCodes.where((code) => !results.containsKey(code)).toList();
+      final missingCodes =
+          fundCodes.where((code) => !results.containsKey(code)).toList();
       if (missingCodes.isNotEmpty) {
         final batchResults = _cacheManager.getBatchNavData(missingCodes);
         for (final entry in batchResults.entries) {
@@ -539,16 +559,19 @@ class FundNavDataManager {
           .map((record) => FundNavData.fromJson(record))
           .toList();
     } catch (e) {
-      AppLogger.error('Failed to get historical NAV data for fund $fundCode', e);
+      AppLogger.error(
+          'Failed to get historical NAV data for fund $fundCode', e);
       return [];
     }
   }
 
   /// 存储历史净值数据
-  Future<bool> storeHistoricalNavData(String fundCode, List<FundNavData> navDataList) async {
+  Future<bool> storeHistoricalNavData(
+      String fundCode, List<FundNavData> navDataList) async {
     try {
       // 1. 存储到专用净值缓存管理器
-      final success1 = await _navCacheManager.storeHistoricalNavData(fundCode, navDataList);
+      final success1 =
+          await _navCacheManager.storeHistoricalNavData(fundCode, navDataList);
 
       // 2. 存储到统一缓存管理器
       final historicalJson = navDataList.map((data) => data.toJson()).toList();
@@ -561,7 +584,8 @@ class FundNavDataManager {
 
       return success1;
     } catch (e) {
-      AppLogger.error('Failed to store historical NAV data for fund $fundCode', e);
+      AppLogger.error(
+          'Failed to store historical NAV data for fund $fundCode', e);
       return false;
     }
   }
@@ -586,13 +610,12 @@ class FundNavDataManager {
     if (_recentLatencies.length < 5) return;
 
     final avgLatency = _recentLatencies.fold<int>(
-        0, (sum, duration) => sum + duration.inMilliseconds) /
+            0, (sum, duration) => sum + duration.inMilliseconds) /
         _recentLatencies.length;
 
     // 如果平均延迟超过阈值，增加轮询间隔
     if (avgLatency > _latencyThreshold.inMilliseconds &&
         _pollingInterval.inSeconds < 120) {
-
       _pollingInterval = Duration(
         seconds: math.min(120, _pollingInterval.inSeconds + 15),
       );
@@ -674,7 +697,8 @@ class FundNavDataManager {
     latencies.sort();
 
     return {
-      'averageLatency': latencies.fold<int>(0, (sum, ms) => sum + ms) / latencies.length,
+      'averageLatency':
+          latencies.fold<int>(0, (sum, ms) => sum + ms) / latencies.length,
       'maxLatency': latencies.last,
       'minLatency': latencies.first,
       'requestCount': _recentLatencies.length,
@@ -702,9 +726,11 @@ class FundNavDataManager {
   /// 执行多源数据验证
   Future<void> _performMultiSourceValidation(FundNavData navData) async {
     try {
-      AppLogger.debug('Starting multi-source validation for fund ${navData.fundCode}');
+      AppLogger.debug(
+          'Starting multi-source validation for fund ${navData.fundCode}');
 
-      final validationResult = await _multiSourceValidator.validateNavData(navData);
+      final validationResult =
+          await _multiSourceValidator.validateNavData(navData);
 
       if (!validationResult.isValid) {
         AppLogger.warn(
@@ -722,7 +748,8 @@ class FundNavDataManager {
       // 记录验证结果（可以用于后续分析）
       _recordValidationResult(navData.fundCode, validationResult);
     } catch (e) {
-      AppLogger.error('Multi-source validation error for fund ${navData.fundCode}', e);
+      AppLogger.error(
+          'Multi-source validation error for fund ${navData.fundCode}', e);
     }
   }
 
@@ -773,12 +800,12 @@ class FundNavDataManager {
         changeIntensity: 0.0,
         trend: null,
         anomalyInfo: const NavAnomalyInfo(
-        isAnomaly: false,
-        anomalyType: null,
-        severity: AnomalySeverity.none,
-        confidence: 0.0,
-        description: '无异常',
-      ),
+          isAnomaly: false,
+          anomalyType: null,
+          severity: AnomalySeverity.none,
+          confidence: 0.0,
+          description: '无异常',
+        ),
         description: '无变化',
         previousNav: previousNav ?? navData,
         currentNav: navData,

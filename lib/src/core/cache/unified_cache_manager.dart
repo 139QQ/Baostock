@@ -736,12 +736,14 @@ class UnifiedCacheManager implements IUnifiedCacheService {
         _expiryTimers[key] = Timer(delay, () {
           _performRemove(key).catchError((e) {
             _performanceTracker.recordError('expiry_timer', e);
+            return false; // 返回 bool 值
           });
         });
       } else {
         // 已经过期，立即删除
         _performRemove(key).catchError((e) {
           _performanceTracker.recordError('immediate_expiry', e);
+          return false; // 返回 bool 值
         });
       }
     }

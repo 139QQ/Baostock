@@ -114,7 +114,12 @@ class HybridDataManager {
     if (_state != newState) {
       final oldState = _state;
       _state = newState;
-      _stateController.add(newState);
+
+      // 只有在控制器未关闭时才添加事件
+      if (!_stateController.isClosed) {
+        _stateController.add(newState);
+      }
+
       AppLogger.info(
           'HybridDataManager state changed: ${oldState.name} → ${newState.name}');
     }
@@ -258,7 +263,8 @@ class HybridDataManager {
   /// 生成缓存键
   String _generateCacheKey(DataType type, Map<String, dynamic>? parameters) {
     final paramStr = parameters?.toString() ?? '';
-    return '${type.code}_${paramStr.hashCode}';
+    // 直接生成带有hybrid前缀的完整缓存键，避免在HiveCacheAdapter中重复添加前缀
+    return 'hybrid_${type.code}_${paramStr.hashCode}';
   }
 
   /// 缓存数据
@@ -474,21 +480,21 @@ class HybridDataManager {
   }
 
   /// 获取缓存健康状态
-  Map<String, dynamic> getCacheHealthStatus() {
+  Future<Map<String, dynamic>> getCacheHealthStatus() async {
     return {
-      'hiveAdapter': _cacheAdapter.getHealthStatus(),
+      'hiveAdapter': await _cacheAdapter.getHealthStatus(),
       'memoryCache': {
         'size': _cache.length,
         'maxSize': _maxCacheSize,
       },
-      'overallHealth': _calculateOverallCacheHealth(),
+      'overallHealth': await _calculateOverallCacheHealth(),
     };
   }
 
   /// 计算整体缓存健康度
-  double _calculateOverallCacheHealth() {
+  Future<double> _calculateOverallCacheHealth() async {
     try {
-      final hiveStatus = _cacheAdapter.getHealthStatus();
+      final hiveStatus = await _cacheAdapter.getHealthStatus();
       final overallHitRate = hiveStatus['overallHitRate'] as double? ?? 0.0;
 
       // 内存缓存命中率计算
@@ -513,13 +519,21 @@ class HybridDataManager {
 
   /// 释放资源
   Future<void> dispose() async {
-    stop();
+    // 先关闭状态控制器，避免后续状态更新时出错
     _stateController.close();
 
+    // 关闭数据控制器
     for (final controller in _dataControllers.values) {
       controller.close();
     }
     _dataControllers.clear();
+
+    // 停止管理器（此时不会再触发状态更新）
+    try {
+      await stop();
+    } catch (e) {
+      AppLogger.warn('HybridDataManager stop failed during dispose', e);
+    }
 
     // 释放缓存适配器资源
     try {

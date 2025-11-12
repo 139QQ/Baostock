@@ -11,7 +11,8 @@ import '../../models/fund_nav_data.dart';
 /// 实现智能预取、优先级调度和自适应更新频率
 class IntelligentCacheStrategy {
   /// 单例实例
-  static final IntelligentCacheStrategy _instance = IntelligentCacheStrategy._internal();
+  static final IntelligentCacheStrategy _instance =
+      IntelligentCacheStrategy._internal();
 
   factory IntelligentCacheStrategy() => _instance;
 
@@ -44,7 +45,8 @@ class IntelligentCacheStrategy {
   Timer? _updateTimer;
 
   /// 性能监控
-  final StrategyPerformanceMonitor _performanceMonitor = StrategyPerformanceMonitor();
+  final StrategyPerformanceMonitor _performanceMonitor =
+      StrategyPerformanceMonitor();
 
   /// 策略统计
   final StrategyStatistics _statistics = StrategyStatistics();
@@ -77,13 +79,15 @@ class IntelligentCacheStrategy {
   }
 
   /// 分析并更新策略
-  Future<void> analyzeAndUpdateStrategy(String fundCode, {FundNavData? navData}) async {
+  Future<void> analyzeAndUpdateStrategy(String fundCode,
+      {FundNavData? navData}) async {
     try {
       // 1. 分析访问模式
       final accessPattern = _patternAnalyzer.analyzePattern(fundCode);
 
       // 2. 评估数据新鲜度
-      final freshnessScore = _freshnessManager.calculateFreshnessScore(fundCode, navData);
+      final freshnessScore =
+          _freshnessManager.calculateFreshnessScore(fundCode, navData);
 
       // 3. 计算动态优先级
       final priority = _priorityManager.calculatePriority(
@@ -93,7 +97,8 @@ class IntelligentCacheStrategy {
       );
 
       // 4. 生成或更新策略
-      final strategy = _generateOptimalStrategy(fundCode, accessPattern, freshnessScore, priority);
+      final strategy = _generateOptimalStrategy(
+          fundCode, accessPattern, freshnessScore, priority);
       _fundStrategies[fundCode] = strategy;
 
       // 5. 调度更新任务
@@ -102,7 +107,8 @@ class IntelligentCacheStrategy {
       // 6. 记录统计
       _statistics.recordStrategyUpdate(fundCode, strategy);
 
-      AppLogger.debug('策略更新完成: $fundCode -> ${strategy.name} (优先级: ${priority.toStringAsFixed(2)})');
+      AppLogger.debug(
+          '策略更新完成: $fundCode -> ${strategy.name} (优先级: ${priority.toStringAsFixed(2)})');
     } catch (e) {
       AppLogger.error('分析更新策略失败: $fundCode', e);
     }
@@ -114,7 +120,8 @@ class IntelligentCacheStrategy {
       AppLogger.debug('开始批量更新策略: ${fundCodes.length}个基金');
 
       // 并发分析
-      final futures = fundCodes.map((fundCode) => analyzeAndUpdateStrategy(fundCode));
+      final futures =
+          fundCodes.map((fundCode) => analyzeAndUpdateStrategy(fundCode));
       await Future.wait(futures);
 
       AppLogger.info('批量策略更新完成: ${fundCodes.length}个基金');
@@ -141,7 +148,8 @@ class IntelligentCacheStrategy {
     final strategy = _fundStrategies[fundCode];
     if (strategy == null) return false;
 
-    final effectiveLastUpdate = lastUpdate ?? DateTime.now().subtract(strategy.updateInterval * 2);
+    final effectiveLastUpdate =
+        lastUpdate ?? DateTime.now().subtract(strategy.updateInterval * 2);
     final nextUpdate = effectiveLastUpdate.add(strategy.updateInterval);
 
     return DateTime.now().isAfter(nextUpdate);
@@ -153,7 +161,8 @@ class IntelligentCacheStrategy {
   }
 
   /// 动态调整更新频率
-  void adjustUpdateFrequency(String fundCode, {bool? increase, Duration? customInterval}) {
+  void adjustUpdateFrequency(String fundCode,
+      {bool? increase, Duration? customInterval}) {
     final strategy = _fundStrategies[fundCode];
     if (strategy == null) return;
 
@@ -161,9 +170,11 @@ class IntelligentCacheStrategy {
     if (customInterval != null) {
       newInterval = customInterval;
     } else if (increase == true) {
-      newInterval = Duration(milliseconds: (strategy.updateInterval.inMilliseconds * 0.8).round());
+      newInterval = Duration(
+          milliseconds: (strategy.updateInterval.inMilliseconds * 0.8).round());
     } else if (increase == false) {
-      newInterval = Duration(milliseconds: (strategy.updateInterval.inMilliseconds * 1.2).round());
+      newInterval = Duration(
+          milliseconds: (strategy.updateInterval.inMilliseconds * 1.2).round());
     } else {
       return;
     }
@@ -220,16 +231,20 @@ class IntelligentCacheStrategy {
     // 根据新鲜度调整
     Duration updateInterval = baseStrategy.updateInterval;
     if (freshnessScore < 0.3) {
-      updateInterval = Duration(milliseconds: (updateInterval.inMilliseconds * 0.5).round());
+      updateInterval =
+          Duration(milliseconds: (updateInterval.inMilliseconds * 0.5).round());
     } else if (freshnessScore > 0.8) {
-      updateInterval = Duration(milliseconds: (updateInterval.inMilliseconds * 1.5).round());
+      updateInterval =
+          Duration(milliseconds: (updateInterval.inMilliseconds * 1.5).round());
     }
 
     // 根据优先级调整
     if (priority > 0.8) {
-      updateInterval = Duration(milliseconds: (updateInterval.inMilliseconds * 0.7).round());
+      updateInterval =
+          Duration(milliseconds: (updateInterval.inMilliseconds * 0.7).round());
     } else if (priority < 0.3) {
-      updateInterval = Duration(milliseconds: (updateInterval.inMilliseconds * 1.3).round());
+      updateInterval =
+          Duration(milliseconds: (updateInterval.inMilliseconds * 1.3).round());
     }
 
     return CacheStrategy(
@@ -280,7 +295,8 @@ class IntelligentCacheStrategy {
     final readyTasks = <UpdateTask>[];
 
     // 找出准备执行的任务
-    while (_updateQueue.isNotEmpty && _updateQueue.first.scheduledTime.isBefore(now)) {
+    while (_updateQueue.isNotEmpty &&
+        _updateQueue.first.scheduledTime.isBefore(now)) {
       readyTasks.add(_updateQueue.removeFirst());
     }
 
@@ -293,7 +309,8 @@ class IntelligentCacheStrategy {
   /// 执行更新任务
   void _executeUpdateTask(UpdateTask task) {
     try {
-      AppLogger.debug('执行更新任务: ${task.fundCode} (优先级: ${task.priority.toStringAsFixed(2)})');
+      AppLogger.debug(
+          '执行更新任务: ${task.fundCode} (优先级: ${task.priority.toStringAsFixed(2)})');
 
       // 这里会触发实际的更新操作
       // 通过事件或回调通知外部系统
@@ -443,10 +460,10 @@ class AccessPattern {
 
 /// 访问模式类型
 enum AccessPatternType {
-  frequent,   // 频繁访问
-  regular,    // 定期访问
-  sporadic,   // 偶尔访问
-  peak,       // 峰值访问
+  frequent, // 频繁访问
+  regular, // 定期访问
+  sporadic, // 偶尔访问
+  peak, // 峰值访问
 }
 
 /// 更新任务
@@ -465,7 +482,8 @@ class UpdateTask {
   }) : createdAt = DateTime.now();
 
   bool get isOverdue => DateTime.now().isAfter(scheduledTime);
-  Duration get overdueDuration => isOverdue ? DateTime.now().difference(scheduledTime) : Duration.zero;
+  Duration get overdueDuration =>
+      isOverdue ? DateTime.now().difference(scheduledTime) : Duration.zero;
 }
 
 /// 策略配置
@@ -522,11 +540,14 @@ class AccessPatternAnalyzer {
 
     // 计算访问频率
     final now = DateTime.now();
-    final recentAccesses = accesses.where((time) => now.difference(time).inHours <= 24).toList();
+    final recentAccesses =
+        accesses.where((time) => now.difference(time).inHours <= 24).toList();
     final frequency = math.min(1.0, recentAccesses.length / 24.0);
 
     // 计算平均数据大小
-    final avgDataSize = dataSizes.isEmpty ? 0 : dataSizes.reduce((a, b) => a + b) ~/ dataSizes.length;
+    final avgDataSize = dataSizes.isEmpty
+        ? 0
+        : dataSizes.reduce((a, b) => a + b) ~/ dataSizes.length;
 
     // 分析访问模式类型
     AccessPatternType type;
@@ -560,7 +581,8 @@ class AccessPatternAnalyzer {
       intervals.add(accesses[i].difference(accesses[i - 1]));
     }
 
-    final totalMs = intervals.map((d) => d.inMilliseconds).reduce((a, b) => a + b);
+    final totalMs =
+        intervals.map((d) => d.inMilliseconds).reduce((a, b) => a + b);
     return Duration(milliseconds: totalMs ~/ intervals.length);
   }
 }
@@ -730,7 +752,9 @@ class StrategyStatistics {
       'frequencyAdjustments': frequencyAdjustments,
       'tasksExecuted': tasksExecuted,
       'tasksFailed': tasksFailed,
-      'successRate': tasksExecuted > 0 ? (tasksExecuted - tasksFailed) / tasksExecuted : 0.0,
+      'successRate': tasksExecuted > 0
+          ? (tasksExecuted - tasksFailed) / tasksExecuted
+          : 0.0,
       'strategyUsage': strategyUsage,
     };
   }

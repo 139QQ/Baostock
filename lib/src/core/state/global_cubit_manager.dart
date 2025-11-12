@@ -1,5 +1,7 @@
+// Package imports
 import 'package:flutter/material.dart';
 
+// Core imports
 import '../../core/di/injection_container.dart';
 import '../../core/network/hybrid/hybrid_data_manager.dart';
 import '../../core/network/polling/polling_manager.dart';
@@ -9,21 +11,30 @@ import '../../core/network/realtime/websocket_manager.dart';
 import '../../core/network/realtime/websocket_models.dart';
 import '../../core/state/hybrid_data_status_cubit.dart';
 import '../../core/state/realtime_connection_cubit.dart';
+
+// Feature imports
 import '../../features/fund/presentation/cubits/realtime_data_cubit.dart';
 import '../../features/fund/presentation/fund_exploration/presentation/cubit/fund_exploration_cubit.dart';
+
+// Story 2.3 市场指数相关导入
+import '../../features/market/presentation/cubits/market_index_cubit.dart';
+import '../../features/market/presentation/cubits/index_trend_cubit.dart';
 
 /// 全局Cubit管理器
 ///
 /// 负责管理应用中所有Cubit实例的生命周期，确保状态在页面切换时保持不变
 /// 现在包含实时数据连接管理功能
 class GlobalCubitManager {
+  /// 私有构造函数，实现单例模式
+  GlobalCubitManager._();
+
   static GlobalCubitManager? _instance;
+
+  /// 获取全局Cubit管理器的单例实例
   static GlobalCubitManager get instance {
     _instance ??= GlobalCubitManager._();
     return _instance!;
   }
-
-  GlobalCubitManager._();
 
   /// WebSocket管理器
   WebSocketManager? _webSocketManager;
@@ -49,11 +60,20 @@ class GlobalCubitManager {
   /// 混合数据状态Cubit
   HybridDataStatusCubit? _hybridDataStatusCubit;
 
+  /// 市场指数Cubit
+  MarketIndexCubit? _marketIndexCubit;
+
+  /// 指数趋势Cubit
+  IndexTrendCubit? _indexTrendCubit;
+
   /// 是否已初始化实时连接服务
   bool _realtimeServicesInitialized = false;
 
   /// 是否已初始化混合数据服务
   bool _hybridDataServicesInitialized = false;
+
+  /// 是否已初始化市场指数服务
+  bool _marketIndexServicesInitialized = false;
 
   /// 获取或创建基金探索Cubit
   FundExplorationCubit getFundRankingCubit() {
@@ -364,6 +384,60 @@ class GlobalCubitManager {
     }
   }
 
+  /// 获取或创建市场指数Cubit
+  MarketIndexCubit getMarketIndexCubit() {
+    if (!_marketIndexServicesInitialized) {
+      debugPrint('⚠️ GlobalCubitManager: 市场指数服务未初始化，正在初始化...');
+      initializeMarketIndexServices().catchError((e) {
+        debugPrint('❌ GlobalCubitManager: 市场指数服务初始化失败: $e');
+      });
+    }
+
+    debugPrint('🔄 GlobalCubitManager: 获取MarketIndexCubit实例');
+    return _marketIndexCubit ??= sl<MarketIndexCubit>();
+  }
+
+  /// 获取或创建指数趋势Cubit
+  IndexTrendCubit getIndexTrendCubit() {
+    if (!_marketIndexServicesInitialized) {
+      debugPrint('⚠️ GlobalCubitManager: 市场指数服务未初始化，正在初始化...');
+      initializeMarketIndexServices().catchError((e) {
+        debugPrint('❌ GlobalCubitManager: 市场指数服务初始化失败: $e');
+      });
+    }
+
+    debugPrint('🔄 GlobalCubitManager: 获取IndexTrendCubit实例');
+    return _indexTrendCubit ??= sl<IndexTrendCubit>();
+  }
+
+  /// 初始化市场指数服务
+  Future<void> initializeMarketIndexServices() async {
+    if (_marketIndexServicesInitialized) {
+      debugPrint('🔄 GlobalCubitManager: 市场指数服务已初始化');
+      return;
+    }
+
+    try {
+      debugPrint('🚀 GlobalCubitManager: 初始化市场指数服务');
+
+      // 创建市场指数Cubit
+      _marketIndexCubit = sl<MarketIndexCubit>();
+
+      // 创建指数趋势Cubit
+      _indexTrendCubit = sl<IndexTrendCubit>();
+
+      // 启动市场指数数据轮询
+      _marketIndexCubit?.onEvent(const StartPolling());
+
+      _marketIndexServicesInitialized = true;
+
+      debugPrint('✅ GlobalCubitManager: 市场指数服务初始化完成');
+    } catch (e) {
+      debugPrint('❌ GlobalCubitManager: 市场指数服务初始化失败: $e');
+      rethrow;
+    }
+  }
+
   /// 获取基金探索状态信息
   String getFundRankingStatusInfo() {
     try {
@@ -375,14 +449,30 @@ class GlobalCubitManager {
     }
   }
 
+  /// 获取市场指数状态信息
+  String getMarketIndexStatusInfo() {
+    try {
+      if (_marketIndexCubit == null) {
+        return '市场指数服务未初始化';
+      }
+
+      final state = _marketIndexCubit!.state;
+      return '指数数量: ${state.indices.length}, 轮询中: ${state.isPolling}, 加载中: ${state.isLoading}, 错误: "${state.error ?? "无"}"';
+    } catch (e) {
+      return '获取市场指数状态失败: $e';
+    }
+  }
+
   /// 获取综合状态信息
   Map<String, dynamic> getComprehensiveStatusInfo() {
     return {
       'fundExploration': getFundRankingStatusInfo(),
+      'marketIndex': getMarketIndexStatusInfo(),
       'realtimeConnection': getRealtimeConnectionInfo(),
       'hybridDataStatus': getHybridDataStatusInfo(),
       'realtimeServicesInitialized': _realtimeServicesInitialized,
       'hybridDataServicesInitialized': _hybridDataServicesInitialized,
+      'marketIndexServicesInitialized': _marketIndexServicesInitialized,
     };
   }
 

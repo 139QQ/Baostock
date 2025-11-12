@@ -10,6 +10,10 @@ import '../fund/presentation/fund_exploration/presentation/cubit/fund_exploratio
 import '../portfolio/presentation/cubit/portfolio_analysis_cubit.dart';
 import '../portfolio/presentation/cubit/fund_favorite_cubit.dart';
 import '../../core/state/global_cubit_manager.dart';
+import '../../bloc/fund_search_bloc.dart';
+// Story 2.3 市场指数相关导入
+import '../market/presentation/cubits/market_index_cubit.dart';
+import '../market/presentation/cubits/index_trend_cubit.dart';
 
 class JisuFundAnalyzerApp extends StatelessWidget {
   const JisuFundAnalyzerApp({super.key});
@@ -54,6 +58,27 @@ class JisuFundAnalyzerApp extends StatelessWidget {
               cubit.initialize();
             });
             return cubit;
+          },
+        ),
+        // 基金搜索Bloc
+        BlocProvider<FundSearchBloc>(
+          create: (context) {
+            debugPrint('🔄 JisuFundAnalyzerApp: 创建FundSearchBloc实例');
+            return sl<FundSearchBloc>();
+          },
+        ),
+        // 市场指数Cubit (Story 2.3)
+        BlocProvider<MarketIndexCubit>(
+          create: (context) {
+            debugPrint('🔄 JisuFundAnalyzerApp: 获取MarketIndexCubit实例');
+            return GlobalCubitManager.instance.getMarketIndexCubit();
+          },
+        ),
+        // 指数趋势Cubit (Story 2.3)
+        BlocProvider<IndexTrendCubit>(
+          create: (context) {
+            debugPrint('🔄 JisuFundAnalyzerApp: 创建IndexTrendCubit实例');
+            return GlobalCubitManager.instance.getIndexTrendCubit();
           },
         ),
       ],

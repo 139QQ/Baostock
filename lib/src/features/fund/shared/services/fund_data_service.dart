@@ -57,11 +57,26 @@ class FundDataService {
   final Map<String, DateTime> _cacheLastAccess = {};
   Timer? _preheatTimer;
 
-  // 请求配置 - 120秒超时设置
-  static const Duration _timeout = Duration(seconds: 120); // 恢复120秒超时，确保数据请求完成
+  // 请求配置 - 智能超时设置
+  static const Duration _defaultTimeout = Duration(seconds: 120); // 默认超时
+  static const Duration _fundDataTimeout = Duration(seconds: 180); // 基金数据请求超时
+  static const Duration _searchTimeout = Duration(seconds: 60); // 搜索请求超时
   static const int _maxRetries = 2; // 增加重试次数，提高成功率
   static const Duration _retryDelay = Duration(seconds: 3); // 增加重试间隔
-  static const Duration _connectionTimeout = Duration(seconds: 30); // 连接超时
+  // static const Duration _connectionTimeout = Duration(seconds: 30); // 连接超时 - 暂未使用
+
+  /// 获取智能超时时间
+  static Duration _getTimeoutForRequest(String url) {
+    if (url.contains('/funds/') ||
+        url.contains('/batch/') ||
+        url.contains('/nav/')) {
+      return _fundDataTimeout; // 基金数据请求使用180秒
+    }
+    if (url.contains('/search/') || url.contains('/query/')) {
+      return _searchTimeout; // 搜索请求使用60秒
+    }
+    return _defaultTimeout; // 其他请求使用默认120秒
+  }
 
   // 缓存配置 - 改进的缓存策略
   static const String _cacheKeyPrefix = 'fund_rankings_';
@@ -72,7 +87,7 @@ class FundDataService {
       Duration(minutes: 15); // 长期缓存用于稳定数据
 
   // 智能缓存策略
-  static const int _maxCacheSize = 50; // 最大缓存条目数
+  // static const int _maxCacheSize = 50; // 最大缓存条目数 - 暂未使用
   static const int _preheatThreshold = 3; // 预热阈值：访问次数超过此值则预热
   static const Duration _preheatCheckInterval = Duration(minutes: 1); // 预热检查间隔
 
@@ -241,7 +256,9 @@ class FundDataService {
     Function(double)? onProgress,
   ) async {
     AppLogger.debug('📡 FundDataService: 请求URL: $uri');
-    AppLogger.info('⏱️ FundDataService: 开始请求，超时时间: ${_timeout.inSeconds}秒');
+    final requestTimeout = _getTimeoutForRequest(uri.toString());
+    AppLogger.info(
+        '⏱️ FundDataService: 开始请求，超时时间: ${requestTimeout.inSeconds}秒 (智能配置)');
 
     // 第1层：快速失败检查 - 临时禁用以调试超时问题
     // await _preRequestCheck();
@@ -458,17 +475,45 @@ class FundDataService {
     }
 
     final headers = _buildHeaders();
+    final stopwatch = Stopwatch()..start();
+
     AppLogger.debug('🔍 FundDataService: 请求详情');
     AppLogger.debug('  URL: $uri');
     AppLogger.debug('  Headers: $headers');
+    final timeout = _getTimeoutForRequest(uri.toString());
+    AppLogger.debug('  超时设置: ${timeout.inSeconds}秒 (智能配置)');
+    AppLogger.info(
+        '⏱️ FundDataService: 开始HTTP请求 - ${DateTime.now().millisecondsSinceEpoch}ms');
 
     try {
-      final response = await http.get(uri, headers: headers).timeout(_timeout);
+      // 增强HTTP请求配置，提高连接稳定性
+      final response = await http.get(
+        uri,
+        headers: {
+          ...headers,
+          'Connection': 'keep-alive',
+          'Keep-Alive': 'timeout=30, max=100',
+          'Accept': 'application/json',
+          'Accept-Encoding': 'gzip, deflate',
+          'User-Agent': 'FundDataService/2.0.0 (Flutter; Stable Connection)',
+        },
+      ).timeout(
+        timeout,
+        onTimeout: () {
+          throw TimeoutException('HTTP请求超时', timeout);
+        },
+      );
 
+      stopwatch.stop();
+      final requestDuration = stopwatch.elapsedMilliseconds;
+
+      AppLogger.info('✅ FundDataService: HTTP请求完成 - 耗时${requestDuration}ms');
       AppLogger.debug('📊 FundDataService: 响应详情');
       AppLogger.debug('  状态码: ${response.statusCode}');
       AppLogger.debug('  响应大小: ${response.body.length} 字节');
       AppLogger.debug('  响应头: ${response.headers}');
+      AppLogger.debug(
+          '  平均下载速度: ${(response.body.length / requestDuration * 1000).toStringAsFixed(2)} bytes/s');
 
       if (response.statusCode != 200) {
         AppLogger.debug('❌ FundDataService: 响应内容预览: ${response.body}');
@@ -476,33 +521,78 @@ class FundDataService {
 
       return response;
     } on TimeoutException catch (e) {
+      stopwatch.stop();
+      final timeoutDuration = stopwatch.elapsedMilliseconds;
+      final actualTimeout = _getTimeoutForRequest(uri.toString());
       AppLogger.warn(
-          '⏰ FundDataService: HTTP请求超时 (${_timeout.inSeconds}秒): $uri');
+          '⏰ FundDataService: HTTP请求超时 (${actualTimeout.inSeconds}秒) - 实际耗时${timeoutDuration}ms: $uri');
       AppLogger.debug('⏰ 超时详情: $e');
       rethrow;
     } on SocketException catch (e) {
-      AppLogger.error('🔌 FundDataService: 网络连接异常', e);
+      stopwatch.stop();
+      final socketErrorDuration = stopwatch.elapsedMilliseconds;
+      AppLogger.error(
+          '🔌 FundDataService: 网络连接异常 - 耗时${socketErrorDuration}ms', e);
       rethrow;
     } on HttpException catch (e) {
-      AppLogger.error('🌐 FundDataService: HTTP协议异常', e);
+      stopwatch.stop();
+      final httpErrorDuration = stopwatch.elapsedMilliseconds;
+      AppLogger.error(
+          '🌐 FundDataService: HTTP协议异常 - 耗时${httpErrorDuration}ms', e);
       rethrow;
     } on ClientException catch (e) {
-      AppLogger.error('🔗 FundDataService: HTTP客户端连接异常 (连接中断或服务器无响应)', e);
+      stopwatch.stop();
+      final clientErrorDuration = stopwatch.elapsedMilliseconds;
+      AppLogger.error(
+          '🔗 FundDataService: HTTP客户端连接异常 (连接中断或服务器无响应) - 耗时${clientErrorDuration}ms',
+          e);
       AppLogger.debug('🔗 连接异常详情: ${e.message}');
-      rethrow;
+      AppLogger.debug(
+          '🔗 异常发生时间点: ${DateTime.now().millisecondsSinceEpoch}ms (请求开始后${clientErrorDuration}ms)');
+
+      // 对于连接关闭的错误，提供更友好的错误信息
+      if (e.message.contains('Connection closed while receiving data')) {
+        throw SocketException('服务器在传输数据时关闭连接，可能是网络不稳定或服务器负载过高');
+      } else if (e.message.contains('Connection refused')) {
+        throw SocketException('服务器拒绝连接，请检查服务器状态');
+      } else if (e.message.contains('Network is unreachable')) {
+        throw SocketException('网络不可达，请检查网络连接');
+      } else {
+        // 重新抛出原始异常
+        rethrow;
+      }
     } catch (e) {
-      AppLogger.error('❌ FundDataService: 未知请求异常', e);
+      stopwatch.stop();
+      final unknownErrorDuration = stopwatch.elapsedMilliseconds;
+      AppLogger.error(
+          '❌ FundDataService: 未知请求异常 - 耗时${unknownErrorDuration}ms', e);
       rethrow;
     }
   }
 
   /// 智能网络请求（带连接检查和智能重试）
   Future<http.Response> _makeSmartRequest(Uri uri) async {
-    return await _executeWithRetry<http.Response>(
-      () => _makeRequestWithMultiTimeout(uri),
-      maxRetries: _maxRetries,
-      retryDelay: _retryDelay,
-    );
+    AppLogger.info('🔄 FundDataService: 开始智能重试请求 - 最大重试次数: $_maxRetries');
+    final totalStopwatch = Stopwatch()..start();
+
+    try {
+      final response = await _executeWithRetry<http.Response>(
+        () => _makeRequestWithMultiTimeout(uri),
+        maxRetries: _maxRetries,
+        retryDelay: _retryDelay,
+      );
+
+      totalStopwatch.stop();
+      final totalDuration = totalStopwatch.elapsedMilliseconds;
+      AppLogger.info('✅ FundDataService: 智能重试请求成功 - 总耗时${totalDuration}ms');
+
+      return response;
+    } catch (e) {
+      totalStopwatch.stop();
+      final totalDuration = totalStopwatch.elapsedMilliseconds;
+      AppLogger.error('❌ FundDataService: 智能重试请求失败 - 总耗时${totalDuration}ms', e);
+      rethrow;
+    }
   }
 
   /// 验证HTTP响应
@@ -561,7 +651,7 @@ class FundDataService {
           uri,
           headers: _buildHeaders(),
         )
-        .timeout(_timeout);
+        .timeout(_getTimeoutForRequest('$uri'));
 
     AppLogger.debug('📊 FundDataService: 详情响应状态: ${response.statusCode}');
 
@@ -620,34 +710,61 @@ class FundDataService {
     Duration retryDelay = const Duration(seconds: 2),
   }) async {
     Exception? lastException;
+    final retryStopwatch = Stopwatch()..start();
+
+    AppLogger.info(
+        '🔄 FundDataService: 开始重试机制 - 最大重试次数: $maxRetries, 基础延迟: ${retryDelay.inSeconds}秒');
 
     for (int attempt = 0; attempt <= maxRetries; attempt++) {
+      final attemptStopwatch = Stopwatch()..start();
+
       try {
-        return await operation();
+        AppLogger.debug('🚀 FundDataService: 执行第${attempt + 1}次尝试');
+        final result = await operation();
+
+        attemptStopwatch.stop();
+        AppLogger.info(
+            '✅ FundDataService: 第${attempt + 1}次尝试成功 - 耗时${attemptStopwatch.elapsedMilliseconds}ms');
+
+        return result;
       } catch (e) {
         lastException = e is Exception ? e : Exception(e.toString());
+        attemptStopwatch.stop();
 
         if (attempt == maxRetries) {
-          AppLogger.debug('❌ FundDataService: 重试失败，达到最大重试次数 ($maxRetries)');
+          retryStopwatch.stop();
+          AppLogger.error(
+              '❌ FundDataService: 重试失败，达到最大重试次数 ($maxRetries) - 总耗时${retryStopwatch.elapsedMilliseconds}ms',
+              lastException);
           rethrow;
         }
 
         // 根据异常类型决定是否重试
         bool shouldRetry = _shouldRetryForException(e);
         if (!shouldRetry) {
-          AppLogger.debug('❌ FundDataService: 异常类型不适合重试，直接失败: $e');
+          retryStopwatch.stop();
+          AppLogger.error(
+              '❌ FundDataService: 异常类型不适合重试，直接失败 - 耗时${retryStopwatch.elapsedMilliseconds}ms: $e',
+              e);
           rethrow;
         }
 
         // 计算重试延迟（指数退避）
         final currentDelay = _calculateRetryDelay(attempt, retryDelay, e);
 
+        AppLogger.warn(
+            '⚠️ FundDataService: 第${attempt + 1}次请求失败 (耗时${attemptStopwatch.elapsedMilliseconds}ms)，${currentDelay.inSeconds}秒后重试: $e');
         AppLogger.debug(
-            '⚠️ FundDataService: 第${attempt + 1}次请求失败，${currentDelay.inSeconds}秒后重试: $e');
+            '🔄 重试统计: 当前第${attempt + 1}/${maxRetries + 1}次, 已累计耗时${retryStopwatch.elapsedMilliseconds}ms');
+
         await Future.delayed(currentDelay);
       }
     }
 
+    retryStopwatch.stop();
+    AppLogger.error(
+        '❌ FundDataService: 重试机制异常退出 - 总耗时${retryStopwatch.elapsedMilliseconds}ms',
+        lastException);
     throw lastException!;
   }
 
@@ -656,7 +773,19 @@ class FundDataService {
     // 这些异常类型通常可以通过重试解决
     if (e is TimeoutException) return true;
     if (e is SocketException) return true;
-    if (e is ClientException) return true;
+    if (e is ClientException) {
+      // 特别处理连接关闭的异常
+      if (e.message.contains('Connection closed while receiving data')) {
+        return true; // 连接关闭通常可以通过重试解决
+      }
+      if (e.message.contains('Connection refused')) {
+        return true; // 连接拒绝可能临时问题
+      }
+      if (e.message.contains('Network is unreachable')) {
+        return false; // 网络不可达通常重试无意义
+      }
+      return true; // 其他ClientException默认重试
+    }
 
     // HTTP异常中，某些状态码可以重试
     if (e is HttpException) return true;
@@ -680,7 +809,24 @@ class FundDataService {
         milliseconds: (exponentialDelay.inMilliseconds * 0.5).round(),
       );
     } else if (e is ClientException) {
-      // 连接异常使用较长延迟，等待网络恢复
+      if (e.message.contains('Connection closed while receiving data')) {
+        // 连接关闭使用中等延迟，给服务器恢复时间
+        adjustedDelay = Duration(
+          milliseconds: (exponentialDelay.inMilliseconds * 1.2).round(),
+        );
+      } else if (e.message.contains('Connection refused')) {
+        // 连接拒绝使用较长延迟
+        adjustedDelay = Duration(
+          milliseconds: (exponentialDelay.inMilliseconds * 1.8).round(),
+        );
+      } else {
+        // 其他连接异常使用标准较长延迟
+        adjustedDelay = Duration(
+          milliseconds: (exponentialDelay.inMilliseconds * 1.5).round(),
+        );
+      }
+    } else if (e is SocketException) {
+      // Socket异常使用较长延迟，等待网络恢复
       adjustedDelay = Duration(
         milliseconds: (exponentialDelay.inMilliseconds * 1.5).round(),
       );
@@ -688,8 +834,8 @@ class FundDataService {
       adjustedDelay = exponentialDelay;
     }
 
-    // 设置最大延迟上限（10秒）
-    const maxDelay = Duration(seconds: 10);
+    // 设置最大延迟上限（15秒，为连接问题提供更多恢复时间）
+    const maxDelay = Duration(seconds: 15);
     return adjustedDelay > maxDelay ? maxDelay : adjustedDelay;
   }
 
@@ -1201,8 +1347,13 @@ class FundDataService {
       final errorMsg = '网络连接错误: ${e.message}';
       AppLogger.error('❌ FundDataService: $errorMsg', e);
 
-      // 提供用户友好的错误提示
-      final userFriendlyMsg = _getUserFriendlyErrorMessage(e, 'network');
+      // 根据具体的SocketException类型提供不同的用户友好错误信息
+      String errorType = 'network';
+      if (e.message.contains('服务器在传输数据时关闭连接')) {
+        errorType = 'connection_closed';
+      }
+
+      final userFriendlyMsg = _getUserFriendlyErrorMessage(e, errorType);
       return FundDataResult.failure(userFriendlyMsg);
     } on TimeoutException catch (e) {
       final errorMsg = '请求超时: ${e.message}';
@@ -1375,7 +1526,7 @@ class FundDataService {
         'service': 'FundDataService',
         'cache_prefix': _cacheKeyPrefix,
         'max_retries': _maxRetries,
-        'timeout_seconds': _timeout.inSeconds,
+        'timeout_seconds': _defaultTimeout.inSeconds,
         'current_requests': _currentRequests,
         'max_concurrent_requests': _maxConcurrentRequests,
         'invalidation_manager_stats': stats,
@@ -1426,6 +1577,14 @@ class FundDataService {
   String _getUserFriendlyErrorMessage(dynamic error, String errorType) {
     switch (errorType) {
       case 'network':
+        if (error is SocketException) {
+          if (error.message.contains('服务器在传输数据时关闭连接')) {
+            return '数据传输中断，可能是网络不稳定，正在重试...';
+          }
+          if (error.message.contains('服务器拒绝连接')) {
+            return '服务器暂时忙碌，请稍后重试';
+          }
+        }
         return '网络连接失败，请检查网络连接后重试';
       case 'timeout':
         return '请求超时，请稍后重试';
@@ -1446,6 +1605,8 @@ class FundDataService {
         return '缓存服务暂时不可用，正在重新获取数据';
       case 'validation':
         return '数据验证失败，请重试';
+      case 'connection_closed':
+        return '连接在数据传输过程中被关闭，可能是网络波动，正在重试...';
       default:
         return '加载基金数据失败，请重试';
     }
@@ -1463,7 +1624,7 @@ class FundDataService {
         'service': 'FundDataService',
         'base_url': _baseUrl,
         'cache_expire_time_seconds': _cacheExpireTime.inSeconds,
-        'timeout_seconds': _timeout.inSeconds,
+        'timeout_seconds': _defaultTimeout.inSeconds,
         'max_retries': _maxRetries,
         'max_concurrent_requests': _maxConcurrentRequests,
         'current_requests': _currentRequests,
@@ -2024,7 +2185,7 @@ class FundDataService {
   /// 获取动态缓存过期时间
   Duration _getDynamicCacheExpireTime(String cacheKey, Duration currentAge) {
     final accessCount = _cacheAccessCounts[cacheKey] ?? 0;
-    final lastAccess = _cacheLastAccess[cacheKey];
+    // final lastAccess = _cacheLastAccess[cacheKey]; // 暂未使用
 
     // 根据访问次数调整缓存时间
     if (accessCount >= 10) {

@@ -242,10 +242,15 @@ class PollingManager {
 
   /// 设置默认轮询任务
   void _setupDefaultTasks() {
-    // 基金净值 - 15分钟
+    // 基金净值 - 使用批量轮询策略，30秒间隔 (支持准实时更新)
     addTask(PollingTask(
       dataType: DataType.fundNetValue,
-      interval: const Duration(minutes: 15),
+      interval: const Duration(seconds: 30),
+      parameters: {
+        'batch': true,
+        'max_batch_size': 50,
+        'strategy': 'batch_fund_nav_polling',
+      },
     ));
 
     // 基金基础信息 - 6小时
@@ -411,41 +416,13 @@ class PollingManager {
     try {
       AppLogger.debug('Executing polling task for ${task.dataType.code}');
 
-      // 执行HTTP请求
-      final response = await _dio.get(
-        task.dataType.apiEndpoint,
-        queryParameters: task.parameters,
-      );
-
-      stopwatch.stop();
-
-      // 解析响应数据
-      final data = _parseResponse(response, task.dataType);
-
-      // 创建数据项
-      final dataItem = DataItem(
-        dataType: task.dataType,
-        data: data,
-        timestamp: DateTime.now(),
-        quality: _assessDataQuality(response, stopwatch.elapsed),
-        source: DataSource.httpPolling,
-        id: 'polling_${task.id}_${DateTime.now().millisecondsSinceEpoch}',
-      );
-
-      // 发送到数据流
-      _dataControllers[task.dataType]?.add(dataItem);
-
-      // 记录执行成功
-      task.recordSuccess();
-
-      // 更新活跃度跟踪
-      _activityTracker.recordActivity(task.dataType, true, stopwatch.elapsed);
-
-      // 更新频率调整器
-      _frequencyAdjuster.updateDataChange(task.dataType, data);
-
-      // 更新统计信息
-      _updateStatistics(task.dataType, true, stopwatch.elapsed);
+      // 检查是否为批量轮询任务
+      if (task.parameters['batch'] == true &&
+          task.dataType == DataType.fundNetValue) {
+        await _executeBatchPollingTask(task, stopwatch);
+      } else {
+        await _executeRegularPollingTask(task, stopwatch);
+      }
 
       AppLogger.debug(
           'Successfully executed polling task for ${task.dataType.code} in ${stopwatch.elapsedMilliseconds}ms');
@@ -468,6 +445,192 @@ class PollingManager {
       if (task.failureCount >= task.maxRetries) {
         _frequencyAdjuster.adjustFrequencyForFailures(task);
       }
+    }
+  }
+
+  /// 执行常规轮询任务
+  Future<void> _executeRegularPollingTask(
+      PollingTask task, Stopwatch stopwatch) async {
+    // 执行HTTP请求
+    final response = await _dio.get(
+      task.dataType.apiEndpoint,
+      queryParameters: task.parameters,
+    );
+
+    stopwatch.stop();
+
+    // 解析响应数据
+    final data = _parseResponse(response, task.dataType);
+
+    // 创建数据项
+    final dataItem = DataItem(
+      dataType: task.dataType,
+      data: data,
+      timestamp: DateTime.now(),
+      quality: _assessDataQuality(response, stopwatch.elapsed),
+      source: DataSource.httpPolling,
+      id: 'polling_${task.id}_${DateTime.now().millisecondsSinceEpoch}',
+    );
+
+    // 发送到数据流
+    _dataControllers[task.dataType]?.add(dataItem);
+
+    // 记录执行成功
+    task.recordSuccess();
+
+    // 更新活跃度跟踪
+    _activityTracker.recordActivity(task.dataType, true, stopwatch.elapsed);
+
+    // 更新频率调整器
+    _frequencyAdjuster.updateDataChange(task.dataType, data);
+
+    // 更新统计信息
+    _updateStatistics(task.dataType, true, stopwatch.elapsed);
+  }
+
+  /// 执行批量轮询任务
+  Future<void> _executeBatchPollingTask(
+      PollingTask task, Stopwatch stopwatch) async {
+    final maxBatchSize = task.parameters['max_batch_size'] as int? ?? 50;
+    final codes = task.parameters['codes'] as List<String>? ?? [];
+
+    if (codes.isEmpty) {
+      AppLogger.warning('Batch polling task has no fund codes');
+      return;
+    }
+
+    // 将基金代码分批
+    final batches = <List<String>>[];
+    for (int i = 0; i < codes.length; i += maxBatchSize) {
+      final batch = codes.skip(i).take(maxBatchSize).toList();
+      batches.add(batch);
+    }
+
+    AppLogger.debug(
+        'Executing batch polling for ${codes.length} funds in ${batches.length} batches');
+
+    final results = <dynamic>[];
+    int successCount = 0;
+    int errorCount = 0;
+
+    // 并发执行批次，但限制并发数
+    final semaphore = _Semaphore(3); // 最多3个并发批次
+    final futures = batches.map((batch) async {
+      await semaphore.acquire();
+      try {
+        final result = await _pollSingleBatch(batch, task.parameters);
+        if (result['success'] == true) {
+          successCount++;
+        } else {
+          errorCount++;
+        }
+        return result;
+      } finally {
+        semaphore.release();
+      }
+    });
+
+    final batchResults = await Future.wait(futures);
+
+    // 合并结果
+    for (final result in batchResults) {
+      if (result['funds'] != null) {
+        results.addAll(result['funds'] as List<dynamic>);
+      }
+    }
+
+    stopwatch.stop();
+
+    // 创建批量数据项
+    final batchData = {
+      'funds': results,
+      'batch_count': batches.length,
+      'success_count': successCount,
+      'error_count': errorCount,
+      'total_funds': codes.length,
+      'found_funds': results.length,
+    };
+
+    final dataItem = DataItem(
+      dataType: task.dataType,
+      data: batchData,
+      timestamp: DateTime.now(),
+      quality: _assessBatchDataQuality(batchData),
+      source: DataSource.httpPolling,
+      id: 'batch_polling_${task.id}_${DateTime.now().millisecondsSinceEpoch}',
+    );
+
+    // 发送到数据流
+    _dataControllers[task.dataType]?.add(dataItem);
+
+    // 记录执行成功
+    task.recordSuccess();
+
+    // 更新活跃度跟踪
+    _activityTracker.recordActivity(task.dataType, true, stopwatch.elapsed);
+
+    // 更新频率调整器
+    _frequencyAdjuster.updateDataChange(task.dataType, batchData);
+
+    // 更新统计信息
+    _updateStatistics(task.dataType, true, stopwatch.elapsed);
+
+    AppLogger.info(
+        'Batch polling completed: $successCount/${batches.length} batches successful, ${results.length}/${codes.length} funds retrieved');
+  }
+
+  /// 轮询单个批次
+  Future<Map<String, dynamic>> _pollSingleBatch(
+    List<String> fundCodes,
+    Map<String, dynamic> baseParameters,
+  ) async {
+    try {
+      final parameters = Map<String, dynamic>.from(baseParameters);
+      parameters['codes'] = fundCodes.join(',');
+      parameters.remove('max_batch_size'); // 移除不相关的参数
+
+      final response = await _dio.get(
+        '/api/fund/nav/batch', // 使用专门的批量API端点
+        queryParameters: parameters,
+      );
+
+      final data = _parseResponse(response, DataType.fundNetValue);
+
+      return {
+        'success': true,
+        'funds': data['funds'] ?? [],
+        'batch_codes': fundCodes,
+      };
+    } catch (e) {
+      AppLogger.error('Failed to poll batch ${fundCodes.join(', ')}: $e');
+      return {
+        'success': false,
+        'error': e.toString(),
+        'batch_codes': fundCodes,
+      };
+    }
+  }
+
+  /// 评估批量数据质量
+  DataQualityLevel _assessBatchDataQuality(Map<String, dynamic> batchData) {
+    final totalFunds = batchData['total_funds'] as int? ?? 0;
+    final foundFunds = batchData['found_funds'] as int? ?? 0;
+    final successCount = batchData['success_count'] as int? ?? 0;
+    final batchCount = batchData['batch_count'] as int? ?? 1;
+
+    if (totalFunds == 0) return DataQualityLevel.unknown;
+
+    final successRate = successCount / batchCount;
+    final completionRate = foundFunds / totalFunds;
+
+    if (successRate >= 0.9 && completionRate >= 0.9) {
+      return DataQualityLevel.excellent;
+    } else if (successRate >= 0.7 && completionRate >= 0.7) {
+      return DataQualityLevel.good;
+    } else if (successRate >= 0.5 && completionRate >= 0.5) {
+      return DataQualityLevel.fair;
+    } else {
+      return DataQualityLevel.poor;
     }
   }
 

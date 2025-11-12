@@ -124,9 +124,8 @@ class _NavComparisonChartState extends State<NavComparisonChart> {
     final now = DateTime.now();
     final cutoffDate = _getCutoffDate(now, widget.timeRange);
 
-    final filteredData = sortedData
-        .where((data) => data.navDate.isAfter(cutoffDate))
-        .toList();
+    final filteredData =
+        sortedData.where((data) => data.navDate.isAfter(cutoffDate)).toList();
 
     // 限制数据点数量
     final maxDataPoints = _getMaxDataPoints(widget.timeRange);
@@ -358,7 +357,9 @@ class _NavComparisonChartState extends State<NavComparisonChart> {
                             TextSpan(
                               text: '变化: ${data.changePercentageFormatted}',
                               style: TextStyle(
-                                color: data.isUp ? Colors.green.shade300 : Colors.red.shade300,
+                                color: data.isUp
+                                    ? Colors.green.shade300
+                                    : Colors.red.shade300,
                                 fontSize: 10,
                               ),
                             ),
@@ -808,4 +809,3 @@ extension ChartTimeRangeExtension on ChartTimeRange {
     }
   }
 }
-

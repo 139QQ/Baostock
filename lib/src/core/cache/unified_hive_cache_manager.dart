@@ -79,6 +79,9 @@ class UnifiedHiveCacheManager {
 
   // 状态管理
   bool _isInitialized = false;
+
+  /// 检查是否已初始化
+  bool get isInitialized => _isInitialized;
   bool _isInMemoryMode = false;
   CacheStrategy _strategy = CacheStrategy.hybrid;
 
@@ -990,6 +993,387 @@ class UnifiedHiveCacheManager {
   /// 异步操作辅助函数
   void unawaited(Future<void> future) {
     // 故意不等待Future完成
+  }
+
+  // ==================== 净值数据专用扩展 ====================
+
+  /// 存储净值数据（专用方法）
+  Future<bool> storeNavData(
+    String fundCode,
+    Map<String, dynamic> navData, {
+    Duration? expiration,
+    bool storeHistorical = false,
+    List<Map<String, dynamic>>? historicalData,
+  }) async {
+    try {
+      final startTime = DateTime.now();
+
+      // 1. 存储当前净值数据
+      final cacheKey = 'nav_$fundCode';
+      final enhancedNavData = <String, dynamic>{
+        ...navData,
+        'cachedAt': DateTime.now().toIso8601String(),
+        'cacheType': 'nav_data',
+        'fundCode': fundCode,
+      };
+
+      await put(
+        cacheKey,
+        enhancedNavData,
+        expiration: expiration ?? const Duration(hours: 2),
+        priority: CachePriority.high,
+        enableIndexing: true,
+      );
+
+      // 2. 存储历史数据（如果提供）
+      if (storeHistorical && historicalData != null) {
+        await _storeHistoricalNavData(fundCode, historicalData);
+      }
+
+      final duration = DateTime.now().difference(startTime);
+      AppLogger.debug('💾 NAV数据存储成功: $fundCode (${duration.inMilliseconds}ms)');
+
+      return true;
+    } catch (e) {
+      AppLogger.error('❌ NAV数据存储失败: $fundCode', e);
+      return false;
+    }
+  }
+
+  /// 获取净值数据（专用方法）
+  Map<String, dynamic>? getNavData(String fundCode) {
+    try {
+      final cacheKey = 'nav_$fundCode';
+      final navData = get<Map<String, dynamic>>(cacheKey);
+
+      if (navData != null) {
+        AppLogger.debug('📥 NAV缓存命中: $fundCode');
+        return navData;
+      }
+
+      AppLogger.debug('📥 NAV缓存未命中: $fundCode');
+      return null;
+    } catch (e) {
+      AppLogger.error('❌ 获取NAV数据失败: $fundCode', e);
+      return null;
+    }
+  }
+
+  /// 批量获取净值数据（专用方法）
+  Map<String, Map<String, dynamic>?> getBatchNavData(List<String> fundCodes) {
+    try {
+      final startTime = DateTime.now();
+      final results = <String, Map<String, dynamic>?>{};
+
+      // 构建缓存键列表
+      final cacheKeys = fundCodes.map((code) => 'nav_$code').toList();
+      final batchResults = getAll<Map<String, dynamic>>(cacheKeys);
+
+      // 映射回基金代码
+      for (int i = 0; i < fundCodes.length; i++) {
+        final fundCode = fundCodes[i];
+        final cacheKey = cacheKeys[i];
+        results[fundCode] = batchResults[cacheKey];
+      }
+
+      final hitCount = results.values.where((data) => data != null).length;
+      final duration = DateTime.now().difference(startTime);
+
+      AppLogger.debug(
+          '📦 批量NAV查询: $hitCount/${fundCodes.length} 命中 (${duration.inMilliseconds}ms)');
+
+      return results;
+    } catch (e) {
+      AppLogger.error('❌ 批量获取NAV数据失败', e);
+      return {};
+    }
+  }
+
+  /// 存储历史净值数据
+  Future<bool> _storeHistoricalNavData(
+      String fundCode, List<Map<String, dynamic>> historicalData) async {
+    try {
+      final historicalKey = 'nav_history_$fundCode';
+
+      // 获取现有历史数据
+      final existingData =
+          get<Map<String, dynamic>>(historicalKey) ?? <String, dynamic>{};
+      final existingRecords = (existingData['records'] as List<dynamic>?)
+              ?.map((record) => record as Map<String, dynamic>)
+              .toList() ??
+          <Map<String, dynamic>>[];
+
+      // 合并新数据
+      final allRecords = <Map<String, dynamic>>[];
+      final seenDates = <String>{};
+
+      // 添加现有记录
+      for (final record in existingRecords) {
+        final dateStr = record['navDate'] as String?;
+        if (dateStr != null && !seenDates.contains(dateStr)) {
+          allRecords.add(record);
+          seenDates.add(dateStr);
+        }
+      }
+
+      // 添加新记录
+      for (final record in historicalData) {
+        final dateStr = record['navDate'] as String?;
+        if (dateStr != null && !seenDates.contains(dateStr)) {
+          allRecords.add(record);
+          seenDates.add(dateStr);
+        }
+      }
+
+      // 按日期排序并限制数量
+      allRecords.sort(
+          (a, b) => (b['navDate'] as String).compareTo(a['navDate'] as String));
+      const maxHistoricalRecords = 365; // 保留一年历史
+
+      if (allRecords.length > maxHistoricalRecords) {
+        allRecords.removeRange(maxHistoricalRecords, allRecords.length);
+      }
+
+      final enhancedHistoricalData = <String, dynamic>{
+        'fundCode': fundCode,
+        'records': allRecords,
+        'lastUpdated': DateTime.now().toIso8601String(),
+        'recordCount': allRecords.length,
+        'cacheType': 'nav_history',
+      };
+
+      await put(
+        historicalKey,
+        enhancedHistoricalData,
+        expiration: const Duration(days: 7),
+        priority: CachePriority.normal,
+        enableIndexing: false,
+      );
+
+      AppLogger.debug('📊 历史NAV数据存储: $fundCode (${allRecords.length} 条记录)');
+      return true;
+    } catch (e) {
+      AppLogger.error('❌ 存储历史NAV数据失败: $fundCode', e);
+      return false;
+    }
+  }
+
+  /// 获取历史净值数据
+  Future<List<Map<String, dynamic>>> getHistoricalNavData(
+    String fundCode, {
+    int limit = 30,
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    try {
+      final historicalKey = 'nav_history_$fundCode';
+      final historicalData = get<Map<String, dynamic>>(historicalKey);
+
+      if (historicalData == null) {
+        return [];
+      }
+
+      final records = (historicalData['records'] as List<dynamic>?)
+              ?.map((record) => record as Map<String, dynamic>)
+              .toList() ??
+          <Map<String, dynamic>>[];
+
+      final filteredRecords = <Map<String, dynamic>>[];
+
+      for (final record in records) {
+        if (record['navDate'] is! String) continue;
+
+        final navDate = DateTime.parse(record['navDate'] as String);
+
+        // 日期过滤
+        if (startDate != null && navDate.isBefore(startDate)) continue;
+        if (endDate != null && navDate.isAfter(endDate)) continue;
+
+        filteredRecords.add(record);
+      }
+
+      // 限制数量
+      return filteredRecords.take(limit).toList();
+    } catch (e) {
+      AppLogger.error('❌ 获取历史NAV数据失败: $fundCode', e);
+      return [];
+    }
+  }
+
+  /// 清理指定基金的净值缓存
+  Future<void> clearNavCacheForFund(String fundCode) async {
+    try {
+      // 清理当前净值缓存
+      await remove('nav_$fundCode');
+
+      // 清理历史数据缓存
+      await remove('nav_history_$fundCode');
+
+      AppLogger.debug('🗑️ 已清理基金净值缓存: $fundCode');
+    } catch (e) {
+      AppLogger.error('❌ 清理基金净值缓存失败: $fundCode', e);
+    }
+  }
+
+  /// 获取净值缓存统计信息
+  Map<String, dynamic> getNavCacheStatistics() {
+    try {
+      final allKeys = <String>[];
+
+      // 获取L1缓存中的净值相关键
+      if (_isInitialized) {
+        allKeys.addAll(
+            _l1Cache.getAllKeys().where((key) => key.startsWith('nav_')));
+      }
+
+      // 获取L2缓存中的净值相关键
+      if (_cacheBox != null && _cacheBox!.isOpen) {
+        final l2Keys = _cacheBox!.keys
+            .whereType<String>()
+            .where((key) => key.startsWith('nav_'));
+        for (final key in l2Keys) {
+          if (!allKeys.contains(key)) {
+            allKeys.add(key);
+          }
+        }
+      }
+
+      final navDataCount = allKeys
+          .where((key) => key.startsWith('nav_') && !key.contains('_history'))
+          .length;
+      final historyCount =
+          allKeys.where((key) => key.contains('_history')).length;
+
+      return {
+        'totalNavCacheItems': allKeys.length,
+        'currentNavDataCount': navDataCount,
+        'historicalDataCount': historyCount,
+        'cacheKeys': allKeys,
+        'lastUpdated': DateTime.now().toIso8601String(),
+      };
+    } catch (e) {
+      AppLogger.error('❌ 获取净值缓存统计失败', e);
+      return {
+        'error': e.toString(),
+        'totalNavCacheItems': 0,
+      };
+    }
+  }
+
+  /// 净值数据健康检查
+  Future<Map<String, dynamic>> performNavCacheHealthCheck() async {
+    try {
+      int healthyItems = 0;
+      int corruptedItems = 0;
+      int expiredItems = 0;
+
+      // 检查当前净值数据
+      final navStats = getNavCacheStatistics();
+      final navKeys = (navStats['cacheKeys'] as List<dynamic>).cast<String>();
+
+      for (final key in navKeys) {
+        if (key.contains('_history')) continue; // 跳过历史数据
+
+        try {
+          final navData = get<Map<String, dynamic>>(key);
+          if (navData != null) {
+            // 检查必要字段
+            if (_isValidNavData(navData)) {
+              healthyItems++;
+            } else {
+              corruptedItems++;
+              AppLogger.warn('发现损坏的NAV数据: $key');
+            }
+          }
+        } catch (e) {
+          corruptedItems++;
+          AppLogger.warn('检查NAV数据时出错 $key: $e');
+        }
+      }
+
+      final healthStatus = {
+        'totalItems': navKeys.length,
+        'healthyItems': healthyItems,
+        'corruptedItems': corruptedItems,
+        'expiredItems': expiredItems,
+        'healthScore': navKeys.isNotEmpty
+            ? (healthyItems / navKeys.length * 100).round()
+            : 100,
+        'lastCheckTime': DateTime.now().toIso8601String(),
+        'needsCleanup': corruptedItems > 0 || expiredItems > 0,
+      };
+
+      return healthStatus;
+    } catch (e) {
+      AppLogger.error('❌ NAV缓存健康检查失败', e);
+      return {
+        'error': e.toString(),
+        'healthScore': 0,
+        'needsCleanup': true,
+      };
+    }
+  }
+
+  /// 验证NAV数据完整性
+  bool _isValidNavData(Map<String, dynamic> navData) {
+    try {
+      // 检查必要字段
+      final requiredFields = ['fundCode', 'navDate', 'nav'];
+      for (final field in requiredFields) {
+        if (!navData.containsKey(field) || navData[field] == null) {
+          return false;
+        }
+      }
+
+      // 检查数据类型
+      if (navData['fundCode'] is! String) return false;
+      if (navData['navDate'] is! String) return false;
+
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// 批量清理损坏的NAV数据
+  Future<int> cleanupCorruptedNavData() async {
+    try {
+      final healthCheck = await performNavCacheHealthCheck();
+      final corruptedKeys = <String>[];
+
+      // 识别损坏的数据项
+      if (healthCheck['corruptedItems'] > 0) {
+        final navStats = getNavCacheStatistics();
+        final navKeys = (navStats['cacheKeys'] as List<dynamic>).cast<String>();
+
+        for (final key in navKeys) {
+          if (key.contains('_history')) continue;
+
+          try {
+            final navData = get<Map<String, dynamic>>(key);
+            if (navData != null && !_isValidNavData(navData)) {
+              corruptedKeys.add(key);
+            }
+          } catch (e) {
+            corruptedKeys.add(key);
+          }
+        }
+      }
+
+      // 批量删除损坏的数据
+      for (final key in corruptedKeys) {
+        await remove(key);
+      }
+
+      if (corruptedKeys.isNotEmpty) {
+        AppLogger.info('🧹 清理了 ${corruptedKeys.length} 个损坏的NAV数据项');
+      }
+
+      return corruptedKeys.length;
+    } catch (e) {
+      AppLogger.error('❌ 清理损坏NAV数据失败', e);
+      return 0;
+    }
   }
 }
 

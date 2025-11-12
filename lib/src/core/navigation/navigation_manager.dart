@@ -29,7 +29,7 @@ class NavigationManager extends ChangeNotifier {
 
   /// 导航到指定页面
   void navigateToPage(int index, {bool addToHistory = true}) {
-    if (index < 0 || index > 4) return; // 只允许5个页面
+    if (index < 0 || index > 6) return; // 允许7个页面（0-6）
 
     debugPrint('📍 NavigationManager: 导航到页面 $index (${_getPageName(index)})');
 
@@ -94,12 +94,16 @@ class NavigationManager extends ChangeNotifier {
       case 0:
         return '市场概览';
       case 1:
-        return '基金筛选';
+        return '市场指数';
       case 2:
-        return '自选基金';
+        return '基金筛选';
       case 3:
-        return '持仓分析';
+        return '自选基金';
       case 4:
+        return '持仓分析';
+      case 5:
+        return '推送通知';
+      case 6:
         return '系统设置';
       default:
         return '未知页面';

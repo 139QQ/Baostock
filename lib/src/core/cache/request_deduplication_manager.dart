@@ -35,8 +35,8 @@ class RequestDeduplicationManager {
     final effectiveKey = _normalizeKey(requestKey);
     // 智能超时配置：根据请求类型动态调整超时时间
     const defaultTimeout = Duration(seconds: 10);
-    const maxTimeout = Duration(seconds: 120); // 提高最大超时限制到120秒
-    const dataIntensiveTimeout = Duration(seconds: 120); // 数据密集型请求使用120秒超时
+    const maxTimeout = Duration(seconds: 180); // 提高最大超时限制到180秒
+    const dataIntensiveTimeout = Duration(seconds: 180); // 数据密集型请求使用180秒超时
 
     Duration userTimeout;
     if (timeout != null) {
@@ -132,6 +132,15 @@ class RequestDeduplicationManager {
         AppLogger.warn(
             '⏰ 请求超时: [$effectiveKey] (${effectiveTimeout.inSeconds}秒)', e);
         _stats.recordTimeout(effectiveKey);
+
+        // 对数据密集型请求提供额外的错误信息和恢复建议
+        if (effectiveKey.contains('fund_') && effectiveKey.length > 20) {
+          AppLogger.info('💡 检测到基金数据请求超时，建议：\n'
+              '1. 检查网络连接稳定性\n'
+              '2. 考虑减少数据请求范围\n'
+              '3. 稍后重试请求\n'
+              '4. 检查API服务器状态');
+        }
       } else {
         AppLogger.error('❌ 请求失败: [$effectiveKey]', e, stackTrace);
       }
@@ -190,8 +199,20 @@ class RequestDeduplicationManager {
   dynamic _enhanceErrorMessage(
       dynamic error, String requestKey, Duration timeout) {
     if (error is TimeoutException) {
+      String suggestion;
+      if (requestKey.contains('fund_') && requestKey.length > 20) {
+        suggestion = '基金数据请求超时，建议：\n'
+            '1. 检查网络连接稳定性（建议使用有线连接）\n'
+            '2. 稍后重试（等待30秒后再试）\n'
+            '3. 减少数据请求范围（如按基金类型筛选）\n'
+            '4. 检查API服务器状态：154.44.25.92:8080\n'
+            '5. 考虑在非高峰时段进行数据获取';
+      } else {
+        suggestion = '建议：检查网络连接或减少数据请求量';
+      }
+
       return TimeoutException(
-        '请求超时详情: [$requestKey] - 设定超时: ${timeout.inSeconds}秒 - 建议: 检查网络连接或减少数据请求量',
+        '请求超时详情: [$requestKey] - 设定超时: ${timeout.inSeconds}秒\n$suggestion',
         timeout,
       );
     } else if (error is SocketException) {
@@ -261,16 +282,24 @@ class RequestDeduplicationManager {
         }
       });
 
-      // 设置强制超时定时器（比主超时稍长）
-      final forceTimeout =
-          Duration(milliseconds: timeout.inMilliseconds + 2000);
+      // 设置强制超时定时器（比主超时稍长，但对数据密集型请求给予更多时间）
+      Duration forceTimeout;
+      if (requestKey.contains('fund_') && requestKey.length > 20) {
+        // 数据密集型请求给予更长的强制超时时间
+        forceTimeout = Duration(milliseconds: timeout.inMilliseconds + 10000);
+      } else {
+        // 普通请求使用标准的强制超时时间
+        forceTimeout = Duration(milliseconds: timeout.inMilliseconds + 2000);
+      }
+
       forceTimeoutTimer = Timer(forceTimeout, () {
         if (timeoutCompleter != null && !timeoutCompleter.isCompleted) {
           AppLogger.error(
-              '💥 强制超时触发: [$requestKey] (${forceTimeout.inSeconds}秒)',
+              '💥 强制超时触发: [$requestKey] (${forceTimeout.inSeconds}秒) - 请求可能被阻塞',
               'TimeoutException');
           timeoutCompleter.completeError(
-            TimeoutException('请求强制超时: [$requestKey]', forceTimeout),
+            TimeoutException('请求强制超时: [$requestKey] - 可能的原因：网络阻塞、服务器负载过高或数据量过大',
+                forceTimeout),
             StackTrace.current,
           );
         }

@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:system_theme/system_theme.dart';
 import 'package:window_manager/window_manager.dart';
 
 /// Windows平台系统集成管理器
@@ -19,18 +18,12 @@ class WindowsIntegration {
       // 初始化窗口管理器
       await windowManager.ensureInitialized();
 
-      // 系统主题会在首次访问时自动初始化
-
       // 配置窗口
       await _configureWindow();
 
-      // 监听系统主题变化
-      SystemTheme.onChange.listen((SystemAccentColor accentColor) {
-        _onSystemThemeChanged(accentColor);
-      });
-
+      // 注意：system_theme 功能已移除，使用默认主题
+      print('Windows集成功能初始化成功 (system_theme 功能已禁用)');
       _isInitialized = true;
-      print('Windows集成功能初始化成功');
     } catch (e) {
       print('Windows集成功能初始化失败: $e');
     }
@@ -55,13 +48,6 @@ class WindowsIntegration {
     });
   }
 
-  /// 系统主题变化处理
-  static void _onSystemThemeChanged(SystemAccentColor accentColor) {
-    // 根据系统主题调整应用主题
-    // 注意：SystemTheme库不直接提供isDarkMode，需要使用其他方式检测
-    print('系统主题变化: 强调色 = ${accentColor.accent}');
-  }
-
   /// 检查是否为深色模式
   static Future<bool> isDarkMode() async {
     if (!Platform.isWindows) return false;
@@ -76,15 +62,13 @@ class WindowsIntegration {
     }
   }
 
-  /// 获取系统强调色
+  /// 获取系统强调色 (使用默认蓝色)
   static Color? getSystemAccentColor() {
     if (!Platform.isWindows) return null;
 
     try {
-      final accentColor = SystemTheme.accentColor;
-      // 将SystemAccentColor转换为Color
-      // 使用accent属性
-      return Color(accentColor.accent.value);
+      // system_theme 功能已移除，返回 Windows 默认蓝色
+      return const Color(0xFF0078D4); // Windows 11 蓝色
     } catch (e) {
       print('获取系统强调色失败: $e');
       return null;

@@ -37,6 +37,9 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
   // Cubit是否已关闭标志
   bool _isClosed = false;
 
+  // 重复日志计数器（用于减少重复输出）
+  int _closedWarningCount = 0;
+
   FundExplorationCubit({
     required FundDataService fundDataService,
     required SearchService searchService,
@@ -56,7 +59,12 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
     if (!_isClosed && !isClosed) {
       emit(newState);
     } else {
-      AppLogger.debug('⚠️ FundExplorationCubit: Cubit已关闭，跳过状态发射');
+      // 限制重复日志输出频率
+      _closedWarningCount++;
+      if (_closedWarningCount <= 5 || _closedWarningCount % 50 == 0) {
+        AppLogger.debug(
+            '⚠️ FundExplorationCubit: Cubit已关闭，跳过状态发射 ($_closedWarningCount次)');
+      }
     }
   }
 
@@ -74,7 +82,7 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
   }) async {
     // 检查Cubit是否已关闭
     if (_isClosed || isClosed) {
-      AppLogger.debug('⚠️ FundExplorationCubit: Cubit已关闭，取消加载操作');
+      AppLogger.trace('⚠️ FundExplorationCubit: Cubit已关闭，取消加载操作');
       return;
     }
 
@@ -111,7 +119,7 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
 
         // 检查Cubit是否在异步操作过程中被关闭
         if (_isClosed || isClosed) {
-          AppLogger.debug('⚠️ FundExplorationCubit: Cubit在数据加载过程中被关闭，取消状态更新');
+          AppLogger.trace('⚠️ FundExplorationCubit: Cubit在数据加载过程中被关闭，取消状态更新');
           return;
         }
 
@@ -225,20 +233,20 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
 
   /// 搜索基金
   void searchFunds(String query) {
-    emit(state.copyWith(searchQuery: query));
+    _safeEmit(state.copyWith(searchQuery: query));
 
     // 清除之前的防抖定时器
     _searchDebounce?.cancel();
 
     if (query.isEmpty) {
-      emit(state.copyWith(
+      _safeEmit(state.copyWith(
         status: FundExplorationStatus.loaded,
         searchResults: state.fundRankings,
       ));
       return;
     }
 
-    emit(state.copyWith(status: FundExplorationStatus.searching));
+    _safeEmit(state.copyWith(status: FundExplorationStatus.searching));
 
     // 防抖搜索
     _searchDebounce = Timer(const Duration(milliseconds: 300), () {
@@ -269,14 +277,14 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
         // 添加到搜索历史
         _addToSearchHistory(query);
 
-        emit(state.copyWith(
+        _safeEmit(state.copyWith(
           status: FundExplorationStatus.searched,
           searchResults: searchResult.results,
         ));
       } else {
         AppLogger.debug(
             '❌ FundExplorationCubit: 搜索失败: ${searchResult.errorMessage}');
-        emit(state.copyWith(
+        _safeEmit(state.copyWith(
           status: FundExplorationStatus.error,
           errorMessage: searchResult.errorMessage,
         ));
@@ -284,7 +292,7 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
     } catch (e) {
       final errorMsg = '搜索失败: $e';
       AppLogger.debug('❌ FundExplorationCubit: $errorMsg');
-      emit(state.copyWith(
+      _safeEmit(state.copyWith(
         status: FundExplorationStatus.error,
         errorMessage: errorMsg,
       ));
@@ -381,7 +389,7 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
       }
     }
 
-    emit(state.copyWith(
+    _safeEmit(state.copyWith(
       status: FundExplorationStatus.filtered,
       filteredRankings: filteredRankings,
       activeFilter: fundType ?? '',
@@ -415,7 +423,7 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
   /// 清除对比状态
   void clearComparison() {
     // 清除选中的对比基金
-    emit(state.copyWith(
+    _safeEmit(state.copyWith(
       comparisonFunds: [],
       isComparing: false,
     ));
@@ -440,7 +448,7 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
 
     currentComparison.add(fund);
 
-    emit(state.copyWith(
+    _safeEmit(state.copyWith(
       comparisonFunds: currentComparison,
       isComparing: true,
     ));
@@ -454,7 +462,7 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
     currentComparison.removeWhere((f) => f.fundCode == fundCode);
 
     if (currentComparison.length != state.comparisonFunds.length) {
-      emit(state.copyWith(
+      _safeEmit(state.copyWith(
         comparisonFunds: currentComparison,
         isComparing: currentComparison.isNotEmpty,
       ));
@@ -485,7 +493,7 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
       AppLogger.debug('❤️ FundExplorationCubit: 已收藏基金 $fundCode');
     }
 
-    emit(state.copyWith(favoriteFunds: currentFavorites));
+    _safeEmit(state.copyWith(favoriteFunds: currentFavorites));
   }
 
   /// 通过基金代码切换对比状态
@@ -505,12 +513,12 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
       AppLogger.debug('📊 FundExplorationCubit: 已添加对比基金 $fundCode');
     }
 
-    emit(state.copyWith(comparingFunds: currentComparing));
+    _safeEmit(state.copyWith(comparingFunds: currentComparing));
   }
 
   /// 清除搜索状态
   void clearSearch() {
-    emit(state.copyWith(
+    _safeEmit(state.copyWith(
       status: FundExplorationStatus.loaded,
       searchResults: [],
       searchQuery: '',
@@ -532,13 +540,13 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
     // 限制历史记录数量
     final limitedHistory = currentHistory.take(10).toList();
 
-    emit(state.copyWith(searchHistory: limitedHistory));
+    _safeEmit(state.copyWith(searchHistory: limitedHistory));
     AppLogger.debug('📝 FundExplorationCubit: 已添加到搜索历史: $query');
   }
 
   /// 更新搜索查询
   void updateSearchQuery(String query) {
-    emit(state.copyWith(searchQuery: query));
+    _safeEmit(state.copyWith(searchQuery: query));
     AppLogger.debug('🔍 FundExplorationCubit: 已更新搜索查询: $query');
   }
 
@@ -552,7 +560,7 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
   void updateSortBy(String sortBy) {
     AppLogger.debug('🔄 FundExplorationCubit: 更新排序方式 (sortBy: $sortBy)');
 
-    emit(state.copyWith(
+    _safeEmit(state.copyWith(
       sortBy: sortBy,
       activeSortBy: sortBy,
     ));
@@ -593,9 +601,9 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
     }
 
     if (state.status == FundExplorationStatus.filtered) {
-      emit(state.copyWith(filteredRankings: dataToSort));
+      _safeEmit(state.copyWith(filteredRankings: dataToSort));
     } else {
-      emit(state.copyWith(searchResults: dataToSort));
+      _safeEmit(state.copyWith(searchResults: dataToSort));
     }
 
     AppLogger.debug('✅ FundExplorationCubit: 排序应用完成');
@@ -603,7 +611,7 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
 
   /// 重置筛选条件
   void resetFilter() {
-    emit(state.copyWith(
+    _safeEmit(state.copyWith(
       status: FundExplorationStatus.searched,
       filteredRankings: [],
       activeFilter: '',
@@ -637,7 +645,7 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
   Future<void> loadMoreData() async {
     if (state.isLoading || !state.hasMoreData) return;
 
-    emit(state.copyWith(isLoadingMore: true));
+    _safeEmit(state.copyWith(isLoadingMore: true));
 
     try {
       // 这里可以实现分页加载逻辑
@@ -652,7 +660,7 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
             state.fundRankings.skip(currentLength).take(moreLength).toList();
         final allSearchResults = [...state.searchResults, ...moreData];
 
-        emit(state.copyWith(
+        _safeEmit(state.copyWith(
           searchResults: allSearchResults,
           isLoadingMore: false,
           hasMoreData: currentLength + moreLength < state.fundRankings.length,
@@ -660,14 +668,14 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
 
         AppLogger.debug('📄 FundExplorationCubit: 加载更多成功，新增$moreLength条');
       } else {
-        emit(state.copyWith(
+        _safeEmit(state.copyWith(
           isLoadingMore: false,
           hasMoreData: false,
         ));
       }
     } catch (e) {
       AppLogger.debug('❌ FundExplorationCubit: 加载更多失败: $e');
-      emit(state.copyWith(isLoadingMore: false));
+      _safeEmit(state.copyWith(isLoadingMore: false));
     }
   }
 
@@ -681,13 +689,13 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
       expandedFunds.add(fundCode);
     }
 
-    emit(state.copyWith(expandedFunds: expandedFunds));
+    _safeEmit(state.copyWith(expandedFunds: expandedFunds));
   }
 
   /// 清除错误信息
   void clearError() {
     if (state.errorMessage != null) {
-      emit(state.copyWith(clearErrorMessage: true));
+      _safeEmit(state.copyWith(clearErrorMessage: true));
     }
   }
 
@@ -791,19 +799,19 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
     // 限制历史记录数量
     final limitedHistory = currentHistory.take(10).toList();
 
-    emit(state.copyWith(searchHistory: limitedHistory));
+    _safeEmit(state.copyWith(searchHistory: limitedHistory));
   }
 
   /// 清空搜索历史
   void clearSearchHistory() {
-    emit(state.copyWith(searchHistory: []));
+    _safeEmit(state.copyWith(searchHistory: []));
   }
 
   /// 从搜索历史中删除特定项
   void removeFromSearchHistory(String query) {
     final currentHistory = List<String>.from(state.searchHistory);
     currentHistory.remove(query);
-    emit(state.copyWith(searchHistory: currentHistory));
+    _safeEmit(state.copyWith(searchHistory: currentHistory));
   }
 
   /// 货币基金相关方法
@@ -818,7 +826,7 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
     AppLogger.debug(
         '🔄 FundExplorationCubit: 开始加载货币基金数据 (forceRefresh: $forceRefresh)');
 
-    emit(state.copyWith(isMoneyFundsLoading: true, moneyFundsError: null));
+    _safeEmit(state.copyWith(isMoneyFundsLoading: true, moneyFundsError: null));
 
     try {
       final result = await _moneyFundService.getMoneyFunds();
@@ -829,13 +837,13 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
         AppLogger.debug(
             '✅ FundExplorationCubit: 货币基金数据加载成功 (${moneyFunds.length}条)');
 
-        emit(state.copyWith(
+        _safeEmit(state.copyWith(
           moneyFunds: moneyFunds,
           isMoneyFundsLoading: false,
           moneyFundsError: null,
         ));
       } else {
-        emit(state.copyWith(
+        _safeEmit(state.copyWith(
           isMoneyFundsLoading: false,
           moneyFundsError: result.errorMessage,
         ));
@@ -843,7 +851,7 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
     } catch (e) {
       final errorMsg = '加载货币基金失败: $e';
       AppLogger.debug('❌ FundExplorationCubit: $errorMsg');
-      emit(state.copyWith(
+      _safeEmit(state.copyWith(
         isMoneyFundsLoading: false,
         moneyFundsError: errorMsg,
       ));
@@ -852,13 +860,13 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
 
   /// 搜索货币基金
   void searchMoneyFunds(String query) {
-    emit(state.copyWith(searchQuery: query));
+    _safeEmit(state.copyWith(searchQuery: query));
 
     // 清除之前的防抖定时器
     _searchDebounce?.cancel();
 
     if (query.isEmpty) {
-      emit(state.copyWith(moneyFundSearchResults: []));
+      _safeEmit(state.copyWith(moneyFundSearchResults: []));
       return;
     }
 
@@ -882,16 +890,16 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
         // 添加到搜索历史
         _addToSearchHistory(query);
 
-        emit(state.copyWith(moneyFundSearchResults: result.data!));
+        _safeEmit(state.copyWith(moneyFundSearchResults: result.data!));
       } else {
         AppLogger.debug(
             '❌ FundExplorationCubit: 货币基金搜索失败: ${result.errorMessage}');
-        emit(state.copyWith(moneyFundsError: result.errorMessage));
+        _safeEmit(state.copyWith(moneyFundsError: result.errorMessage));
       }
     } catch (e) {
       final errorMsg = '货币基金搜索失败: $e';
       AppLogger.debug('❌ FundExplorationCubit: $errorMsg');
-      emit(state.copyWith(moneyFundsError: errorMsg));
+      _safeEmit(state.copyWith(moneyFundsError: errorMsg));
     }
   }
 
@@ -908,23 +916,23 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
         AppLogger.debug(
             '✅ FundExplorationCubit: 高收益货币基金获取成功 (${topFunds.length}条)');
 
-        emit(state.copyWith(moneyFunds: topFunds));
+        _safeEmit(state.copyWith(moneyFunds: topFunds));
       } else {
         AppLogger.debug(
             '❌ FundExplorationCubit: 高收益货币基金获取失败: ${result.errorMessage}');
-        emit(state.copyWith(moneyFundsError: result.errorMessage));
+        _safeEmit(state.copyWith(moneyFundsError: result.errorMessage));
       }
     } catch (e) {
       final errorMsg = '获取高收益货币基金失败: $e';
       AppLogger.debug('❌ FundExplorationCubit: $errorMsg');
-      emit(state.copyWith(moneyFundsError: errorMsg));
+      _safeEmit(state.copyWith(moneyFundsError: errorMsg));
     }
   }
 
   /// 切换到货币基金视图
   void switchToMoneyFundsView() {
     AppLogger.debug('🔄 FundExplorationCubit: 切换到货币基金视图');
-    emit(state.copyWith(activeView: FundExplorationView.moneyFunds));
+    _safeEmit(state.copyWith(activeView: FundExplorationView.moneyFunds));
 
     // 如果货币基金数据为空，自动加载
     if (state.moneyFunds.isEmpty && !state.isMoneyFundsLoading) {
@@ -935,30 +943,30 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
   /// 切换到基金排行视图
   void switchToRankingView() {
     AppLogger.debug('🔄 FundExplorationCubit: 切换到基金排行视图');
-    emit(state.copyWith(activeView: FundExplorationView.ranking));
+    _safeEmit(state.copyWith(activeView: FundExplorationView.ranking));
   }
 
   /// 切换到搜索视图
   void switchToSearchView() {
     AppLogger.debug('🔄 FundExplorationCubit: 切换到搜索视图');
-    emit(state.copyWith(activeView: FundExplorationView.search));
+    _safeEmit(state.copyWith(activeView: FundExplorationView.search));
   }
 
   /// 切换到对比视图
   void switchToComparisonView() {
     AppLogger.debug('🔄 FundExplorationCubit: 切换到对比视图');
-    emit(state.copyWith(activeView: FundExplorationView.comparison));
+    _safeEmit(state.copyWith(activeView: FundExplorationView.comparison));
   }
 
   /// 切换到热门视图
   void switchToHotView() {
     AppLogger.debug('🔄 FundExplorationCubit: 切换到热门视图');
-    emit(state.copyWith(activeView: FundExplorationView.hot));
+    _safeEmit(state.copyWith(activeView: FundExplorationView.hot));
   }
 
   /// 清除货币基金搜索结果
   void clearMoneyFundSearch() {
-    emit(state.copyWith(
+    _safeEmit(state.copyWith(
       searchQuery: '',
       moneyFundSearchResults: [],
     ));
@@ -1066,8 +1074,10 @@ class FundExplorationCubit extends Cubit<FundExplorationState> {
 
   @override
   Future<void> close() {
-    AppLogger.debug('🔄 FundExplorationCubit: 正在关闭Cubit');
+    AppLogger.debug(
+        '🔄 FundExplorationCubit: 正在关闭Cubit (累计警告次数: $_closedWarningCount)');
     _isClosed = true;
+    _closedWarningCount = 0; // 重置计数器
     _searchDebounce?.cancel();
     return super.close();
   }

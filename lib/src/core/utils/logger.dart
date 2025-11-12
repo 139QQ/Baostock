@@ -25,6 +25,18 @@ class AppLogger {
     }
   }
 
+  /// 跟踪级别日志
+  /// 仅在详细调试模式下输出，用于减少重复日志
+  static void trace(String message, [dynamic data]) {
+    // 仅在详细调试模式下输出，可通过环境变量或配置控制
+    const enableTraceLogging = false; // 默认关闭跟踪日志
+    if (enableTraceLogging && kDebugMode) {
+      final timestamp = DateTime.now().toIso8601String();
+      // ignore: avoid_print
+      print('🔍 TRACE [$timestamp] $message ${data != null ? '- $data' : ''}');
+    }
+  }
+
   /// 信息级别日志
   /// 在调试模式下始终输出，生产环境可配置
   static void info(String message, [dynamic data]) {

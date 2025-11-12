@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import '../../../alerts/presentation/widgets/notification_test_widget.dart';
 
 /// 简化版市场概览页面
 ///
 /// 临时简化版本，避免复杂依赖导致的问题
 class DashboardPage extends StatefulWidget {
+  /// 创建市场概览页面
   const DashboardPage({super.key});
 
   @override
@@ -13,15 +15,36 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isMobile = screenWidth < 768;
+    final isTablet = screenWidth >= 768 && screenWidth < 1024;
+    final orientation = MediaQuery.of(context).orientation;
+
+    // 响应式配置
+    final headerPadding = isMobile
+        ? const EdgeInsets.all(16.0)
+        : (isTablet ? const EdgeInsets.all(20.0) : const EdgeInsets.all(24.0));
+
+    final contentPadding = isMobile
+        ? const EdgeInsets.all(12.0)
+        : (isTablet ? const EdgeInsets.all(16.0) : const EdgeInsets.all(20.0));
+
+    final crossAxisCount = isMobile
+        ? (orientation == Orientation.portrait ? 2 : 3)
+        : (isTablet ? 3 : 4);
+
+    final childAspectRatio = isMobile ? 1.1 : (isTablet ? 1.2 : 1.3);
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // 简化的顶部欢迎区域
+            // 响应式顶部欢迎区域
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(24.0),
+              padding: headerPadding,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
@@ -40,72 +63,86 @@ class _DashboardPageState extends State<DashboardPage> {
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           color: Theme.of(context).primaryColor,
                           fontWeight: FontWeight.bold,
+                          fontSize: isMobile ? 20 : 24,
                         ),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: isMobile ? 6 : 8),
                   Text(
                     '基速基金分析器',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           color: Theme.of(context).textTheme.titleLarge?.color,
+                          fontSize: isMobile ? 18 : 22,
                         ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: isMobile ? 12 : 16),
                   Text(
                     '专业的基金量化分析平台',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Colors.grey[600],
+                          fontSize: isMobile ? 14 : 16,
                         ),
                   ),
                 ],
               ),
             ),
 
-            // 简化的功能卡片区域
+            // 响应式功能卡片区域
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: contentPadding,
               child: Column(
                 children: [
-                  // 功能卡片网格
-                  GridView.count(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                    childAspectRatio: 1.2,
-                    children: [
-                      _buildFeatureCard(
-                        context,
-                        Icons.trending_up,
-                        '基金排行',
-                        '查看基金排行榜',
-                        Colors.blue,
-                      ),
-                      _buildFeatureCard(
-                        context,
-                        Icons.star_border,
-                        '自选基金',
-                        '管理我的自选基金',
-                        Colors.orange,
-                      ),
-                      _buildFeatureCard(
-                        context,
-                        Icons.pie_chart,
-                        '投资组合',
-                        '分析投资组合表现',
-                        Colors.green,
-                      ),
-                      _buildFeatureCard(
-                        context,
-                        Icons.settings,
-                        '系统设置',
-                        '个性化应用设置',
-                        Colors.grey,
-                      ),
-                    ],
+                  // 响应式功能卡片网格
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      return GridView.count(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        crossAxisCount: crossAxisCount,
+                        crossAxisSpacing: isMobile ? 12 : 16,
+                        mainAxisSpacing: isMobile ? 12 : 16,
+                        childAspectRatio: childAspectRatio,
+                        children: [
+                          _buildFeatureCard(
+                            context,
+                            Icons.trending_up,
+                            '基金排行',
+                            '查看基金排行榜',
+                            Colors.blue,
+                          ),
+                          _buildFeatureCard(
+                            context,
+                            Icons.star_border,
+                            '自选基金',
+                            '管理我的自选基金',
+                            Colors.orange,
+                          ),
+                          _buildFeatureCard(
+                            context,
+                            Icons.pie_chart,
+                            '投资组合',
+                            '分析投资组合表现',
+                            Colors.green,
+                          ),
+                          _buildFeatureCard(
+                            context,
+                            Icons.notifications_active,
+                            '推送测试',
+                            '测试推送通知功能',
+                            Colors.purple,
+                          ),
+                          _buildFeatureCard(
+                            context,
+                            Icons.settings,
+                            '系统设置',
+                            '个性化应用设置',
+                            Colors.grey,
+                          ),
+                        ],
+                      );
+                    },
                   ),
 
-                  const SizedBox(height: 24),
+                  SizedBox(height: isMobile ? 16 : 24),
 
                   // 市场概览卡片
                   Card(
@@ -207,45 +244,70 @@ class _DashboardPageState extends State<DashboardPage> {
     String subtitle,
     Color color,
   ) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 768;
+    final isSmallScreen = screenWidth < 400;
+
+    // 响应式配置
+    final iconSize = isSmallScreen ? 36 : (isMobile ? 42 : 48);
+    final cardPadding =
+        EdgeInsets.all(isSmallScreen ? 12 : (isMobile ? 14 : 16));
+    final titleFontSize = isSmallScreen ? 14 : (isMobile ? 16 : 18);
+    final subtitleFontSize = isSmallScreen ? 11 : 12;
+    final spacing = SizedBox(height: isSmallScreen ? 8 : 12);
+    final smallSpacing = SizedBox(height: isSmallScreen ? 3 : 4);
+
     return Card(
-      elevation: 4,
+      elevation: isMobile ? 2 : 4,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(isMobile ? 8 : 12),
       ),
       child: InkWell(
         onTap: () {
-          // 这里可以添加导航逻辑
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('$title 功能开发中')),
-          );
+          if (title == '推送测试') {
+            // 导航到通知测试页面
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const NotificationTestWidget(),
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('$title 功能开发中')),
+            );
+          }
         },
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(isMobile ? 8 : 12),
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: cardPadding,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
                 icon,
-                size: 48,
+                size: iconSize.toDouble(),
                 color: color,
               ),
-              const SizedBox(height: 12),
+              spacing,
               Text(
                 title,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
+                      fontSize: titleFontSize.toDouble(),
                     ),
                 textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 4),
+              smallSpacing,
               Text(
                 subtitle,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Colors.grey[600],
+                      fontSize: subtitleFontSize.toDouble(),
                     ),
                 textAlign: TextAlign.center,
-                maxLines: 2,
+                maxLines: isSmallScreen ? 1 : 2,
                 overflow: TextOverflow.ellipsis,
               ),
             ],
