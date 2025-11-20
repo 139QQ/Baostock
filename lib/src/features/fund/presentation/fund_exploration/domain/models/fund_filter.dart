@@ -1,6 +1,7 @@
 /// 基金筛选条件模型
 class FundFilter {
   final List<String> fundTypes;
+  final List<String> themes;
   final List<String> riskLevels;
   final double? minScale;
   final double? maxScale;
@@ -21,6 +22,7 @@ class FundFilter {
 
   FundFilter({
     this.fundTypes = const [],
+    this.themes = const [],
     this.riskLevels = const [],
     this.minScale,
     this.maxScale,
@@ -43,6 +45,7 @@ class FundFilter {
   /// 复制构造函数
   FundFilter copyWith({
     List<String>? fundTypes,
+    List<String>? themes,
     List<String>? riskLevels,
     double? minScale,
     double? maxScale,
@@ -63,6 +66,7 @@ class FundFilter {
   }) {
     return FundFilter(
       fundTypes: fundTypes ?? this.fundTypes,
+      themes: themes ?? this.themes,
       riskLevels: riskLevels ?? this.riskLevels,
       minScale: minScale ?? this.minScale,
       maxScale: maxScale ?? this.maxScale,
@@ -86,6 +90,7 @@ class FundFilter {
   /// 检查是否有筛选条件
   bool get hasActiveFilters {
     return fundTypes.isNotEmpty ||
+        themes.isNotEmpty ||
         riskLevels.isNotEmpty ||
         minScale != null ||
         maxScale != null ||
@@ -112,6 +117,9 @@ class FundFilter {
 
     if (fundTypes.isNotEmpty) {
       params['fund_types'] = fundTypes.join(',');
+    }
+    if (themes.isNotEmpty) {
+      params['themes'] = themes.join(',');
     }
     if (riskLevels.isNotEmpty) {
       params['risk_levels'] = riskLevels.join(',');
@@ -170,6 +178,7 @@ class FundFilter {
   String toString() {
     return 'FundFilter('
         'fundTypes: $fundTypes, '
+        'themes: $themes, '
         'riskLevels: $riskLevels, '
         'minScale: $minScale, '
         'maxScale: $maxScale, '
@@ -190,6 +199,7 @@ class FundFilter {
 
     return other is FundFilter &&
         other.fundTypes == fundTypes &&
+        other.themes == themes &&
         other.riskLevels == riskLevels &&
         other.minScale == minScale &&
         other.maxScale == maxScale &&
@@ -212,6 +222,7 @@ class FundFilter {
   @override
   int get hashCode {
     return fundTypes.hashCode ^
+        themes.hashCode ^
         riskLevels.hashCode ^
         minScale.hashCode ^
         maxScale.hashCode ^

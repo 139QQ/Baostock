@@ -9,6 +9,7 @@ library cache_storage;
 import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
+import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -52,13 +53,50 @@ class HiveCacheStorage implements ICacheStorage {
     if (_isInitialized) return;
 
     try {
-      if (_testMode) {
-        // 测试模式：跳过 Hive 初始化
-        // Hive.initFlutter() 需要在 main() 中调用
+      if (_testMode || kDebugMode) {
+        // 测试模式或调试模式：使用本地目录
+        final testDir = Directory('./temp_hive');
+        if (!await testDir.exists()) {
+          await testDir.create(recursive: true);
+        }
+
+        // 尝试初始化Hive
+        try {
+          Hive.init(testDir.path);
+        } catch (e) {
+          // 如果Hive已经初始化，忽略错误
+          if (!e.toString().contains('already initialized')) {
+            rethrow;
+          }
+        }
       } else {
         // 生产模式：初始化文件系统 Hive
-        final appDocumentDir = await getApplicationDocumentsDirectory();
-        Hive.init(appDocumentDir.path);
+        try {
+          final appDocumentDir = await getApplicationDocumentsDirectory();
+          try {
+            Hive.init(appDocumentDir.path);
+          } catch (e) {
+            // 如果Hive已经初始化，忽略错误
+            if (!e.toString().contains('already initialized')) {
+              rethrow;
+            }
+          }
+        } catch (e) {
+          // 如果path_provider失败，fallback到本地目录
+          final fallbackDir = Directory('./fallback_hive');
+          if (!await fallbackDir.exists()) {
+            await fallbackDir.create(recursive: true);
+          }
+          try {
+            Hive.init(fallbackDir.path);
+          } catch (e2) {
+            // 如果Hive已经初始化，忽略错误
+            if (!e2.toString().contains('already initialized')) {
+              rethrow;
+            }
+          }
+          print('⚠️ path_provider失败，使用fallback目录: $e');
+        }
       }
 
       // 注册适配器

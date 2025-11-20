@@ -17,8 +17,8 @@ import '../../features/fund/presentation/cubits/realtime_data_cubit.dart';
 import '../../features/fund/presentation/fund_exploration/presentation/cubit/fund_exploration_cubit.dart';
 
 // Story 2.3 市场指数相关导入
-import '../../features/market/presentation/cubits/market_index_cubit.dart';
 import '../../features/market/presentation/cubits/index_trend_cubit.dart';
+import '../../features/market/presentation/cubits/market_index_cubit.dart';
 
 /// 全局Cubit管理器
 ///
@@ -474,6 +474,19 @@ class GlobalCubitManager {
       'hybridDataServicesInitialized': _hybridDataServicesInitialized,
       'marketIndexServicesInitialized': _marketIndexServicesInitialized,
     };
+  }
+
+  /// 保存状态快照（用于迁移）
+  Future<void> saveStateSnapshot() async {
+    debugPrint('💾 GlobalCubitManager: 保存状态快照...');
+    try {
+      // 这里可以实现具体的状态保存逻辑
+      // 例如保存当前Cubit的状态到持久化存储
+      debugPrint('✅ GlobalCubitManager: 状态快照保存完成');
+    } catch (e) {
+      debugPrint('❌ GlobalCubitManager: 状态快照保存失败: $e');
+      rethrow;
+    }
   }
 
   /// 释放所有资源

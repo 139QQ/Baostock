@@ -81,8 +81,16 @@ class FundSearchBarAdapter extends StatelessWidget {
   /// 强制使用特定实现（用于测试）
   final bool? forceUseUnified;
 
+  // 向后兼容的私有字段
+  final TextEditingController _controller;
+  final VoidCallback? _onAdvancedFilter;
+  final String? _hintText;
+  final bool? _showAdvancedFilter;
+
+  /// 创建基金搜索栏适配器
   const FundSearchBarAdapter({
     super.key,
+    required TextEditingController controller,
     this.searchText,
     this.placeholder,
     this.onSearch,
@@ -106,10 +114,17 @@ class FundSearchBarAdapter extends StatelessWidget {
     this.textInputAction,
     this.enabled = true,
     this.forceUseUnified,
-  });
+    // 添加向后兼容的可选参数
+    VoidCallback? onAdvancedFilter,
+    String? hintText,
+    bool? showAdvancedFilter,
+  })  : _controller = controller,
+        _onAdvancedFilter = onAdvancedFilter,
+        _hintText = hintText,
+        _showAdvancedFilter = showAdvancedFilter;
 
   /// 设置全局配置：是否启用统一搜索
-  static void setUnifiedSearchEnabled(bool enabled) {
+  static set unifiedSearchEnabled(bool enabled) {
     _enableUnifiedSearch = enabled;
   }
 
@@ -120,11 +135,18 @@ class FundSearchBarAdapter extends StatelessWidget {
   Widget build(BuildContext context) {
     final shouldUseUnified = forceUseUnified ?? _enableUnifiedSearch;
 
+    // 监听controller变化，同步到searchText
+    _controller.addListener(() {
+      if (_controller.text != searchText) {
+        onSearch?.call(_controller.text);
+      }
+    });
+
     if (shouldUseUnified) {
       // 使用统一搜索栏
       return UnifiedFundSearchBar(
-        searchText: searchText,
-        placeholder: placeholder,
+        searchText: searchText ?? _controller.text,
+        placeholder: placeholder ?? _hintText,
         onSearch: onSearch,
         onClear: onClear,
         onFocusChanged: onFocusChanged,
@@ -149,8 +171,8 @@ class FundSearchBarAdapter extends StatelessWidget {
     } else {
       // 使用原有搜索栏（需要与SearchBloc配合使用）
       return FundSearchBar(
-        searchText: searchText,
-        placeholder: placeholder,
+        searchText: searchText ?? _controller.text,
+        placeholder: placeholder ?? _hintText,
         onSearch: onSearch,
         onClear: onClear,
         onFocusChanged: onFocusChanged,
@@ -221,7 +243,7 @@ class SearchBarConfig {
   }) {
     if (enableUnifiedSearch != null) {
       SearchBarConfig.enableUnifiedSearch = enableUnifiedSearch;
-      FundSearchBarAdapter.setUnifiedSearchEnabled(enableUnifiedSearch);
+      FundSearchBarAdapter.unifiedSearchEnabled = enableUnifiedSearch;
     }
     if (defaultSearchMode != null) {
       SearchBarConfig.defaultSearchMode = defaultSearchMode;

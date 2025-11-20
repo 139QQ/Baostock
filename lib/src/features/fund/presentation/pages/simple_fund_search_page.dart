@@ -4,13 +4,22 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../fund_exploration/presentation/cubit/fund_exploration_cubit.dart';
 import '../widgets/fund_search_bar_adapter.dart';
 import '../widgets/simple_search_results.dart';
-import '../widgets/simple_filter_panel.dart';
 
 /// 简化的基金搜索页面
 ///
 /// 使用统一的FundExplorationCubit状态管理
 /// 整合搜索栏、筛选面板和结果展示
 class SimpleFundSearchPage extends StatefulWidget {
+  /// 创建简化的基金搜索页面
+  const SimpleFundSearchPage({
+    super.key,
+    this.title,
+    this.initialQuery,
+    this.showFilterPanel = true,
+    this.emptyWidget,
+    this.onFundSelected,
+  });
+
   /// 页面标题
   final String? title;
 
@@ -25,15 +34,6 @@ class SimpleFundSearchPage extends StatefulWidget {
 
   /// 基金选择回调
   final Function(String fundCode, String fundName)? onFundSelected;
-
-  const SimpleFundSearchPage({
-    super.key,
-    this.title,
-    this.initialQuery,
-    this.showFilterPanel = true,
-    this.emptyWidget,
-    this.onFundSelected,
-  });
 
   @override
   State<SimpleFundSearchPage> createState() => _SimpleFundSearchPageState();
@@ -108,17 +108,22 @@ class _SimpleFundSearchPageState extends State<SimpleFundSearchPage> {
           Container(
             padding: const EdgeInsets.all(16),
             child: FundSearchBarAdapter(
+              controller: _searchController,
               searchText: _currentQuery,
               onSearch: _performSearch,
               autoFocus: widget.initialQuery == null,
+              hintText: '搜索基金代码或名称',
+              showAdvancedFilter: widget.showFilterPanel,
+              onAdvancedFilter: () => _showFilterDialog(),
             ),
           ),
 
           // 筛选面板
-          if (widget.showFilterPanel) ...[
-            const SimpleFilterPanel(),
-            const SizedBox(height: 8),
-          ],
+          // TODO: 实现筛选面板组件
+          // if (widget.showFilterPanel) ...[
+          //   const SimpleFilterPanel(),
+          //   const SizedBox(height: 8),
+          // ],
 
           // 搜索结果
           Expanded(

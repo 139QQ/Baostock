@@ -85,7 +85,8 @@ class DataLayerIntegration {
       debugPrint('🔧 开始配置数据层 [$environment]...');
 
       // 1. 创建缓存组件
-      final cacheComponents = await _createCacheComponents(cacheConfig);
+      final cacheComponents =
+          await _createCacheComponents(cacheConfig, environment);
 
       // 2. 创建数据源组件
       final dataSourceComponents =
@@ -124,11 +125,11 @@ class DataLayerIntegration {
 
   /// 创建缓存组件
   static Future<Map<String, dynamic>> _createCacheComponents(
-      UnifiedCacheConfig config) async {
+      UnifiedCacheConfig config, String environment) async {
     debugPrint('🔧 创建缓存组件...');
 
-    // 1. 创建缓存存储
-    final storage = HiveCacheStorage();
+    // 1. 创建缓存存储，根据环境决定是否启用测试模式
+    final storage = HiveCacheStorage(testMode: environment == 'testing');
 
     // 2. 创建缓存策略
     final strategy = LRUCacheStrategy();

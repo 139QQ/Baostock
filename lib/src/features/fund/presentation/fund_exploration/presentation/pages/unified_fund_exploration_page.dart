@@ -13,7 +13,9 @@ import '../cubit/fund_exploration_cubit.dart';
 import '../widgets/hot_funds_section.dart';
 import '../widgets/user_feedback_collector.dart';
 import '../widgets/user_onboarding_guide.dart';
-import '../widgets/micro_interaction_fund_card.dart';
+// import '../widgets/micro_interaction_fund_card.dart'; // 已删除，使用统一基金卡片
+import '../../../widgets/unified_fund_card.dart';
+import '../../../widgets/fund_card_factory.dart';
 import 'widgets/market_snapshot_widget.dart';
 import 'widgets/hot_sectors_preview.dart';
 import 'widgets/intelligent_search_bar.dart';
@@ -431,11 +433,52 @@ class _UnifiedFundExplorationPageContentState
             delegate: SliverChildBuilderDelegate(
               (context, index) {
                 final ranking = state.fundRankings[index];
-                return MicroInteractionFundCard(
-                  fundRanking: ranking,
-                  onTap: () => _onFundSelected(ranking),
-                  onFavoriteToggle: () => _toggleFavorite(ranking),
-                  onCompareToggle: () => _toggleComparison(ranking),
+                // TODO: 修复MicroInteractionFundCard，替换为统一组件
+                return Container(
+                  padding: const EdgeInsets.all(16),
+                  margin: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        ranking.fundName,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        ranking.fundCode,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '${ranking.oneYearReturn?.toStringAsFixed(2) ?? '0.00'}%',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: (ranking.oneYearReturn ?? 0) > 0
+                              ? Colors.red
+                              : Colors.green,
+                        ),
+                      ),
+                    ],
+                  ),
                 );
               },
               childCount: state.fundRankings.length,

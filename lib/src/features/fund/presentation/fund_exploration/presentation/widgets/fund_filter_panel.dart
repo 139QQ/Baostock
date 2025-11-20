@@ -14,11 +14,15 @@ import '../../domain/models/fund_filter.dart';
 class FundFilterPanel extends StatefulWidget {
   final FundFilter filters;
   final Function(FundFilter) onFiltersChanged;
+  final VoidCallback? onReset;
+  final VoidCallback? onClose;
 
   const FundFilterPanel({
     super.key,
     required this.filters,
     required this.onFiltersChanged,
+    this.onReset,
+    this.onClose,
   });
 
   @override
@@ -110,6 +114,7 @@ class _FundFilterPanelState extends State<FundFilterPanel> {
     setState(() {
       _currentFilters = FundFilter();
     });
+    widget.onReset?.call();
   }
 
   /// 获取当前筛选结果数量（模拟）

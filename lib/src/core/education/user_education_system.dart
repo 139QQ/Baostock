@@ -1,3 +1,5 @@
+// ignore_for_file: unused_field, prefer_final_fields, prefer_const_constructors, public_member_api_docs, sort_constructors_first
+
 import 'dart:async';
 import 'dart:math';
 

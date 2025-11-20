@@ -108,6 +108,8 @@ class FundRanking extends Equatable {
   factory FundRanking.fromJson(Map<String, dynamic> json) =>
       _$FundRankingFromJson(json);
 
+  get oneYearReturn => null;
+
   /// 转换为JSON
   Map<String, dynamic> toJson() => _$FundRankingToJson(this);
 

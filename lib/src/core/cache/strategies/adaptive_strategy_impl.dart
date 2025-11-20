@@ -5,6 +5,8 @@
 /// - 动态调整TTL和优先级
 /// - 预测缓存需求
 /// - 自适应优化性能
+// ignore_for_file: public_member_api_docs, sort_constructors_first
+
 library adaptive_strategy_impl;
 
 import 'dart:async';

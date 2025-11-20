@@ -1,3 +1,5 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
+
 import 'dart:async';
 import '../../../features/fund/domain/entities/fund.dart';
 import '../../../features/fund/domain/entities/fund_search_criteria.dart';

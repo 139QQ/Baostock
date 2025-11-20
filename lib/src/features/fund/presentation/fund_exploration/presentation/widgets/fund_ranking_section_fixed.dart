@@ -1,8 +1,10 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
-import '../../domain/models/fund.dart';
-import 'modern_fund_card.dart';
+import '../../../../../../features/fund/domain/entities/fund.dart';
+import '../../../../../../features/fund/domain/entities/fund_ranking.dart';
+import '../../../widgets/unified_fund_card.dart';
+import '../../../widgets/fund_card_factory.dart';
 
 /// 视图模式枚举
 enum ViewMode {
@@ -1367,16 +1369,46 @@ class _FundRankingSectionFixedState extends State<FundRankingSectionFixed> {
     debugPrint('点击基金: ${fund.fundName} (排名: $ranking)');
   }
 
-  /// 构建卡片视图
+  /// 构建卡片视图 - 临时简化版本
   Widget _buildCardView() {
-    return ModernFundCardList(
-      funds: _localRankings,
-      selectedPeriod: _selectedPeriod,
-      onFundTap: _handleFundTap,
-      onFundFavorite: _handleFundFavorite,
-      onFundDetails: _handleFundDetails,
-      favoriteFunds: _favoriteFunds,
-      displayMode: CardDisplayMode.compact,
+    // TODO: 替换为统一基金卡片组件
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          const Text('卡片视图'),
+          const Text('需要使用统一基金卡片组件重构'),
+          ..._localRankings
+              .take(3)
+              .map(
+                (ranking) => Container(
+                  margin: const EdgeInsets.symmetric(vertical: 4),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(ranking.fundName ?? '未知基金'),
+                            Text(ranking.fundCode ?? ''),
+                          ],
+                        ),
+                      ),
+                      Text(
+                          '${ranking.oneYearReturn?.toStringAsFixed(2) ?? '0.00'}%'),
+                    ],
+                  ),
+                ),
+              )
+              .toList(),
+        ],
+      ),
     );
   }
 }

@@ -5,7 +5,8 @@ import '../../core/di/injection_container.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/app_lifecycle_manager.dart';
 import '../auth/domain/entities/user.dart';
-import '../home/presentation/widgets/smart_navigation_wrapper.dart';
+// import '../home/presentation/widgets/smart_navigation_wrapper.dart'; // 已删除，使用基础导航
+import '../navigation/presentation/pages/navigation_shell.dart';
 import '../fund/presentation/fund_exploration/presentation/cubit/fund_exploration_cubit.dart';
 import '../portfolio/presentation/cubit/portfolio_analysis_cubit.dart';
 import '../portfolio/presentation/cubit/fund_favorite_cubit.dart';
@@ -88,14 +89,13 @@ class JisuFundAnalyzerApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         routes: {
           '/': (context) => AppLifecycleManager(
-                child: NavigationWrapperFactory.createWrapper(
-                  user: mockUser,
+                child: NavigationShell(
+                  user: User.testUser(), // 提供默认用户，实际应用中应该从认证状态获取
                   onLogout: () {
-                    // 模拟登出操作 - 这里可以什么都不做
-                    debugPrint('登出功能已暂时禁用');
+                    // 登出逻辑，实际应用中应该导航到登录页面
+                    Navigator.pushReplacementNamed(context, '/login');
                   },
-                  enableEnhancedDebug: true, // 调试模式下启用增强功能
-                ),
+                ), // 使用基础导航外壳替代已删除的组件
               ),
         },
         onUnknownRoute: (settings) {

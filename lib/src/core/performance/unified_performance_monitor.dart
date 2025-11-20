@@ -1,5 +1,6 @@
 import 'dart:async';
-import 'dart:developer' as developer;
+
+import '../utils/logger.dart';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -407,11 +408,7 @@ class UnifiedPerformanceMonitor {
 
     // 在开发环境下显示警报
     if (kDebugMode) {
-      developer.log(
-        '性能警报',
-        name: 'PerformanceMonitor',
-        error: alert.toJson(),
-      );
+      AppLogger.warn('性能警报: ${alert.toJson()}', 'PerformanceMonitor');
     }
 
     // 在生产环境下可以发送到监控系统

@@ -3,22 +3,26 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../widgets/unified_fund_search_bar.dart';
 import '../../../../../../bloc/fund_search_bloc.dart';
-import '../../../../../../core/di/injection_container.dart';
 import '../../../../../../core/state/tool_panel/tool_panel_cubit.dart';
 import '../../../../../../features/fund/domain/entities/fund.dart';
-import '../../../../shared/models/fund_ranking.dart';
-import '../../domain/models/fund_filter.dart';
 import '../cubit/fund_exploration_cubit.dart';
+import '../../domain/models/fund_filter.dart';
 import '../widgets/fund_comparison_tool.dart';
 import '../widgets/fund_filter_panel.dart';
 import '../widgets/hot_funds_section.dart';
 import '../widgets/investment_calculator.dart';
-import '../widgets/one_step_search_bar.dart';
 import '../widgets/responsive_fund_grid.dart';
 import '../widgets/tool_panel_container.dart';
 import '../widgets/user_feedback_collector.dart';
 import '../widgets/user_onboarding_guide.dart';
+import '../../../../shared/models/fund_ranking.dart';
+import '../../../../shared/services/fund_data_service.dart';
+import '../../../../shared/services/search_service.dart';
+import '../../../../shared/services/money_fund_service.dart';
+import '../../../../../../services/high_performance_fund_service.dart';
+import '../../../../../../services/fund_analysis_service.dart';
 
 /// 极简基金探索页面
 ///
@@ -39,10 +43,18 @@ class MinimalistFundExplorationPage extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider<FundExplorationCubit>(
-          create: (context) => sl<FundExplorationCubit>(),
+          create: (context) => FundExplorationCubit(
+            fundDataService: FundDataService(),
+            searchService: SearchService(),
+            moneyFundService: MoneyFundService(),
+            autoInitialize: false,
+          ),
         ),
         BlocProvider<FundSearchBloc>(
-          create: (context) => sl<FundSearchBloc>(),
+          create: (context) => FundSearchBloc(
+            fundService: HighPerformanceFundService(),
+            analysisService: FundAnalysisService(),
+          ),
         ),
         BlocProvider<ToolPanelCubit>(
           create: (context) => ToolPanelCubit(),
@@ -164,16 +176,10 @@ class _MinimalistFundExplorationPageContentState
           // 优雅搜索框
           Container(
             constraints: const BoxConstraints(maxWidth: 800),
-            child: OneStepSearchBar(
-              autofocus: false,
-              showSuggestions: true,
-              onSearchChanged: (query) {
+            child: UnifiedFundSearchBar(
+              onSearch: (query) {
                 // 实时搜索处理
                 _handleRealtimeSearch(query);
-              },
-              onSearchSubmitted: (query) {
-                // 提交搜索处理
-                _handleSearchSubmitted(query);
               },
               onClear: () {
                 _handleSearchCleared();

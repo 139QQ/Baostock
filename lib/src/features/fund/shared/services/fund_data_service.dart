@@ -12,6 +12,7 @@ import '../../../../core/cache/cache_key_manager.dart';
 import '../../../../core/cache/smart_cache_invalidation_manager.dart';
 import '../../../../core/cache/cache_preheating_manager.dart';
 import '../../../../core/cache/unified_hive_cache_manager.dart';
+import '../../../../core/performance/processors/hybrid_data_parser.dart';
 import '../models/fund_ranking.dart';
 import 'data_validation_service.dart';
 
@@ -43,6 +44,9 @@ class FundDataService {
   // 智能缓存失效管理器
   final SmartCacheInvalidationManager _invalidationManager =
       SmartCacheInvalidationManager.instance;
+
+  // 混合数据解析器 (Story 2.5 Isolate隔离)
+  final HybridDataParser _hybridParser = HybridDataParser();
 
   // 缓存性能监控器（移除循环依赖）
   // final CachePerformanceMonitor _performanceMonitor =
@@ -113,6 +117,8 @@ class FundDataService {
     _initializeCacheAndInvalidation().catchError((e) {
       AppLogger.warn('⚠️ FundDataService: 异步初始化失败: $e');
     });
+
+    // 混合解析器 (Story 2.5) - 无需显式初始化
   }
 
   /// 初始化缓存服务和失效管理器
@@ -669,12 +675,33 @@ class FundDataService {
       responseData = response.body;
     }
 
-    // 解析JSON
-    final Map<String, dynamic> jsonData;
+    // 使用混合解析器解析JSON (Story 2.5 Isolate隔离)
+    Map<String, dynamic> jsonData;
     try {
-      jsonData = json.decode(responseData) as Map<String, dynamic>;
+      // 对于较小的响应数据，直接使用标准JSON解析
+      // 对于大数据，使用混合解析器的Isolate隔离
+      if (responseData.length > 50 * 1024) {
+        // 50KB阈值
+        // 大数据使用混合解析器
+        final fundData = await _hybridParser.parseAsync(responseData);
+        // 转换为Map格式（保持兼容性）
+        jsonData = {
+          'data': fundData.map((item) => item.toJson()).toList(),
+          'parsedWith': 'hybrid_parser',
+          'dataSize': responseData.length,
+        };
+      } else {
+        // 小数据使用标准JSON解析
+        jsonData = json.decode(responseData) as Map<String, dynamic>;
+      }
     } catch (e) {
-      throw FormatException('JSON解析失败: $e');
+      // 回退到标准JSON解析
+      try {
+        jsonData = json.decode(responseData) as Map<String, dynamic>;
+        AppLogger.warn('混合解析器失败，回退到标准JSON解析', 'FundDataService');
+      } catch (fallbackError) {
+        throw FormatException('JSON解析失败: $fallbackError');
+      }
     }
 
     AppLogger.debug('✅ FundDataService: 基金详情解析成功');
@@ -915,7 +942,27 @@ class FundDataService {
         return null;
       }
 
-      final jsonData = jsonDecode(cachedData);
+      // 使用混合解析器解析缓存数据 (Story 2.5 Isolate隔离)
+      Map<String, dynamic> jsonData;
+      try {
+        if (cachedData.length > 50 * 1024) {
+          // 50KB阈值
+          // 大数据使用混合解析器
+          final fundData = await _hybridParser.parseAsync(cachedData);
+          jsonData = {
+            'data': fundData.map((item) => item.toJson()).toList(),
+            'parsedWith': 'hybrid_parser_cache',
+            'dataSize': cachedData.length,
+          };
+        } else {
+          // 小数据使用标准JSON解析
+          jsonData = jsonDecode(cachedData) as Map<String, dynamic>;
+        }
+      } catch (e) {
+        // 回退到标准JSON解析
+        jsonData = jsonDecode(cachedData) as Map<String, dynamic>;
+        AppLogger.warn('缓存数据混合解析器失败，回退到标准JSON解析', 'FundDataService');
+      }
 
       // 检查缓存时间戳
       final String? timestampStr = jsonData['timestamp'];
@@ -1396,14 +1443,26 @@ class FundDataService {
         case CacheInvalidationReason.expired:
           _handleExpiredCache(event);
           break;
+        case CacheInvalidationReason.manual:
+          _handleManualInvalidation(event);
+          break;
         case CacheInvalidationReason.dependencyUpdated:
           _handleDependencyInvalidation(event);
           break;
+        case CacheInvalidationReason.memoryPressure:
+          _handleMemoryPressureInvalidation(event);
+          break;
+        case CacheInvalidationReason.versionMismatch:
+          _handleVersionMismatchInvalidation(event);
+          break;
+        case CacheInvalidationReason.corrupted:
+          _handleCorruptedCache(event);
+          break;
+        case CacheInvalidationReason.strategyChange:
+          _handleStrategyChangeInvalidation(event);
+          break;
         case CacheInvalidationReason.predictiveRefresh:
           _handlePredictiveRefresh(event);
-          break;
-        default:
-          _handleGenericInvalidation(event);
           break;
       }
     } catch (e) {
@@ -1446,6 +1505,31 @@ class FundDataService {
   /// 处理通用失效
   void _handleGenericInvalidation(CacheInvalidationEvent event) {
     AppLogger.debug('🔄 通用缓存失效: ${event.key} (${event.reason})');
+  }
+
+  /// 处理手动失效
+  void _handleManualInvalidation(CacheInvalidationEvent event) {
+    AppLogger.debug('🔄 手动缓存失效: ${event.key}');
+  }
+
+  /// 处理内存压力失效
+  void _handleMemoryPressureInvalidation(CacheInvalidationEvent event) {
+    AppLogger.debug('🔄 内存压力缓存失效: ${event.key}');
+  }
+
+  /// 处理版本不匹配失效
+  void _handleVersionMismatchInvalidation(CacheInvalidationEvent event) {
+    AppLogger.debug('🔄 版本不匹配缓存失效: ${event.key}');
+  }
+
+  /// 处理缓存损坏失效
+  void _handleCorruptedCache(CacheInvalidationEvent event) {
+    AppLogger.debug('🔄 缓存损坏失效: ${event.key}');
+  }
+
+  /// 处理策略变更失效
+  void _handleStrategyChangeInvalidation(CacheInvalidationEvent event) {
+    AppLogger.debug('🔄 策略变更缓存失效: ${event.key}');
   }
 
   /// 手动失效基金排行缓存

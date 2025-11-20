@@ -48,6 +48,7 @@ dependencies:
   connectivity_plus: ^5.0.1
   battery_plus: ^4.0.2
   device_info_plus: ^9.1.0
+  package_info_plus: ^4.2.0
   permission_handler: ^11.0.1
   collection: ^1.17.2
 
@@ -90,6 +91,7 @@ dependencies:
   crypto: ^3.0.3
   # 环境配置管理
   flutter_dotenv: ^5.1.0
+  yaml: ^3.1.2
 # url_launcher: ^6.2.4  # 暂时移除，存在Windows构建问题
 
   # 其他
@@ -100,8 +102,6 @@ dependencies:
   build_runner: ^2.4.9
   meta: ^1.9.1
 
-dependency_overrides:
-  intl: ^0.20.2
 
 dev_dependencies:
   flutter_test:

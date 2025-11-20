@@ -19,9 +19,20 @@ class _CacheKeys {
 class MarketRealServiceEnhanced implements MarketRealService {
   static String baseUrl = 'http://154.44.25.92:8080';
   static int maxRetries = 3;
-  static Duration connectTimeout = const Duration(seconds: 30);
-  static Duration receiveTimeout = const Duration(seconds: 45);
-  static Duration sendTimeout = const Duration(seconds: 30);
+
+  // 针对不同数据类型的超时配置
+  static Duration connectTimeout = const Duration(seconds: 10);
+  static Duration receiveTimeout = const Duration(seconds: 15);
+  static Duration sendTimeout = const Duration(seconds: 10);
+
+  // 实时数据快速超时
+  static Duration realtimeTimeout = const Duration(seconds: 8);
+
+  // 历史数据较长超时
+  static Duration historyTimeout = const Duration(seconds: 25);
+
+  // 分时数据中等超时
+  static Duration intradayTimeout = const Duration(seconds: 12);
 
   final Dio _dio;
   late final UnifiedHiveCacheManager _cacheManager;
@@ -29,6 +40,22 @@ class MarketRealServiceEnhanced implements MarketRealService {
   MarketRealServiceEnhanced() : _dio = Dio() {
     _initializeDio();
     _cacheManager = sl<UnifiedHiveCacheManager>();
+  }
+
+  /// 带自定义超时的GET请求
+  Future<Response> _getWithTimeout(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+    Duration? timeout,
+  }) async {
+    final originalTimeout = _dio.options.receiveTimeout;
+    _dio.options.receiveTimeout = timeout ?? receiveTimeout;
+
+    try {
+      return await _dio.get(path, queryParameters: queryParameters);
+    } finally {
+      _dio.options.receiveTimeout = originalTimeout;
+    }
   }
 
   /// 初始化Dio配置
@@ -170,7 +197,9 @@ class MarketRealServiceEnhanced implements MarketRealService {
             cachedData.map((item) => Map<String, dynamic>.from(item)).toList());
       }
 
-      final response = await _dio.get('/api/public/stock_zh_index_spot_em');
+      final response = await _getWithTimeout(
+          '/api/public/stock_zh_index_spot_em',
+          timeout: realtimeTimeout);
       final allData = response.data as List;
 
       AppLogger.info('✅ 成功获取 ${allData.length} 条指数数据');
@@ -411,6 +440,219 @@ class MarketRealServiceEnhanced implements MarketRealService {
       // 返回空列表而不是抛出异常
       return [];
     }
+  }
+
+  @override
+  Future<List<IndexHistoryData>> getIndexHistory(
+      HistoryQueryParams params) async {
+    try {
+      AppLogger.info('📊 开始获取指数历史日线数据: ${params.symbol}');
+
+      // 检查缓存
+      final cacheKey = '${_CacheKeys.marketIndices}_history_${params.symbol}';
+      final cachedData = _cacheManager.get<List>(cacheKey);
+      if (cachedData != null) {
+        AppLogger.info('📋 从缓存获取历史数据: ${params.symbol}');
+        return cachedData
+            .map((item) => IndexHistoryData.fromEastMoney(
+                  Map<String, dynamic>.from(item),
+                  params.symbol,
+                  _getIndexName(params.symbol),
+                ))
+            .toList();
+      }
+
+      // 调用东方财富历史数据API
+      final response = await _getWithTimeout(
+        '/api/public/stock_zh_index_daily_em',
+        queryParameters: {'symbol': params.symbol},
+        timeout: historyTimeout,
+      );
+
+      final data = response.data as List;
+      AppLogger.info('✅ 成功获取 ${data.length} 条历史数据');
+
+      // 缓存原始数据（缓存1小时，历史数据变化不频繁）
+      await _cacheManager.put(
+        cacheKey,
+        data,
+        expiration: const Duration(hours: 1),
+      );
+
+      final historyData = data.map((item) {
+        return IndexHistoryData.fromEastMoney(
+          Map<String, dynamic>.from(item),
+          params.symbol,
+          _getIndexName(params.symbol),
+        );
+      }).toList();
+
+      // 如果指定了日期范围，进行过滤
+      if (params.startDate != null || params.endDate != null) {
+        return historyData.where((data) {
+          if (params.startDate != null &&
+              data.date.isBefore(params.startDate!)) {
+            return false;
+          }
+          if (params.endDate != null && data.date.isAfter(params.endDate!)) {
+            return false;
+          }
+          return true;
+        }).toList();
+      }
+
+      return historyData;
+    } on DioException catch (e) {
+      AppLogger.error('❌ API请求失败: ${e.message}', e);
+
+      // 如果是服务器错误，尝试返回空数据
+      if (e.response?.statusCode == 500) {
+        AppLogger.warn('⚠️ 服务器返回500错误，历史数据获取失败');
+        return [];
+      }
+
+      return [];
+    } catch (e) {
+      AppLogger.error('❌ 获取指数历史数据失败: ${params.symbol} - $e', e);
+      return [];
+    }
+  }
+
+  @override
+  Future<List<IndexIntradayData>> getIndexIntradayData(
+      HistoryQueryParams params) async {
+    try {
+      AppLogger.info('📈 开始获取指数分时数据: ${params.symbol}');
+
+      if (params.period == null) {
+        throw ArgumentError('分时数据需要指定period参数');
+      }
+
+      // 检查缓存（分时数据缓存时间较短，5分钟）
+      final cacheKey =
+          '${_CacheKeys.marketIndices}_intraday_${params.symbol}_${params.period}';
+      final cachedData = _cacheManager.get<List>(cacheKey);
+      if (cachedData != null) {
+        AppLogger.info('📋 从缓存获取分时数据: ${params.symbol}');
+        return cachedData
+            .map((item) => IndexIntradayData.fromEastMoney(
+                  Map<String, dynamic>.from(item),
+                  params.symbol,
+                  _getIndexName(params.symbol),
+                ))
+            .toList();
+      }
+
+      final queryParams = params.toQueryParams();
+
+      // 调用东方财富分时数据API
+      final response = await _getWithTimeout(
+        '/api/public/index_zh_a_hist_min_em',
+        queryParameters: queryParams,
+        timeout: intradayTimeout,
+      );
+
+      final data = response.data as List;
+      AppLogger.info('✅ 成功获取 ${data.length} 条分时数据');
+
+      // 缓存分时数据（5分钟）
+      await _cacheManager.put(
+        cacheKey,
+        data,
+        expiration: const Duration(minutes: 5),
+      );
+
+      return data.map((item) {
+        return IndexIntradayData.fromEastMoney(
+          Map<String, dynamic>.from(item),
+          params.symbol,
+          _getIndexName(params.symbol),
+        );
+      }).toList();
+    } on DioException catch (e) {
+      AppLogger.error('❌ API请求失败: ${e.message}', e);
+
+      // 如果是服务器错误，尝试返回空数据
+      if (e.response?.statusCode == 500) {
+        AppLogger.warn('⚠️ 服务器返回500错误，分时数据获取失败');
+        return [];
+      }
+
+      return [];
+    } catch (e) {
+      AppLogger.error('❌ 获取指数分时数据失败: ${params.symbol} - $e', e);
+      return [];
+    }
+  }
+
+  @override
+  Future<List<ChartPoint>> getHistoryChartPoints(
+    String symbol, {
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    try {
+      final params = HistoryQueryParams(
+        symbol: symbol,
+        startDate: startDate,
+        endDate: endDate,
+      );
+      final historyData = await getIndexHistory(params);
+
+      return historyData
+          .asMap()
+          .entries
+          .map((entry) => ChartPoint.fromHistoryData(entry.value, entry.key))
+          .toList();
+    } catch (e) {
+      AppLogger.error('❌ 生成历史图表点失败: $symbol - $e', e);
+      return [];
+    }
+  }
+
+  @override
+  Future<List<ChartPoint>> getIntradayChartPoints(
+    String symbol, {
+    String period = '1',
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    try {
+      final params = HistoryQueryParams(
+        symbol: symbol,
+        period: period,
+        startDate: startDate,
+        endDate: endDate,
+      );
+
+      final intradayData = await getIndexIntradayData(params);
+
+      return intradayData
+          .asMap()
+          .entries
+          .map((entry) => ChartPoint.fromIntradayData(entry.value, entry.key))
+          .toList();
+    } catch (e) {
+      AppLogger.error('❌ 生成分时图表点失败: $symbol - $e', e);
+      return [];
+    }
+  }
+
+  /// 根据指数代码获取指数名称
+  String _getIndexName(String symbol) {
+    final indexNames = {
+      '000001': '上证指数',
+      '399001': '深证成指',
+      '399006': '创业板指',
+      '000300': '沪深300',
+      '000688': '科创50',
+      '399005': '中小板指',
+      '399295': '深证100',
+      '000905': '中证500',
+      '000016': '上证50',
+      '000906': '中证800',
+    };
+    return indexNames[symbol] ?? '未知指数';
   }
 }
 

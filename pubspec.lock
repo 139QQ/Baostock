@@ -625,10 +625,10 @@ packages:
     dependency: "direct main"
     description:
       name: intl
-      sha256: "3df61194eb431efc39c4ceba583b95633a403f46c9fd341e550ce0bfa50e9aa5"
+      sha256: "3bc132a9dbce73a7e4a21a17d06e1878839ffbf975568bc875c60537824b0c4d"
       url: "https://mirrors.tuna.tsinghua.edu.cn/dart-pub/"
     source: hosted
-    version: "0.20.2"
+    version: "0.18.1"
   io:
     dependency: transitive
     description:
@@ -789,6 +789,22 @@ packages:
       url: "https://mirrors.tuna.tsinghua.edu.cn/dart-pub/"
     source: hosted
     version: "2.1.0"
+  package_info_plus:
+    dependency: "direct main"
+    description:
+      name: package_info_plus
+      sha256: "7e76fad405b3e4016cd39d08f455a4eb5199723cf594cd1b8916d47140d93017"
+      url: "https://mirrors.tuna.tsinghua.edu.cn/dart-pub/"
+    source: hosted
+    version: "4.2.0"
+  package_info_plus_platform_interface:
+    dependency: transitive
+    description:
+      name: package_info_plus_platform_interface
+      sha256: "9bc8ba46813a4cc42c66ab781470711781940780fd8beddd0c3da62506d3a6c6"
+      url: "https://mirrors.tuna.tsinghua.edu.cn/dart-pub/"
+    source: hosted
+    version: "2.0.1"
   path:
     dependency: "direct main"
     description:
@@ -1374,10 +1390,10 @@ packages:
     dependency: "direct main"
     description:
       name: velocity_x
-      sha256: "45c1584d00c625d15132d1ec88b71427b907980f8ba7445a8d9052931d573c15"
+      sha256: "38585b8ed87c17ccb42a5c13d55bdafdc65e7cd3f41dceb61c38714c758fa228"
       url: "https://mirrors.tuna.tsinghua.edu.cn/dart-pub/"
     source: hosted
-    version: "4.3.1"
+    version: "4.1.2"
   vm_service:
     dependency: transitive
     description:
@@ -1467,7 +1483,7 @@ packages:
     source: hosted
     version: "6.3.0"
   yaml:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: yaml
       sha256: "75769501ea3489fca56601ff33454fe45507ea3bfb014161abc3b43ae25989d5"

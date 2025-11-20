@@ -4,18 +4,32 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
-import '../fund_exploration/domain/models/fund.dart';
-import '../../models/fund_nav_data.dart';
-import '../../data/processors/nav_change_detector.dart';
 import '../../data/processors/fund_nav_data_manager.dart';
-import '../fund_exploration/presentation/widgets/adaptive_fund_card.dart';
-import 'package:decimal/decimal.dart';
+import '../../data/processors/nav_change_detector.dart';
+import '../../domain/entities/fund.dart';
+import '../../models/fund_nav_data.dart';
+import 'unified_fund_card.dart';
 
 /// 净值感知的基金卡片
 ///
 /// 扩展AdaptiveFundCard，支持实时净值变化显示、动画效果和交互
 /// 根据净值变化自动调整视觉提示和动画
 class NavAwareFundCard extends StatefulWidget {
+  /// 创建净值感知的基金卡片
+  const NavAwareFundCard({
+    super.key,
+    required this.fund,
+    this.currentNavData,
+    this.previousNavData,
+    this.changeInfo,
+    this.onTap,
+    this.onLongPress,
+    this.showDetailedInfo = false,
+    this.enableAnimations = true,
+    this.animationConfig,
+    this.style = NavCardStyle.modern,
+  });
+
   /// 基金数据
   final Fund fund;
 
@@ -46,20 +60,6 @@ class NavAwareFundCard extends StatefulWidget {
   /// 卡片样式
   final NavCardStyle style;
 
-  const NavAwareFundCard({
-    Key? key,
-    required this.fund,
-    this.currentNavData,
-    this.previousNavData,
-    this.changeInfo,
-    this.onTap,
-    this.onLongPress,
-    this.showDetailedInfo = false,
-    this.enableAnimations = true,
-    this.animationConfig,
-    this.style = NavCardStyle.modern,
-  }) : super(key: key);
-
   @override
   State<NavAwareFundCard> createState() => _NavAwareFundCardState();
 }
@@ -74,7 +74,6 @@ class _NavAwareFundCardState extends State<NavAwareFundCard>
   late Animation<Color?> _colorAnimation;
   late Animation<Offset> _slideAnimation;
 
-  bool _isHovered = false;
   int _animationLevel = 2; // 默认完整动画
 
   @override
@@ -136,7 +135,7 @@ class _NavAwareFundCardState extends State<NavAwareFundCard>
     ));
 
     _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0),
+      begin: Offset.zero,
       end: const Offset(0.1, 0),
     ).animate(CurvedAnimation(
       parent: _slideController,
@@ -149,7 +148,9 @@ class _NavAwareFundCardState extends State<NavAwareFundCard>
     if (!widget.enableAnimations) return;
 
     try {
-      _animationLevel = await UserPreferences.getAnimationLevel();
+      // TODO: 实现UserPreferences服务
+      // _animationLevel = await UserPreferences.getAnimationLevel();
+      _animationLevel = 2; // 临时使用默认值
     } catch (e) {
       debugPrint('Failed to load user preferences: $e');
     }
@@ -232,7 +233,13 @@ class _NavAwareFundCardState extends State<NavAwareFundCard>
       case NavChangeType.fall:
         HapticFeedback.lightImpact();
         break;
-      default:
+      case NavChangeType.slightRise:
+      case NavChangeType.slightFall:
+      case NavChangeType.flat:
+      case NavChangeType.none:
+      case NavChangeType.dataError:
+      case NavChangeType.unknown:
+        // 无触觉反馈
         break;
     }
   }
@@ -263,7 +270,7 @@ class _NavAwareFundCardState extends State<NavAwareFundCard>
 
   /// 构建基础卡片
   Widget _buildBaseCard() {
-    return AdaptiveFundCard(
+    return UnifiedFundCard(
       fund: widget.fund,
       onTap: widget.onTap,
       showQuickActions: true,
@@ -521,6 +528,15 @@ class _NavAwareFundCardState extends State<NavAwareFundCard>
 
 /// 净值卡片动画配置
 class NavCardAnimationConfig {
+  /// 创建净值卡片动画配置
+  const NavCardAnimationConfig({
+    this.pulseDuration = const Duration(milliseconds: 600),
+    this.colorChangeDuration = const Duration(milliseconds: 800),
+    this.slideDuration = const Duration(milliseconds: 500),
+    this.pulseScale = 1.05,
+    this.enableHapticFeedback = true,
+  });
+
   /// 脉冲动画持续时间
   final Duration pulseDuration;
 
@@ -535,14 +551,6 @@ class NavCardAnimationConfig {
 
   /// 是否启用触觉反馈
   final bool enableHapticFeedback;
-
-  const NavCardAnimationConfig({
-    this.pulseDuration = const Duration(milliseconds: 600),
-    this.colorChangeDuration = const Duration(milliseconds: 800),
-    this.slideDuration = const Duration(milliseconds: 500),
-    this.pulseScale = 1.05,
-    this.enableHapticFeedback = true,
-  });
 }
 
 /// 净值卡片样式
@@ -565,6 +573,18 @@ typedef NavChangeCallback = void Function(NavChangeInfo changeInfo);
 
 /// 带净值监听的基金卡片
 class NavListeningFundCard extends StatefulWidget {
+  /// 创建带净值监听的基金卡片
+  const NavListeningFundCard({
+    super.key,
+    required this.fundCode,
+    this.fund,
+    this.onNavChange,
+    this.onTap,
+    this.showDetailedInfo = false,
+    this.enableAnimations = true,
+    this.style = NavCardStyle.modern,
+  });
+
   /// 基金代码
   final String fundCode;
 
@@ -577,21 +597,14 @@ class NavListeningFundCard extends StatefulWidget {
   /// 点击回调
   final VoidCallback? onTap;
 
-  /// 其他参数
+  /// 是否显示详细信息
   final bool showDetailedInfo;
-  final bool enableAnimations;
-  final NavCardStyle style;
 
-  const NavListeningFundCard({
-    Key? key,
-    required this.fundCode,
-    this.fund,
-    this.onNavChange,
-    this.onTap,
-    this.showDetailedInfo = false,
-    this.enableAnimations = true,
-    this.style = NavCardStyle.modern,
-  }) : super(key: key);
+  /// 是否启用动画
+  final bool enableAnimations;
+
+  /// 卡片样式
+  final NavCardStyle style;
 
   @override
   State<NavListeningFundCard> createState() => _NavListeningFundCardState();
@@ -677,10 +690,9 @@ class _NavListeningFundCardState extends State<NavListeningFundCard> {
           scale: 0.0,
           riskLevel: '未知',
           status: '正常',
-          unitNav: _currentNavData?.nav.toDouble(),
-          accumulatedNav: _currentNavData?.accumulatedNav.toDouble(),
-          establishDate: DateTime.now(),
-          isFavorite: false,
+          unitNav: _currentNavData?.nav as double? ?? 0.0,
+          accumulatedNav: _currentNavData?.accumulatedNav as double? ?? 0.0,
+          lastUpdate: DateTime.now(),
         );
 
     return NavAwareFundCard(

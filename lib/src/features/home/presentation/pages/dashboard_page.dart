@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../../alerts/presentation/widgets/notification_test_widget.dart';
+import '../../../../core/theme/widgets/modern_brand_logo.dart';
+import '../../../../core/theme/widgets/modern_ui_components.dart';
+import '../../../../core/theme/widgets/gradient_container.dart';
+import '../../../../core/theme/design_tokens/app_colors.dart';
 
-/// 简化版市场概览页面
+/// 现代化Dashboard页面
 ///
-/// 临时简化版本，避免复杂依赖导致的问题
+/// 采用现代FinTech设计风格的市场概览页面
 class DashboardPage extends StatefulWidget {
   /// 创建市场概览页面
   const DashboardPage({super.key});
@@ -16,357 +20,246 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
     final isMobile = screenWidth < 768;
     final isTablet = screenWidth >= 768 && screenWidth < 1024;
     final orientation = MediaQuery.of(context).orientation;
 
     // 响应式配置
     final headerPadding = isMobile
-        ? const EdgeInsets.all(16.0)
-        : (isTablet ? const EdgeInsets.all(20.0) : const EdgeInsets.all(24.0));
+        ? const EdgeInsets.all(20.0)
+        : (isTablet ? const EdgeInsets.all(24.0) : const EdgeInsets.all(32.0));
 
     final contentPadding = isMobile
-        ? const EdgeInsets.all(12.0)
-        : (isTablet ? const EdgeInsets.all(16.0) : const EdgeInsets.all(20.0));
+        ? const EdgeInsets.all(16.0)
+        : (isTablet ? const EdgeInsets.all(20.0) : const EdgeInsets.all(24.0));
 
     final crossAxisCount = isMobile
         ? (orientation == Orientation.portrait ? 2 : 3)
         : (isTablet ? 3 : 4);
 
-    final childAspectRatio = isMobile ? 1.1 : (isTablet ? 1.2 : 1.3);
-
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Colors.grey[50],
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // 响应式顶部欢迎区域
-            Container(
-              width: double.infinity,
+            // 现代化顶部欢迎区域
+            GradientContainer.primary(
               padding: headerPadding,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Theme.of(context).primaryColor.withOpacity(0.1),
-                    Theme.of(context).primaryColor.withOpacity(0.05),
-                  ],
-                ),
-              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    '欢迎回来',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          color: Theme.of(context).primaryColor,
-                          fontWeight: FontWeight.bold,
-                          fontSize: isMobile ? 20 : 24,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            GradientText(
+                              '欢迎回来',
+                              style: TextStyle(
+                                fontSize: isMobile ? 24 : 32,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              '基速基金量化分析平台',
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.white70,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '现代金融科技 · 智能分析 · 实时监控',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.white60,
+                                fontWeight: FontWeight.w300,
+                              ),
+                            ),
+                          ],
                         ),
-                  ),
-                  SizedBox(height: isMobile ? 6 : 8),
-                  Text(
-                    '基速基金分析器',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: Theme.of(context).textTheme.titleLarge?.color,
-                          fontSize: isMobile ? 18 : 22,
-                        ),
-                  ),
-                  SizedBox(height: isMobile ? 12 : 16),
-                  Text(
-                    '专业的基金量化分析平台',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.grey[600],
-                          fontSize: isMobile ? 14 : 16,
-                        ),
+                      ),
+                      const SizedBox(width: 24),
+                      ModernBrandLogo(
+                        size: 48,
+                        showText: false,
+                        animated: true,
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
 
-            // 响应式功能卡片区域
+            // 现代化数据展示区域
             Padding(
               padding: contentPadding,
               child: Column(
                 children: [
-                  // 响应式功能卡片网格
+                  // 市场数据展示
                   LayoutBuilder(
                     builder: (context, constraints) {
                       return GridView.count(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         crossAxisCount: crossAxisCount,
-                        crossAxisSpacing: isMobile ? 12 : 16,
-                        mainAxisSpacing: isMobile ? 12 : 16,
-                        childAspectRatio: childAspectRatio,
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                        childAspectRatio: 1.2,
                         children: [
-                          _buildFeatureCard(
-                            context,
-                            Icons.trending_up,
-                            '基金排行',
-                            '查看基金排行榜',
-                            Colors.blue,
+                          ModernMarketDataDisplay(
+                            indexName: '上证指数',
+                            currentValue: '3,245.67',
+                            changeValue: '+40.12',
+                            changePercent: '+1.23%',
                           ),
-                          _buildFeatureCard(
-                            context,
-                            Icons.star_border,
-                            '自选基金',
-                            '管理我的自选基金',
-                            Colors.orange,
+                          ModernMarketDataDisplay(
+                            indexName: '深证成指',
+                            currentValue: '10,234.56',
+                            changeValue: '-46.23',
+                            changePercent: '-0.45%',
                           ),
-                          _buildFeatureCard(
-                            context,
-                            Icons.pie_chart,
-                            '投资组合',
-                            '分析投资组合表现',
-                            Colors.green,
+                          ModernMarketDataDisplay(
+                            indexName: '创业板指',
+                            currentValue: '2,156.89',
+                            changeValue: '+28.47',
+                            changePercent: '+1.34%',
                           ),
-                          _buildFeatureCard(
-                            context,
-                            Icons.notifications_active,
-                            '推送测试',
-                            '测试推送通知功能',
-                            Colors.purple,
-                          ),
-                          _buildFeatureCard(
-                            context,
-                            Icons.settings,
-                            '系统设置',
-                            '个性化应用设置',
-                            Colors.grey,
+                          ModernMarketDataDisplay(
+                            indexName: '沪深300',
+                            currentValue: '4,567.23',
+                            changeValue: '+15.67',
+                            changePercent: '+0.34%',
                           ),
                         ],
                       );
                     },
                   ),
 
-                  SizedBox(height: isMobile ? 16 : 24),
+                  const SizedBox(height: 32),
 
-                  // 市场概览卡片
-                  Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                  // 现代化数据卡片网格
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      return GridView.count(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        crossAxisCount: isMobile ? 2 : 3,
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                        childAspectRatio: 1.1,
                         children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.show_chart,
-                                color: Theme.of(context).primaryColor,
-                                size: 28,
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                '市场概览',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleLarge
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                              ),
-                            ],
+                          ModernDataCard(
+                            title: '总资产',
+                            value: '¥1,234,567.89',
+                            changeValue: '+2.34%',
+                            icon: Icons.account_balance_wallet,
+                            onTap: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('资产详情功能开发中')),
+                              );
+                            },
                           ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _buildMarketMetric(
-                                  context,
-                                  '上证指数',
-                                  '3,245.67',
-                                  '+1.23%',
-                                  Colors.green,
+                          ModernDataCard(
+                            title: '今日收益',
+                            value: '+¥5,678.23',
+                            changeValue: '+4.67%',
+                            icon: Icons.trending_up,
+                            onTap: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('收益详情功能开发中')),
+                              );
+                            },
+                          ),
+                          ModernDataCard(
+                            title: '基金数量',
+                            value: '156',
+                            changeValue: '+3',
+                            icon: Icons.pie_chart,
+                            onTap: () {
+                              Navigator.of(context)
+                                  .pushNamed('/fund-exploration');
+                            },
+                          ),
+                          ModernDataCard(
+                            title: '监控指标',
+                            value: '12',
+                            changeValue: '正常',
+                            icon: Icons.analytics,
+                            onTap: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('监控详情功能开发中')),
+                              );
+                            },
+                          ),
+                          ModernDataCard(
+                            title: '推送通知',
+                            value: '8',
+                            changeValue: '待处理',
+                            icon: Icons.notifications,
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const NotificationTestWidget(),
                                 ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: _buildMarketMetric(
-                                  context,
-                                  '深证成指',
-                                  '10,234.56',
-                                  '-0.45%',
-                                  Colors.red,
-                                ),
-                              ),
-                            ],
+                              );
+                            },
                           ),
                         ],
-                      ),
-                    ),
+                      );
+                    },
                   ),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 32),
 
-                  // 底部提示信息
-                  Card(
-                    elevation: 2,
-                    color: Theme.of(context).primaryColor.withOpacity(0.1),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Row(
+                  // 现代化按钮区域
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            Icons.info_outline,
-                            color: Theme.of(context).primaryColor,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              '数据每5分钟自动更新，点击顶部导航栏切换不同功能页面',
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
+                          Icon(Icons.psychology, color: Colors.white, size: 20),
+                          const SizedBox(width: 8),
+                          ModernButton(
+                            text: '智能分析',
+                            onPressed: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('智能分析功能即将上线')),
+                              );
+                            },
                           ),
                         ],
                       ),
-                    ),
+                      const SizedBox(width: 16),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.lightbulb, color: Colors.white, size: 20),
+                          const SizedBox(width: 8),
+                          ModernButton(
+                            text: '投资建议',
+                            gradient: FinancialGradients.successGradient,
+                            onPressed: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('投资建议功能即将上线')),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildFeatureCard(
-    BuildContext context,
-    IconData icon,
-    String title,
-    String subtitle,
-    Color color,
-  ) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isMobile = screenWidth < 768;
-    final isSmallScreen = screenWidth < 400;
-
-    // 响应式配置
-    final iconSize = isSmallScreen ? 36 : (isMobile ? 42 : 48);
-    final cardPadding =
-        EdgeInsets.all(isSmallScreen ? 12 : (isMobile ? 14 : 16));
-    final titleFontSize = isSmallScreen ? 14 : (isMobile ? 16 : 18);
-    final subtitleFontSize = isSmallScreen ? 11 : 12;
-    final spacing = SizedBox(height: isSmallScreen ? 8 : 12);
-    final smallSpacing = SizedBox(height: isSmallScreen ? 3 : 4);
-
-    return Card(
-      elevation: isMobile ? 2 : 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(isMobile ? 8 : 12),
-      ),
-      child: InkWell(
-        onTap: () {
-          if (title == '推送测试') {
-            // 导航到通知测试页面
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => const NotificationTestWidget(),
-              ),
-            );
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('$title 功能开发中')),
-            );
-          }
-        },
-        borderRadius: BorderRadius.circular(isMobile ? 8 : 12),
-        child: Padding(
-          padding: cardPadding,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                size: iconSize.toDouble(),
-                color: color,
-              ),
-              spacing,
-              Text(
-                title,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      fontSize: titleFontSize.toDouble(),
-                    ),
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              smallSpacing,
-              Text(
-                subtitle,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.grey[600],
-                      fontSize: subtitleFontSize.toDouble(),
-                    ),
-                textAlign: TextAlign.center,
-                maxLines: isSmallScreen ? 1 : 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMarketMetric(
-    BuildContext context,
-    String name,
-    String value,
-    String change,
-    Color changeColor,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(12.0),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            name,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.grey[600],
-                ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              Icon(
-                change.startsWith('+')
-                    ? Icons.trending_up
-                    : Icons.trending_down,
-                size: 16,
-                color: changeColor,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                change,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: changeColor,
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }

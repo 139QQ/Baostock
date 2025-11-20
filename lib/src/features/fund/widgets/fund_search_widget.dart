@@ -2,13 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../bloc/fund_search_bloc.dart';
 import '../../../models/fund_info.dart';
-import 'fund_card_widget.dart';
+import '../domain/entities/fund.dart';
+import '../presentation/widgets/unified_fund_card.dart';
 
 /// 基金搜索结果组件
 class FundSearchWidget extends StatelessWidget {
+  /// 创建基金搜索结果组件
+  const FundSearchWidget({super.key, required this.funds});
+
+  /// 搜索结果基金列表
   final List<FundInfo> funds;
 
-  const FundSearchWidget({super.key, required this.funds});
+  /// 将FundInfo转换为Fund实体的辅助函数
+  Fund _fundInfoToFund(FundInfo fundInfo) {
+    return Fund(
+      code: fundInfo.code,
+      name: fundInfo.name,
+      type: fundInfo.type,
+      company: '', // FundInfo中没有此字段，使用空字符串
+      lastUpdate: DateTime.now(), // FundInfo中没有此字段，使用当前时间
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,10 +67,11 @@ class FundSearchWidget extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
         itemCount: funds.length,
         itemBuilder: (context, index) {
-          final fund = funds[index];
+          final fundInfo = funds[index];
+          final fund = _fundInfoToFund(fundInfo);
           return Padding(
             padding: const EdgeInsets.only(bottom: 8.0),
-            child: FundCardWidget(
+            child: UnifiedFundCard(
               fund: fund,
               onTap: () {
                 Navigator.pushNamed(
@@ -65,11 +80,11 @@ class FundSearchWidget extends StatelessWidget {
                   arguments: fund.code,
                 );
               },
-              onFavorite: (isFavorite) {
+              onAddToWatchlist: () {
                 // TODO: 实现收藏功能
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(isFavorite ? '已添加到收藏' : '已从收藏中移除'),
+                  const SnackBar(
+                    content: Text('已添加到收藏'),
                   ),
                 );
               },

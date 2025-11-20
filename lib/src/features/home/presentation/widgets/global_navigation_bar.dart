@@ -3,6 +3,9 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 
 import '../../../auth/domain/entities/user.dart';
 import '../../../../core/navigation/navigation_manager.dart';
+import '../../../../core/theme/widgets/modern_brand_logo.dart';
+import '../../../../core/theme/widgets/gradient_container.dart';
+import '../../../../core/theme/design_tokens/app_colors.dart';
 // 为依赖注入容器创建别名
 import '../../../../core/di/injection_container.dart' as di;
 
@@ -119,35 +122,11 @@ class GlobalNavigationBar extends StatelessWidget
   }
 
   Widget _buildBrandLogo() {
-    return Row(
-      children: [
-        Container(
-          width: 32,
-          height: 32,
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFF2563EB), Color(0xFF3B82F6)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.all(Radius.circular(8)),
-          ),
-          child: const Icon(
-            Icons.trending_up,
-            color: Colors.white,
-            size: 20,
-          ),
-        ),
-        const SizedBox(width: 8),
-        const Text(
-          '基速基金',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF1E293B),
-          ),
-        ),
-      ],
+    return ModernBrandLogo(
+      size: 32,
+      showText: true,
+      animated: true,
+      compact: false,
     );
   }
 
@@ -185,36 +164,49 @@ class GlobalNavigationBar extends StatelessWidget
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          color: isSelected
-              ? Theme.of(context).primaryColor.withOpacity(0.1)
-              : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          color: isSelected ? BaseColors.primary100 : Colors.transparent,
           border: isSelected
               ? Border.all(
-                  color: Theme.of(context).primaryColor.withOpacity(0.3),
+                  color: BaseColors.primary400,
                   width: 1,
                 )
+              : null,
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: BaseColors.primary400.withOpacity(0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
               : null,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              size: 18,
-              color: isSelected
-                  ? Theme.of(context).primaryColor
-                  : const Color(0xFF64748B),
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(6),
+                gradient:
+                    isSelected ? FinancialGradients.primaryGradient : null,
+                color: isSelected ? null : BaseColors.primary100,
+              ),
+              child: Icon(
+                icon,
+                size: 16,
+                color: isSelected ? Colors.white : BaseColors.primary600,
+              ),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 8),
             Text(
               label,
               style: TextStyle(
                 fontSize: 14,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected
-                    ? Theme.of(context).primaryColor
-                    : const Color(0xFF475569),
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color:
+                    isSelected ? BaseColors.primary700 : BaseColors.primary600,
               ),
             ),
           ],

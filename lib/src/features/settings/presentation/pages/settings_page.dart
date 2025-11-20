@@ -1,17 +1,11 @@
 import 'package:flutter/material.dart';
+import '../widgets/modern_settings_page.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('设置'),
-      ),
-      body: const Center(
-        child: Text('设置页面正在建设中...'),
-      ),
-    );
+    return const ModernSettingsPage();
   }
 }

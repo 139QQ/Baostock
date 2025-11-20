@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'fund_data_card.dart';
+// import 'fund_data_card.dart'; // 已删除，使用统一组件
+import '../../../widgets/unified_fund_card.dart';
+import '../../../widgets/fund_card_factory.dart';
+import '../../../widgets/base_fund_card.dart';
 import '../../../../../../features/fund/domain/entities/fund.dart';
 
 /// 响应式基金网格布局组件
@@ -55,16 +58,13 @@ class ResponsiveFundGrid extends StatelessWidget {
                 itemCount: funds.length,
                 itemBuilder: (context, index) {
                   final fund = funds[index];
-                  return FundDataCard(
+                  return FundCardFactory.createAdaptive(
+                    context: context,
                     fund: fund,
-                    mode: config.cardMode,
+                    compactMode: true,
                     onTap: () => onFundTap(fund),
-                    onFavorite: () => onFavoriteToggle(fund),
+                    onAddToWatchlist: () => onFavoriteToggle(fund),
                     onCompare: () => onCompareToggle(fund),
-                    isFavorite: favoriteFunds.contains(fund.code),
-                    isComparing: comparingFunds.contains(fund.code),
-                    showPerformanceMetrics: showPerformanceMetrics,
-                    margin: EdgeInsets.zero,
                   );
                 },
               ),
@@ -148,7 +148,7 @@ class ResponsiveFundGrid extends StatelessWidget {
       return _GridConfig(
         columnCount: 1,
         spacing: 12,
-        cardMode: FundCardMode.compact,
+        cardMode: CardStyle.minimal,
         childAspectRatio: 2.8,
       );
     } else if (screenWidth < 1024) {
@@ -156,7 +156,7 @@ class ResponsiveFundGrid extends StatelessWidget {
       return _GridConfig(
         columnCount: 2,
         spacing: 16,
-        cardMode: FundCardMode.standard,
+        cardMode: CardStyle.modern,
         childAspectRatio: 2.2,
       );
     } else if (screenWidth < 1440) {
@@ -164,7 +164,7 @@ class ResponsiveFundGrid extends StatelessWidget {
       return _GridConfig(
         columnCount: 3,
         spacing: 20,
-        cardMode: FundCardMode.standard,
+        cardMode: CardStyle.modern,
         childAspectRatio: 2.0,
       );
     } else {
@@ -172,7 +172,7 @@ class ResponsiveFundGrid extends StatelessWidget {
       return _GridConfig(
         columnCount: 4,
         spacing: 24,
-        cardMode: FundCardMode.detailed,
+        cardMode: CardStyle.enhanced,
         childAspectRatio: 1.8,
       );
     }
@@ -196,7 +196,7 @@ enum ViewMode {
 class _GridConfig {
   final int columnCount;
   final double spacing;
-  final FundCardMode cardMode;
+  final CardStyle cardMode;
   final double childAspectRatio;
 
   _GridConfig({

@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../../bloc/portfolio_bloc.dart';
-import '../../../services/portfolio_analysis_service.dart';
-import '../../../services/high_performance_fund_service.dart';
+import '../../../core/theme/widgets/modern_ui_components.dart';
 import '../../../services/fund_analysis_service.dart';
-import '../widgets/portfolio_list_widget.dart';
+import '../../../services/high_performance_fund_service.dart';
+import '../../../services/portfolio_analysis_service.dart';
+import '../presentation/widgets/modern_portfolio_analysis_page.dart';
 import '../widgets/portfolio_create_dialog.dart';
+import '../widgets/portfolio_list_widget.dart';
 
 /// 投资组合页面
 class PortfolioPage extends StatelessWidget {
+  /// 创建投资组合页面
   const PortfolioPage({super.key});
 
   @override
@@ -28,6 +32,7 @@ class PortfolioPage extends StatelessWidget {
 
 /// 投资组合视图
 class PortfolioView extends StatefulWidget {
+  /// 创建投资组合视图
   const PortfolioView({super.key});
 
   @override
@@ -54,11 +59,30 @@ class _PortfolioViewState extends State<PortfolioView>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('投资组合'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: const Text(
+          '投资组合',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: Colors.transparent,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF233997), Color(0xFF5E7CFF)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         elevation: 0,
         bottom: TabBar(
           controller: _tabController,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
+          indicatorColor: Colors.white,
+          indicatorWeight: 3,
           tabs: const [
             Tab(text: '我的组合', icon: Icon(Icons.account_balance_wallet)),
             Tab(text: '创建组合', icon: Icon(Icons.add_circle)),
@@ -66,11 +90,26 @@ class _PortfolioViewState extends State<PortfolioView>
           ],
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.info_outline),
-            onPressed: () {
-              _showPortfolioHelp(context);
-            },
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.help_outline, color: Colors.white, size: 20),
+                const SizedBox(width: 8),
+                ModernButton(
+                  text: '帮助',
+                  gradient: const LinearGradient(
+                    colors: [Colors.white24, Colors.white12],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  onPressed: () {
+                    _showPortfolioHelp(context);
+                  },
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -100,7 +139,32 @@ class _PortfolioViewState extends State<PortfolioView>
   }
 
   Widget _buildMyPortfoliosTab(BuildContext context) {
-    return const PortfolioListWidget();
+    return Column(
+      children: [
+        // 添加快速访问分析页面的按钮
+        Container(
+          margin: const EdgeInsets.all(16),
+          child: ModernButton(
+            text: '查看持仓分析',
+            gradient: const LinearGradient(
+              colors: [Color(0xFF233997), Color(0xFF5E7CFF)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ModernPortfolioAnalysisPage(),
+                ),
+              );
+            },
+          ),
+        ),
+        // 原有的组合列表
+        const Expanded(child: PortfolioListWidget()),
+      ],
+    );
   }
 
   Widget _buildCreatePortfolioTab(BuildContext context) {
@@ -127,80 +191,132 @@ class _PortfolioViewState extends State<PortfolioView>
   }
 
   Widget _buildMarketAnalysisTab(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 市场概览
-          _buildMarketOverview(context),
-
-          const SizedBox(height: 24),
-
-          // 策略推荐
-          _buildStrategyRecommendations(context),
-
-          const SizedBox(height: 24),
-
-          // 风险提示
-          _buildRiskWarning(context),
-        ],
-      ),
-    );
+    return const ModernPortfolioAnalysisPage();
   }
 
   Widget _buildQuickCreateCard(BuildContext context) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF233997), Color(0xFF5E7CFF)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF233997).withOpacity(0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.add_circle,
-                  size: 28,
-                  color: Theme.of(context).primaryColor,
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    color: Colors.white.withOpacity(0.2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.white.withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.rocket_launch_rounded,
+                    size: 28,
+                    color: Colors.white,
+                  ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 16),
                 Expanded(
-                  child: Text(
-                    '快速创建投资组合',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '快速创建投资组合',
+                        style: const TextStyle(
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'AI智能推荐，一键构建专业投资组合',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.white.withOpacity(0.8),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            Text(
-              '根据您的风险偏好和投资目标，智能推荐适合的基金组合',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey[600],
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      Icon(Icons.auto_awesome_rounded,
+                          color: const Color(0xFF233997), size: 20),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: ModernButton(
+                          text: '智能创建',
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.white.withOpacity(0.9),
+                              Colors.white.withOpacity(0.7),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          onPressed: () {
+                            _showCreatePortfolioDialog(
+                                context, PortfolioStrategy.balanced);
+                          },
+                        ),
+                      ),
+                    ],
                   ),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  _showCreatePortfolioDialog(
-                      context, PortfolioStrategy.balanced);
-                },
-                icon: const Icon(Icons.rocket_launch),
-                label: const Text('智能创建'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  backgroundColor: Theme.of(context).primaryColor,
-                  foregroundColor: Colors.white,
                 ),
-              ),
+                const SizedBox(width: 12),
+                Row(
+                  children: [
+                    Icon(Icons.lightbulb_outline_rounded,
+                        color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    ModernButton(
+                      text: '了解更多',
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.white.withOpacity(0.2),
+                          Colors.white.withOpacity(0.1),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      onPressed: () {
+                        _showPortfolioHelp(context);
+                      },
+                    ),
+                  ],
+                ),
+              ],
             ),
           ],
         ),
@@ -212,24 +328,155 @@ class _PortfolioViewState extends State<PortfolioView>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          '推荐基金',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
+        // 现代化标题栏
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            gradient: LinearGradient(
+              colors: [
+                const Color(0xFF233997).withOpacity(0.05),
+                const Color(0xFF5E7CFF).withOpacity(0.1),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            border: Border.all(
+              color: const Color(0xFF233997).withOpacity(0.2),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF233997), Color(0xFF5E7CFF)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF233997).withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.trending_up_rounded,
+                  size: 24,
+                  color: Colors.white,
+                ),
               ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      '智能推荐基金',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF233997),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '基于风险收益和夏普比率的专业推荐',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: const Color(0xFF233997).withOpacity(0.7),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Row(
+                children: [
+                  Icon(Icons.refresh_rounded,
+                      color: const Color(0xFF233997), size: 20),
+                  const SizedBox(width: 8),
+                  ModernButton(
+                    text: '刷新',
+                    gradient: LinearGradient(
+                      colors: [
+                        const Color(0xFF233997).withOpacity(0.8),
+                        const Color(0xFF5E7CFF).withOpacity(0.8),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    onPressed: () {
+                      context
+                          .read<PortfolioBloc>()
+                          .add(const LoadRecommendedFunds());
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         BlocBuilder<PortfolioBloc, PortfolioState>(
           builder: (context, state) {
             if (state is PortfolioLoading) {
               return Container(
                 height: 200,
                 decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFF233997).withOpacity(0.05),
+                      const Color(0xFF5E7CFF).withOpacity(0.1),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  border: Border.all(
+                    color: const Color(0xFF233997).withOpacity(0.2),
+                    width: 1,
+                  ),
                 ),
-                child: const Center(
-                  child: CircularProgressIndicator(),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(24),
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF233997), Color(0xFF5E7CFF)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                        ),
+                        child: const Center(
+                          child: CircularProgressIndicator(
+                            strokeWidth: 3,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        '正在分析推荐基金...',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: const Color(0xFF233997).withOpacity(0.8),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
             }
@@ -239,34 +486,69 @@ class _PortfolioViewState extends State<PortfolioView>
                 return Container(
                   height: 200,
                   decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(16),
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.grey.withOpacity(0.05),
+                        Colors.grey.withOpacity(0.1),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    border: Border.all(
+                      color: Colors.grey.withOpacity(0.2),
+                      width: 1,
+                    ),
                   ),
                   child: Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          Icons.search_off,
-                          size: 48,
-                          color: Colors.grey[400],
+                          Icons.search_off_rounded,
+                          size: 64,
+                          color: Colors.grey.withOpacity(0.6),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 16),
                         Text(
                           '暂无推荐基金',
                           style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 16,
+                            fontSize: 18,
+                            color: Colors.grey.withOpacity(0.8),
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                         const SizedBox(height: 8),
-                        TextButton(
-                          onPressed: () {
-                            context
-                                .read<PortfolioBloc>()
-                                .add(const LoadRecommendedFunds());
-                          },
-                          child: const Text('点击加载'),
+                        Text(
+                          '请稍后重试或检查网络连接',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey.withOpacity(0.6),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Icon(Icons.refresh_rounded,
+                                color: Colors.grey[600], size: 20),
+                            const SizedBox(width: 8),
+                            ModernButton(
+                              text: '重新加载',
+                              gradient: LinearGradient(
+                                colors: [
+                                  Colors.grey.withOpacity(0.8),
+                                  Colors.grey.withOpacity(0.6),
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              onPressed: () {
+                                context
+                                    .read<PortfolioBloc>()
+                                    .add(const LoadRecommendedFunds());
+                              },
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -275,18 +557,35 @@ class _PortfolioViewState extends State<PortfolioView>
               }
 
               return Container(
-                height: 300,
+                height: 400,
                 decoration: BoxDecoration(
-                  color: Colors.grey[50],
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey[200]!),
+                  borderRadius: BorderRadius.circular(16),
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.white,
+                      const Color(0xFF233997).withOpacity(0.02),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  border: Border.all(
+                    color: const Color(0xFF233997).withOpacity(0.1),
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF233997).withOpacity(0.1),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
                 child: ListView.builder(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(12),
                   itemCount: state.recommendedFunds.length,
                   itemBuilder: (context, index) {
                     final fund = state.recommendedFunds[index];
-                    return _buildRecommendedFundCard(context, fund);
+                    return _buildModernRecommendedFundCard(context, fund);
                   },
                 ),
               );
@@ -295,28 +594,61 @@ class _PortfolioViewState extends State<PortfolioView>
             return Container(
               height: 200,
               decoration: BoxDecoration(
-                color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.orange.withOpacity(0.05),
+                    Colors.red.withOpacity(0.05),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                border: Border.all(
+                  color: Colors.orange.withOpacity(0.2),
+                  width: 1,
+                ),
               ),
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    Icon(
+                      Icons.error_outline_rounded,
+                      size: 48,
+                      color: Colors.orange.withOpacity(0.8),
+                    ),
+                    const SizedBox(height: 16),
                     Text(
-                      '推荐基金加载中...',
+                      '推荐基金加载失败',
                       style: TextStyle(
-                        color: Colors.grey[600],
                         fontSize: 16,
+                        color: Colors.orange.withOpacity(0.8),
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: 8),
-                    TextButton(
-                      onPressed: () {
-                        context
-                            .read<PortfolioBloc>()
-                            .add(const LoadRecommendedFunds());
-                      },
-                      child: const Text('手动加载'),
+                    Row(
+                      children: [
+                        Icon(Icons.refresh_rounded,
+                            color: Colors.orange[700], size: 20),
+                        const SizedBox(width: 8),
+                        ModernButton(
+                          text: '重试加载',
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.orange.withOpacity(0.8),
+                              Colors.red.withOpacity(0.6),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          onPressed: () {
+                            context
+                                .read<PortfolioBloc>()
+                                .add(const LoadRecommendedFunds());
+                          },
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -328,66 +660,159 @@ class _PortfolioViewState extends State<PortfolioView>
     );
   }
 
-  Widget _buildRecommendedFundCard(
+  Widget _buildModernRecommendedFundCard(
       BuildContext context, FundRecommendation fund) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: CircleAvatar(
-          backgroundColor: _getScoreColor(fund.score).withOpacity(0.1),
-          child: Text(
-            fund.score.toString(),
-            style: TextStyle(
-              color: _getScoreColor(fund.score),
-              fontWeight: FontWeight.bold,
-              fontSize: 12,
-            ),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        gradient: LinearGradient(
+          colors: [
+            Colors.white,
+            _getScoreColor(fund.score).withOpacity(0.02),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        border: Border.all(
+          color: _getScoreColor(fund.score).withOpacity(0.2),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: _getScoreColor(fund.score).withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
           ),
-        ),
-        title: Text(
-          fund.fundName,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
           children: [
-            Text('${fund.fundCode} • ${fund.fundType}'),
-            const SizedBox(height: 4),
             Row(
               children: [
-                _buildRiskChip(fund.riskLevel),
-                const SizedBox(width: 8),
-                Text(
-                  '夏普: ${fund.sharpeScore}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
+                // 现代化评分徽章
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    gradient: LinearGradient(
+                      colors: [
+                        _getScoreColor(fund.score),
+                        _getScoreColor(fund.score).withOpacity(0.7),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: _getScoreColor(fund.score).withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        fund.score.toString(),
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      Text(
+                        '评分',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.white.withOpacity(0.8),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  '收益: ${fund.returnScore}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        fund.fundName,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF233997),
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${fund.fundCode} • ${fund.fundType}',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: const Color(0xFF233997).withOpacity(0.7),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          _buildModernRiskChip(fund.riskLevel),
+                          const SizedBox(width: 12),
+                          _buildMetricChip(
+                              '夏普', fund.sharpeScore.toString(), Colors.blue),
+                          const SizedBox(width: 8),
+                          _buildMetricChip(
+                              '收益', fund.returnScore.toString(), Colors.green),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                // 现代化添加按钮
+                GestureDetector(
+                  onTap: () {
+                    _addFundToPortfolio(context, fund);
+                  },
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      gradient: LinearGradient(
+                        colors: [Colors.green, Colors.teal],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.green.withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.add_rounded,
+                      size: 24,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ],
             ),
           ],
         ),
-        trailing: IconButton(
-          onPressed: () {
-            _addFundToPortfolio(context, fund);
-          },
-          icon: const Icon(Icons.add_circle, color: Colors.green),
-        ),
       ),
     );
   }
 
-  Widget _buildRiskChip(String riskLevel) {
+  Widget _buildModernRiskChip(String riskLevel) {
     Color color;
     switch (riskLevel.toLowerCase()) {
       case '低':
@@ -404,16 +829,45 @@ class _PortfolioViewState extends State<PortfolioView>
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(4),
+        gradient: LinearGradient(
+          colors: [
+            color.withOpacity(0.1),
+            color.withOpacity(0.05),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: color.withOpacity(0.3),
+          width: 1,
+        ),
       ),
       child: Text(
         riskLevel,
         style: TextStyle(
           color: color,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMetricChip(String label, String value, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        '$label: $value',
+        style: TextStyle(
           fontSize: 10,
+          color: color.withOpacity(0.8),
           fontWeight: FontWeight.w500,
         ),
       ),

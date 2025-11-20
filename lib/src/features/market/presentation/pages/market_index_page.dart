@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/utils/logger.dart';
+import '../../../../core/theme/widgets/modern_ui_components.dart';
 import '../cubits/index_trend_cubit.dart';
 import '../cubits/market_index_cubit.dart';
-import '../widgets/index_trend_chart.dart';
-import '../widgets/market_index_card.dart';
+import '../widgets/modern_market_index_card.dart';
+import '../widgets/modern_index_trend_chart.dart';
 import '../widgets/polling_status_indicator.dart';
 
 /// 市场指数页面
@@ -112,14 +113,57 @@ class _MarketIndexPageState extends State<MarketIndexPage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('市场指数'),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: const Text(
+          '市场指数',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: Colors.transparent,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF233997), Color(0xFF5E7CFF)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
         bottom: TabBar(
           controller: _tabController,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
+          indicatorColor: Colors.white,
+          indicatorWeight: 3,
           tabs: const [
-            Tab(text: '主要指数', icon: Icon(Icons.trending_up)),
-            Tab(text: '趋势分析', icon: Icon(Icons.analytics)),
-            Tab(text: '设置', icon: Icon(Icons.settings)),
+            Tab(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.trending_up),
+                  Text('主要指数'),
+                ],
+              ),
+            ),
+            Tab(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.analytics),
+                  Text('趋势分析'),
+                ],
+              ),
+            ),
+            Tab(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.settings),
+                  Text('设置'),
+                ],
+              ),
+            ),
           ],
         ),
         actions: [
@@ -136,11 +180,25 @@ class _MarketIndexPageState extends State<MarketIndexPage>
               );
             },
           ),
-          // 刷新按钮
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _refreshData,
-            tooltip: '刷新数据',
+          // 现代化刷新按钮
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.refresh, color: Colors.white, size: 18),
+                const SizedBox(width: 6),
+                ModernButton(
+                  text: '刷新',
+                  gradient: const LinearGradient(
+                    colors: [Colors.white24, Colors.white12],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  onPressed: _refreshData,
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -226,47 +284,121 @@ class _MarketIndexPageState extends State<MarketIndexPage>
           onRefresh: _refreshData,
           child: Column(
             children: [
-              // 状态信息栏
+              // 现代化状态信息栏
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                color: Theme.of(context).colorScheme.surfaceVariant,
+                margin: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFF233997).withOpacity(0.05),
+                      const Color(0xFF5E7CFF).withOpacity(0.1),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  border: Border.all(
+                    color: const Color(0xFF233997).withOpacity(0.2),
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF233997).withOpacity(0.1),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
                 child: Row(
                   children: [
-                    Icon(
-                      state.isPolling ? Icons.sync : Icons.sync_disabled,
-                      size: 20,
-                      color: state.isPolling ? Colors.green : Colors.grey,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      state.isPolling ? '自动更新中' : '已暂停',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    const Spacer(),
-                    Text(
-                      '更新次数: ${state.updateCount}',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                    const SizedBox(width: 8),
-                    if (state.lastUpdateTime != null)
-                      Text(
-                        '最后更新: ${_formatTime(state.lastUpdateTime!)}',
-                        style: Theme.of(context).textTheme.bodySmall,
+                    // 实时状态指示器
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(24),
+                        gradient: LinearGradient(
+                          colors: state.isPolling
+                              ? [Colors.green, Colors.teal]
+                              : [Colors.grey, Colors.blueGrey],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color:
+                                (state.isPolling ? Colors.green : Colors.grey)
+                                    .withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
+                      child: Icon(
+                        state.isPolling ? Icons.sync : Icons.sync_disabled,
+                        size: 24,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    // 状态信息
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            state.isPolling ? '实时更新中' : '已暂停更新',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF233997),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '更新次数: ${state.updateCount} • 最后更新: ${state.lastUpdateTime != null ? _formatTime(state.lastUpdateTime!) : '未知'}',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: const Color(0xFF233997).withOpacity(0.7),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // 控制按钮
+                    ModernButton(
+                      text: state.isPolling ? '暂停' : '继续',
+                      gradient: state.isPolling
+                          ? const LinearGradient(
+                              colors: [Colors.orange, Colors.redAccent],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            )
+                          : const LinearGradient(
+                              colors: [Colors.green, Colors.teal],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                      onPressed: _togglePolling,
+                    ),
                   ],
                 ),
               ),
-              // 指数卡片列表
+              // 现代化指数卡片列表
               Expanded(
                 child: ListView.builder(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   itemCount: state.indices.length,
                   itemBuilder: (context, index) {
                     final indexData = state.indices[index];
-                    return MarketIndexCard(
+                    return ModernMarketIndexCard(
                       indexData: indexData,
                       onTap: () => _showIndexDetail(indexData),
+                      enableAnimation: true,
+                      style: MarketIndexCardStyle.normal,
                     );
                   },
                 ),
@@ -285,54 +417,255 @@ class _MarketIndexPageState extends State<MarketIndexPage>
         return BlocBuilder<MarketIndexCubit, MarketIndexState>(
           builder: (context, indexState) {
             if (indexState.indices.isEmpty) {
-              return const Center(
-                child: Text('暂无指数数据可供分析'),
+              return Center(
+                child: Container(
+                  padding: const EdgeInsets.all(40),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.grey.withOpacity(0.1),
+                        Colors.grey.withOpacity(0.05),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.analytics_outlined,
+                        size: 64,
+                        color: Colors.grey.withOpacity(0.6),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        '暂无指数数据可供分析',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.grey.withOpacity(0.8),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '请确保已连接网络并刷新数据',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey.withOpacity(0.6),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               );
             }
 
             return Column(
               children: [
-                // 指数选择器
+                // 现代化指数选择器
                 Container(
-                  padding: const EdgeInsets.all(16),
-                  child: DropdownButtonFormField<String>(
-                    value: trendState.selectedIndexCode ??
-                        (indexState.indices.isNotEmpty
-                            ? indexState.indices.first.code
-                            : null),
-                    decoration: const InputDecoration(
-                      labelText: '选择指数',
-                      border: OutlineInputBorder(),
+                  margin: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    gradient: LinearGradient(
+                      colors: [
+                        const Color(0xFF233997).withOpacity(0.05),
+                        const Color(0xFF5E7CFF).withOpacity(0.1),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
-                    items: indexState.indices.map((index) {
-                      return DropdownMenuItem<String>(
-                        value: index.code,
-                        child: Text('${index.name} (${index.code})'),
-                      );
-                    }).toList(),
-                    onChanged: (code) {
-                      if (code != null) {
-                        context.read<IndexTrendCubit>().selectIndex(code);
-                      }
-                    },
+                    border: Border.all(
+                      color: const Color(0xFF233997).withOpacity(0.2),
+                      width: 1,
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '选择分析指数',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF233997),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      // 现代化指数选择网格
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: indexState.indices.map((index) {
+                          final isSelected =
+                              index.code == trendState.selectedIndexCode;
+                          return GestureDetector(
+                            onTap: () {
+                              context
+                                  .read<IndexTrendCubit>()
+                                  .selectIndex(index.code);
+                            },
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                gradient: isSelected
+                                    ? const LinearGradient(
+                                        colors: [
+                                          Color(0xFF233997),
+                                          Color(0xFF5E7CFF)
+                                        ],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      )
+                                    : LinearGradient(
+                                        colors: [
+                                          Colors.white,
+                                          Colors.grey.withOpacity(0.1),
+                                        ],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      ),
+                                border: Border.all(
+                                  color: isSelected
+                                      ? Colors.transparent
+                                      : const Color(0xFF233997)
+                                          .withOpacity(0.3),
+                                  width: 1,
+                                ),
+                                boxShadow: [
+                                  if (isSelected)
+                                    BoxShadow(
+                                      color: const Color(0xFF233997)
+                                          .withOpacity(0.3),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    index.name,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: isSelected
+                                          ? Colors.white
+                                          : const Color(0xFF233997),
+                                    ),
+                                  ),
+                                  if (isSelected) ...[
+                                    const SizedBox(width: 8),
+                                    Icon(
+                                      Icons.check_circle_rounded,
+                                      size: 16,
+                                      color: Colors.white,
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ],
                   ),
                 ),
-                // 趋势图表
+                // 现代化趋势图表
                 Expanded(
                   child: trendState.selectedIndexCode != null
-                      ? IndexTrendChart(
-                          historicalData: trendState.historicalData,
-                          indexCode: trendState.selectedIndexCode!,
-                          indexName: indexState.indices
-                              .firstWhere(
-                                (index) =>
-                                    index.code == trendState.selectedIndexCode,
-                                orElse: () => indexState.indices.first,
-                              )
-                              .name,
+                      ? Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: ModernIndexTrendChart(
+                            historicalData: trendState.historicalData
+                                .asMap()
+                                .entries
+                                .map((entry) {
+                              final index = entry.key;
+                              final data = entry.value;
+                              return {
+                                'date': DateTime.now()
+                                    .subtract(Duration(
+                                        days: trendState.historicalData.length -
+                                            index))
+                                    .toIso8601String(),
+                                'close': (data as num).toDouble(),
+                                'volume': 0, // 暂时设置为0，因为原数据结构中没有volume字段
+                              };
+                            }).toList(),
+                            indexCode: trendState.selectedIndexCode!,
+                            indexName: indexState.indices
+                                .firstWhere(
+                                  (index) =>
+                                      index.code ==
+                                      trendState.selectedIndexCode,
+                                  orElse: () => indexState.indices.first,
+                                )
+                                .name,
+                            indexData: indexState.indices.firstWhere(
+                              (index) =>
+                                  index.code == trendState.selectedIndexCode,
+                              orElse: () => indexState.indices.first,
+                            ),
+                            showVolume: true,
+                            enableTooltip: true,
+                            enableZoom: true,
+                          ),
                         )
-                      : const Center(
-                          child: Text('请选择要分析的指数'),
+                      : Center(
+                          child: Container(
+                            padding: const EdgeInsets.all(40),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              gradient: LinearGradient(
+                                colors: [
+                                  const Color(0xFF233997).withOpacity(0.05),
+                                  const Color(0xFF5E7CFF).withOpacity(0.1),
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.show_chart_rounded,
+                                  size: 64,
+                                  color:
+                                      const Color(0xFF233997).withOpacity(0.6),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  '请选择要分析的指数',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    color: const Color(0xFF233997)
+                                        .withOpacity(0.8),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  '点击上方指数卡片开始分析',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: const Color(0xFF233997)
+                                        .withOpacity(0.6),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                 ),
               ],

@@ -58,14 +58,18 @@ class _NotificationTestWidgetState extends State<NotificationTestWidget> {
   Future<void> _checkNotificationPermissions() async {
     try {
       final status = await Permission.notification.status;
-      setState(() {
-        _testResult = '🔔 通知权限状态: ${_getPermissionStatusText(status)}\n'
-            '点击下方按钮测试通知功能';
-      });
+      if (mounted) {
+        setState(() {
+          _testResult = '🔔 通知权限状态: ${_getPermissionStatusText(status)}\n'
+              '点击下方按钮测试通知功能';
+        });
+      }
     } catch (e) {
-      setState(() {
-        _testResult = '❌ 权限检查失败: $e';
-      });
+      if (mounted) {
+        setState(() {
+          _testResult = '❌ 权限检查失败: $e';
+        });
+      }
     }
   }
 
@@ -88,20 +92,24 @@ class _NotificationTestWidgetState extends State<NotificationTestWidget> {
 
   /// 测试本地通知显示
   Future<void> _testLocalNotification() async {
-    setState(() {
-      _isCreatingNotification = true;
-      _testResult = '🔄 正在创建本地通知...';
-    });
+    if (mounted) {
+      setState(() {
+        _isCreatingNotification = true;
+        _testResult = '🔄 正在创建本地通知...';
+      });
+    }
 
     try {
       // 检查权限
       final hasPermission = await Permission.notification.request().isGranted;
 
       if (!hasPermission) {
-        setState(() {
-          _testResult = '❌ 通知权限被拒绝，无法显示通知';
-          _isCreatingNotification = false;
-        });
+        if (mounted) {
+          setState(() {
+            _testResult = '❌ 通知权限被拒绝，无法显示通知';
+            _isCreatingNotification = false;
+          });
+        }
         return;
       }
 
@@ -146,20 +154,24 @@ class _NotificationTestWidgetState extends State<NotificationTestWidget> {
       // 显示系统通知 (简化版本)
       await _showSystemNotification(notification);
 
-      setState(() {
-        _createdNotifications.add(notification);
-        _testResult = '✅ 通知创建成功！\n'
-            '标题: ${notification.title}\n'
-            '内容: ${notification.content.length > 50 ? notification.content.substring(0, 50) : notification.content}\n'
-            '请检查系统通知栏';
-        _isCreatingNotification = false;
-      });
+      if (mounted) {
+        setState(() {
+          _createdNotifications.add(notification);
+          _testResult = '✅ 通知创建成功！\n'
+              '标题: ${notification.title}\n'
+              '内容: ${notification.content.length > 50 ? notification.content.substring(0, 50) : notification.content}\n'
+              '请检查系统通知栏';
+          _isCreatingNotification = false;
+        });
+      }
     } catch (e) {
       AppLogger.error('创建通知失败', e);
-      setState(() {
-        _testResult = '❌ 创建通知失败: $e';
-        _isCreatingNotification = false;
-      });
+      if (mounted) {
+        setState(() {
+          _testResult = '❌ 创建通知失败: $e';
+          _isCreatingNotification = false;
+        });
+      }
     }
   }
 
@@ -305,16 +317,29 @@ class _NotificationTestWidgetState extends State<NotificationTestWidget> {
   Future<void> _markAsRead(String notificationId) async {
     try {
       await _pushManager.markAsRead(notificationId);
-      setState(() {
-        // 移除或更新已读的通知
-        _createdNotifications.removeWhere((n) => n.id == notificationId);
-      });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('✅ 通知已标记为已读')),
-      );
+      // 检查组件是否仍然挂载
+      if (mounted) {
+        setState(() {
+          // 移除或更新已读的通知
+          _createdNotifications.removeWhere((n) => n.id == notificationId);
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('✅ 通知已标记为已读')),
+        );
+      }
     } catch (e) {
       AppLogger.error('标记通知已读失败', e);
+      // 即使出错也只在组件挂载时显示错误消息
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ 标记已读失败: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -369,10 +394,12 @@ class _NotificationTestWidgetState extends State<NotificationTestWidget> {
       await Future.delayed(const Duration(seconds: 2));
     }
 
-    setState(() {
-      _testResult = '✅ 已发送4个不同优先级的测试通知！\n'
-          '检查通知栏查看效果差异';
-    });
+    if (mounted) {
+      setState(() {
+        _testResult = '✅ 已发送4个不同优先级的测试通知！\n'
+            '检查通知栏查看效果差异';
+      });
+    }
   }
 
   /// 测试市场异动通知
@@ -413,10 +440,12 @@ class _NotificationTestWidgetState extends State<NotificationTestWidget> {
     );
     await _showSystemNotification(notification);
 
-    setState(() {
-      _testResult = '✅ 市场异动通知发送成功！\n'
-          '这是高优先级的市场提醒通知';
-    });
+    if (mounted) {
+      setState(() {
+        _testResult = '✅ 市场异动通知发送成功！\n'
+            '这是高优先级的市场提醒通知';
+      });
+    }
   }
 
   @override

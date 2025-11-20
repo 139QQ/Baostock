@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../bloc/fund_search_bloc.dart';
 import '../../../models/fund_info.dart';
-import 'fund_card_widget.dart';
+import '../domain/entities/fund.dart';
+import '../presentation/widgets/unified_fund_card.dart';
 
 /// 推荐基金组件
 class FundRecommendationWidget extends StatefulWidget {
+  /// 创建推荐基金组件
   const FundRecommendationWidget({super.key});
 
   @override
@@ -14,6 +16,17 @@ class FundRecommendationWidget extends StatefulWidget {
 }
 
 class _FundRecommendationWidgetState extends State<FundRecommendationWidget> {
+  /// 将FundInfo转换为Fund实体的辅助函数
+  Fund _fundInfoToFund(FundInfo fundInfo) {
+    return Fund(
+      code: fundInfo.code,
+      name: fundInfo.name,
+      type: fundInfo.type,
+      company: '', // FundInfo中没有此字段，使用空字符串
+      lastUpdate: DateTime.now(), // FundInfo中没有此字段，使用当前时间
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -71,11 +84,12 @@ class _FundRecommendationWidgetState extends State<FundRecommendationWidget> {
             scrollDirection: Axis.horizontal,
             itemCount: funds.length,
             itemBuilder: (context, index) {
-              final fund = funds[index];
+              final fundInfo = funds[index];
+              final fund = _fundInfoToFund(fundInfo);
               return Container(
                 width: 280,
                 margin: const EdgeInsets.only(right: 12),
-                child: FundCardWidget(
+                child: UnifiedFundCard(
                   fund: fund,
                   onTap: () {
                     Navigator.pushNamed(
@@ -239,6 +253,7 @@ class _FundRecommendationWidgetState extends State<FundRecommendationWidget> {
 
 /// 精选基金推荐组件（更详细的展示）
 class FeaturedFundsWidget extends StatelessWidget {
+  /// 创建精选基金推荐组件
   const FeaturedFundsWidget({super.key});
 
   @override

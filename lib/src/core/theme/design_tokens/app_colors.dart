@@ -1,23 +1,47 @@
 import 'package:flutter/material.dart';
 
-/// 基础色彩 (Base Colors)
+/// 现代FinTech基础色彩 (Modern FinTech Base Colors)
 ///
-/// 基于UX设计规范文档的Fluent Design色彩系统
-/// 提供完整的主色调、中性色和语义色定义
+/// 基于现代金融科技设计规范，提供渐变色彩支持
+/// 采用深蓝+金色配色方案，体现专业金融科技感
 class BaseColors {
   BaseColors._();
 
-  // 主蓝色 - Fluent Design 标准
-  static const Color primary50 = Color(0xFFF3F9FF); // 极浅蓝
-  static const Color primary100 = Color(0xFFE1F0FF); // 浅蓝
-  static const Color primary200 = Color(0xFFBAE0FF); // 中浅蓝
-  static const Color primary300 = Color(0xFF7FC4FF); // 较浅蓝
-  static const Color primary400 = Color(0xFF38A7FF); // 浅主蓝
-  static const Color primary500 = Color(0xFF0078D4); // 主蓝
-  static const Color primary600 = Color(0xFF005A9E); // 深蓝
-  static const Color primary700 = Color(0xFF004578); // 较深蓝
-  static const Color primary800 = Color(0xFF003455); // 深蓝
-  static const Color primary900 = Color(0xFF002233); // 极深蓝
+  // 现代金融科技主色调 - 深蓝渐变系列
+  static const Color primary50 = Color(0xFFF0F4FF);
+  static const Color primary100 = Color(0xFFE0EAFF);
+  static const Color primary200 = Color(0xFFC7D8FF);
+  static const Color primary300 = Color(0xFFA4BEFF);
+  static const Color primary400 = Color(0xFF819DFF);
+  static const Color primary500 = Color(0xFF5E7CFF); // 现代主色
+  static const Color primary600 = Color(0xFF4A6CFF);
+  static const Color primary700 = Color(0xFF3B5BD8);
+  static const Color primary800 = Color(0xFF2E4AB8);
+  static const Color primary900 = Color(0xFF233997);
+
+  // 金融金色系列 - 用于重要信息和增长指标
+  static const Color gold50 = Color(0xFFFFFAF0);
+  static const Color gold100 = Color(0xFFFFF3D6);
+  static const Color gold200 = Color(0xFFFFE4A1);
+  static const Color gold300 = Color(0xFFFFD966);
+  static const Color gold400 = Color(0xFFFFCC33);
+  static const Color gold500 = Color(0xFFFFBF00); // 金融金色
+  static const Color gold600 = Color(0xFFE6AC00);
+  static const Color gold700 = Color(0xFFCC9900);
+  static const Color gold800 = Color(0xFFB38600);
+  static const Color gold900 = Color(0xFF997300);
+
+  // 科技紫色系列 - 用于创新功能
+  static const Color tech50 = Color(0xFFF8F5FF);
+  static const Color tech100 = Color(0xFFEDE5FF);
+  static const Color tech200 = Color(0xFFD8C4FF);
+  static const Color tech300 = Color(0xFFC099FF);
+  static const Color tech400 = Color(0xFFA866FF);
+  static const Color tech500 = Color(0xFF9333FF); // 科技紫
+  static const Color tech600 = Color(0xFF7E22CE);
+  static const Color tech700 = Color(0xFF6B21A8);
+  static const Color tech800 = Color(0xFF581C87);
+  static const Color tech900 = Color(0xFF441E68);
 }
 
 /// 中性色 (Neutral Colors)
@@ -93,6 +117,83 @@ class FinancialColors {
   static const Color neutralDark = Color(0xFF495057);
 }
 
+/// 渐变色彩系统 (Gradient Colors)
+///
+/// 现代FinTech渐变配色方案
+class FinancialGradients {
+  FinancialGradients._();
+
+  // 主要渐变 - 深蓝到浅蓝
+  static const LinearGradient primaryGradient = LinearGradient(
+    colors: [Color(0xFF233997), Color(0xFF5E7CFF)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  // 成功/增长渐变 - 金色系
+  static const LinearGradient successGradient = LinearGradient(
+    colors: [Color(0xFFFFD966), Color(0xFFFFBF00)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  // 科技创新渐变 - 紫色系
+  static const LinearGradient techGradient = LinearGradient(
+    colors: [Color(0xFF6B21A8), Color(0xFF9333FF)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  // 市场数据渐变 - 蓝金组合
+  static const LinearGradient marketGradient = LinearGradient(
+    colors: [Color(0xFF4A6CFF), Color(0xFFFFBF00)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  // 背景渐变 - 深色主题
+  static const LinearGradient darkBackgroundGradient = LinearGradient(
+    colors: [Color(0xFF1A1F36), Color(0xFF0F172A)],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+  );
+
+  // 卡片渐变 - 玻璃拟态效果
+  static const LinearGradient cardGradient = LinearGradient(
+    colors: [Color(0xFFFFFFFF), Color(0xFFF8FAFC)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  // 按钮渐变 - 主要操作
+  static const LinearGradient buttonGradient = LinearGradient(
+    colors: [Color(0xFF5E7CFF), Color(0xFF4A6CFF)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  // 数据图表渐变 - 上升趋势
+  static const LinearGradient upTrendGradient = LinearGradient(
+    colors: [Color(0xFF28A745), Color(0xFF20C997)],
+    begin: Alignment.bottomLeft,
+    end: Alignment.topRight,
+  );
+
+  // 数据图表渐变 - 下降趋势
+  static const LinearGradient downTrendGradient = LinearGradient(
+    colors: [Color(0xFFDC3545), Color(0xFFFF6B6B)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  // 中性渐变 - 平盘状态
+  static const LinearGradient neutralGradient = LinearGradient(
+    colors: [Color(0xFF6C757D), Color(0xFF495057)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+}
+
 /// 风险等级颜色 (Risk Level Colors)
 ///
 /// 用于风险等级展示的渐变色系
@@ -110,4 +211,26 @@ class RiskColors {
   // 高风险 - 红色渐变
   static const Color highRiskStart = Color(0xFFDC3545);
   static const Color highRiskEnd = Color(0xFFFF6B6B);
+}
+
+/// 品牌色彩系统 (Brand Colors)
+///
+/// 基速基金专用品牌色彩
+class BrandColors {
+  BrandColors._();
+
+  // 品牌主色 - 深海蓝
+  static const Color brandPrimary = Color(0xFF1A365D);
+  static const Color brandPrimaryLight = Color(0xFF2E4AB8);
+  static const Color brandPrimaryDark = Color(0xFF0F1E3D);
+
+  // 品牌辅色 - 金融金
+  static const Color brandAccent = Color(0xFFD69E2E);
+  static const Color brandAccentLight = Color(0xFFFFBF00);
+  static const Color brandAccentDark = Color(0xFFB38600);
+
+  // 品牌中性色
+  static const Color brandNeutral = Color(0xFF1A202C);
+  static const Color brandNeutralLight = Color(0xFF2D3748);
+  static const Color brandNeutralDark = Color(0xFF0F1419);
 }

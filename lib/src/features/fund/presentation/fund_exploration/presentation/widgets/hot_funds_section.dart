@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../cubit/fund_exploration_cubit.dart';
-import '../../domain/models/fund.dart';
-import 'modern_fund_card.dart';
+import '../../../widgets/fund_card_factory.dart';
+import '../../../../../../features/fund/domain/entities/fund.dart';
+import '../../../../../../features/fund/domain/entities/fund_ranking.dart';
 
 /// 热门基金推荐组件
 ///
@@ -13,6 +14,7 @@ import 'modern_fund_card.dart';
 /// - 专业机构推荐的基金
 /// - 新兴主题投资机会
 class HotFundsSection extends StatefulWidget {
+  /// 创建热门基金推荐组件
   const HotFundsSection({super.key});
 
   @override
@@ -32,6 +34,40 @@ class _HotFundsSectionState extends State<HotFundsSection> {
     '稳健收益',
     '高成长',
   ];
+
+  /// 将FundRanking转换为Fund实体
+  Fund _convertRankingToFund(FundRanking ranking) {
+    return Fund(
+      code: ranking.fundCode,
+      name: ranking.fundName,
+      type: ranking.fundType,
+      company: ranking.company,
+      manager: '未知经理',
+      unitNav: ranking.unitNav,
+      accumulatedNav: ranking.accumulatedNav,
+      dailyReturn: ranking.dailyReturn,
+      return1W: ranking.return1W,
+      return1M: ranking.return1M,
+      return3M: ranking.return3M,
+      return6M: ranking.return6M,
+      return1Y: ranking.return1Y,
+      return2Y: ranking.return2Y,
+      return3Y: ranking.return3Y,
+      returnYTD: ranking.returnYTD,
+      returnSinceInception: ranking.returnSinceInception,
+      scale: 0.0,
+      riskLevel: '未知',
+      status: '正常',
+      date: ranking.rankingDate.toString().split(' ')[0],
+      fee: 0.0,
+      rankingPosition: ranking.rankingPosition,
+      totalCount: ranking.totalCount,
+      currentPrice: ranking.unitNav,
+      dailyChange: ranking.dailyReturn,
+      dailyChangePercent: ranking.dailyReturn,
+      lastUpdate: ranking.rankingDate,
+    );
+  }
 
   @override
   void initState() {
@@ -77,23 +113,25 @@ class _HotFundsSectionState extends State<HotFundsSection> {
             fundCode: sharedFund.fundCode,
             fundName: sharedFund.fundName,
             fundType: sharedFund.fundType,
-            company: sharedFund.fundCompany,
+            company: sharedFund.fundCompany ?? '未知公司',
             rankingPosition: index + 1,
             totalCount: sharedHotFunds.length,
-            unitNav: sharedFund.nav,
+            unitNav: sharedFund.nav?.toDouble() ?? 0.0,
             accumulatedNav: 0.0, // shared模型没有这个字段
-            dailyReturn: sharedFund.dailyReturn,
+            dailyReturn: sharedFund.dailyReturn?.toDouble() ?? 0.0,
             return1W: 0.0, // shared模型没有这个字段
             return1M: 0.0, // shared模型没有这个字段
             return3M: 0.0, // shared模型没有这个字段
             return6M: 0.0, // shared模型没有这个字段
-            return1Y: sharedFund.oneYearReturn,
+            return1Y: sharedFund.oneYearReturn?.toDouble() ?? 0.0,
             return2Y: 0.0, // shared模型没有这个字段
-            return3Y: sharedFund.threeYearReturn,
+            return3Y: sharedFund.threeYearReturn?.toDouble() ?? 0.0,
             returnYTD: 0.0, // shared模型没有这个字段
-            returnSinceInception: sharedFund.sinceInceptionReturn,
-            date: DateTime.now().toString().substring(0, 10), // 使用当前日期
-            fee: sharedFund.managementFee,
+            returnSinceInception:
+                sharedFund.sinceInceptionReturn?.toDouble() ?? 0.0,
+            rankingDate: DateTime.now(),
+            rankingType: RankingType.overall,
+            rankingPeriod: RankingPeriod.oneYear,
           );
         }).toList();
         final isLoading = state.isLoading;
@@ -284,19 +322,19 @@ class _HotFundsSectionState extends State<HotFundsSection> {
           scrollDirection: Axis.horizontal,
           itemCount: hotFunds.length,
           itemBuilder: (context, index) {
-            final fund = hotFunds[index];
+            final fundRanking = hotFunds[index];
+            final fund = _convertRankingToFund(fundRanking);
 
             return Container(
               width: availableHeight.clamp(200.0, 280.0),
               margin: const EdgeInsets.only(right: 8),
-              child: ModernFundCard(
+              child: FundCardFactory.createEnhanced(
                 fund: fund,
-                ranking: index + 1,
                 onTap: () {
                   Navigator.pushNamed(
                     context,
                     '/fund-detail',
-                    arguments: fund.fundCode,
+                    arguments: fund.code,
                   );
                 },
               ),

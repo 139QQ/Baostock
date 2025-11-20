@@ -1,3 +1,5 @@
+// ignore_for_file: unused_local_variable, public_member_api_docs, sort_constructors_first
+
 import 'dart:async';
 import 'dart:developer' as developer;
 import 'dart:math' as math;

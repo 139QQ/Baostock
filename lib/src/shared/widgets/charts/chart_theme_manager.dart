@@ -296,4 +296,9 @@ class ChartThemeManager {
       return (screenHeight * 0.35).clamp(minHeight, 500);
     }
   }
+
+  /// 释放资源
+  void dispose() {
+    _listeners.clear();
+  }
 }

@@ -1,3 +1,5 @@
+// ignore_for_file: directives_ordering
+
 import 'package:get_it/get_it.dart';
 import 'package:dio/dio.dart';
 import '../network/fund_api_client.dart';
@@ -17,6 +19,36 @@ import '../../services/optimized_cache_manager_v3.dart';
 import '../services/secure_storage_service.dart';
 import '../services/auth_service.dart';
 import '../utils/logger.dart';
+// Story 2.5 性能优化组件导入
+import '../performance/monitors/memory_leak_detector.dart';
+import '../performance/monitors/device_performance_detector.dart'
+    as device_detector;
+import '../performance/monitors/memory_pressure_monitor.dart';
+import '../performance/processors/improved_isolate_manager.dart';
+import '../performance/processors/stream_lifecycle_manager.dart';
+import '../performance/processors/hybrid_data_parser.dart';
+import '../performance/processors/isolate_communication_optimizer.dart';
+import '../performance/processors/memory_mapped_file_handler.dart';
+import '../performance/processors/smart_batch_processor.dart';
+import '../performance/processors/fund_data_batch_processor.dart';
+import '../performance/processors/backpressure_controller.dart';
+import '../performance/processors/adaptive_batch_sizer.dart';
+import '../performance/managers/advanced_memory_manager.dart';
+import '../performance/managers/dynamic_cache_adjuster.dart';
+import '../performance/managers/memory_cleanup_manager.dart';
+import '../performance/optimizers/adaptive_compression_strategy.dart';
+import '../performance/optimizers/smart_network_optimizer.dart' as network;
+import '../performance/optimizers/data_deduplication_manager.dart';
+import '../performance/controllers/connection_pool_manager.dart';
+import '../performance/controllers/performance_degradation_manager.dart';
+import '../performance/profiles/device_performance_profile.dart';
+import '../performance/services/user_performance_preferences.dart';
+import '../performance/services/low_overhead_monitor.dart';
+import '../performance/core_performance_manager.dart';
+import '../services/performance_manager_service.dart';
+// Story R.2 安全组件导入
+import '../../services/security/security_utils.dart';
+import '../../services/security/security_middleware.dart';
 import '../../features/fund/data/datasources/fund_remote_data_source.dart';
 import '../../features/fund/data/datasources/fund_local_data_source.dart';
 import '../../features/fund/domain/repositories/fund_repository.dart';
@@ -45,7 +77,7 @@ import '../../features/auth/domain/repositories/auth_repository.dart';
 import '../../features/auth/domain/usecases/login_with_phone.dart';
 import '../../features/auth/domain/usecases/login_with_email.dart';
 import '../../features/auth/domain/usecases/send_verification_code.dart';
-import '../../features/auth/presentation/bloc/auth_bloc.dart';
+import '../../features/auth/presentation/bloc/auth_bloc.dart' as auth;
 // 组合分析相关导入
 import '../../features/portfolio/domain/repositories/portfolio_profit_repository.dart';
 import '../../features/portfolio/data/repositories/portfolio_profit_repository_impl.dart';
@@ -62,18 +94,37 @@ import '../../features/portfolio/data/adapters/fund_favorite_adapter.dart'
 import '../../features/portfolio/data/services/fund_favorite_service.dart';
 import '../../features/portfolio/presentation/cubit/portfolio_analysis_cubit.dart';
 import '../../features/portfolio/presentation/cubit/fund_favorite_cubit.dart';
-// 推送相关导入
-import '../../features/alerts/data/managers/push_history_manager.dart';
+// 推送相关导入 (部分导入移至Story R.1部分)
 import 'package:hive/hive.dart';
 // Week 6 服务导入
 import '../../services/fund_analysis_service.dart';
 import '../../services/portfolio_analysis_service.dart';
 import '../../services/high_performance_fund_service.dart';
 import '../../services/smart_recommendation_service.dart';
-import '../../bloc/fund_search_bloc.dart';
 
+// Story R.1 状态管理统一化导入
+import '../state/feature_toggle_service.dart';
+import '../state/unified_bloc_factory.dart';
+import '../state/bloc_factory_initializer.dart';
+import '../state/global_state_manager.dart';
+import '../../features/alerts/data/managers/push_history_manager.dart';
+import '../../features/alerts/data/services/push_analytics_service.dart';
+import '../../features/alerts/data/services/android_permission_service.dart';
+import '../../bloc/fund_search_bloc.dart';
+import '../../bloc/performance_monitor_cubit.dart';
+// Story 2.3 市场指数相关导入
+import '../../features/market/presentation/cubits/market_index_cubit.dart';
+import '../../features/market/presentation/cubits/index_trend_cubit.dart';
+import '../../features/market/data/processors/market_index_data_manager.dart';
+import '../../features/market/data/processors/index_change_analyzer.dart';
+import '../../features/market/data/monitors/index_latency_monitor.dart';
+
+/// 全局服务定位器实例
 final GetIt sl = GetIt.instance;
 
+/// 初始化应用依赖注入
+///
+/// 注册所有应用需要的服务、仓库、用例和BLoC/Cubit实例
 Future<void> initDependencies() async {
   // debugPrint('初始化依赖注入...');
 
@@ -183,6 +234,13 @@ Future<void> initDependencies() async {
         },
       ))));
 
+  // Story R.2 安全组件注册
+  // 安全监控器
+  sl.registerLazySingleton<SecurityMonitor>(() => SecurityMonitor());
+
+  // 安全中间件
+  sl.registerLazySingleton<SecurityMiddleware>(() => SecurityMiddleware());
+
   // 数据源
   sl.registerLazySingleton<FundRemoteDataSource>(
     () => FundRemoteDataSourceImpl(sl()),
@@ -251,6 +309,12 @@ Future<void> initDependencies() async {
         analysisService: sl(),
       ));
 
+  // 性能监控Cubit (Story 2.5 BLoC集成)
+  sl.registerLazySingleton<PerformanceMonitorCubit>(
+      () => PerformanceMonitorCubit(
+            performanceManager: sl(),
+          ));
+
   // ===== Week 6 相关依赖 =====
 
   // 高性能基金服务
@@ -311,8 +375,8 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => LoginWithEmail(sl()));
   sl.registerLazySingleton(() => SendVerificationCode(sl()));
 
-  // 认证BLoC
-  sl.registerFactory(() => AuthBloc(
+  // 认证BLoC - 使用别名避免冲突
+  sl.registerFactory(() => auth.AuthBloc(
         repository: sl(),
         loginWithPhone: sl(),
         loginWithEmail: sl(),
@@ -431,10 +495,268 @@ Future<void> initDependencies() async {
     });
   }
 
+  // ===== Story 2.5 性能优化组件 =====
+
+  // 核心性能管理器
+  sl.registerLazySingleton<CorePerformanceManager>(
+      () => CorePerformanceManager());
+
+  // 性能检测器和统一监控器已移除 - 类未实现
+
+  // 性能管理服务 (统一入口)
+  sl.registerLazySingleton<PerformanceManagerService>(() {
+    final service = PerformanceManagerService();
+    // 异步初始化，不阻塞依赖注入
+    service.initialize().catchError((e) {
+      AppLogger.error('PerformanceManagerService initialization failed', e);
+    });
+    return service;
+  });
+
+  // 内存泄漏检测器 (单例模式)
+  sl.registerLazySingleton<MemoryLeakDetector>(() => MemoryLeakDetector());
+
+  // ImprovedIsolateManager (单例模式)
+  sl.registerLazySingleton<ImprovedIsolateManager>(
+      () => ImprovedIsolateManager());
+
+  // StreamLifecycleManager (单例模式)
+  sl.registerLazySingleton<StreamLifecycleManager>(
+      () => StreamLifecycleManager());
+
+  // HybridDataParser (单例模式)
+  sl.registerLazySingleton<HybridDataParser>(() => HybridDataParser());
+
+  // IsolateCommunicationOptimizer (单例模式)
+  sl.registerLazySingleton<IsolateCommunicationOptimizer>(
+      () => IsolateCommunicationOptimizer());
+
+  // MemoryMappedFileHandler (单例模式)
+  sl.registerLazySingleton<MemoryMappedFileHandler>(
+      () => MemoryMappedFileHandler());
+
+  // SmartBatchProcessor (单例模式)
+  sl.registerLazySingleton<SmartBatchProcessor>(() => SmartBatchProcessor());
+
+  // 基金数据批次处理器 (Story 2.5 核心组件)
+  sl.registerLazySingleton<FundDataBatchProcessor>(() {
+    final processor = FundDataBatchProcessor(
+      batchProcessor: sl<SmartBatchProcessor>(),
+      dataParser: sl<HybridDataParser>(),
+      memoryManager: sl<AdvancedMemoryManager>(),
+      compressionStrategy: sl<AdaptiveCompressionStrategy>(),
+      deduplicationManager: sl<DataDeduplicationManager>(),
+    );
+    // 异步初始化，不阻塞依赖注入
+    processor.initialize().catchError((e) {
+      AppLogger.error('FundDataBatchProcessor initialization failed', e);
+    });
+    return processor;
+  });
+
+  // BackpressureController (单例模式)
+  sl.registerLazySingleton<BackpressureController>(() => BackpressureController(
+        memoryManager: sl<AdvancedMemoryManager>(),
+        memoryMonitor: sl<MemoryPressureMonitor>(),
+        deviceDetector: sl<device_detector.DeviceCapabilityDetector>(),
+      ));
+
+  // AdaptiveBatchSizer (单例模式)
+  sl.registerLazySingleton<AdaptiveBatchSizer>(() => AdaptiveBatchSizer(
+        deviceDetector: sl<device_detector.DeviceCapabilityDetector>(),
+        memoryManager: sl<AdvancedMemoryManager>(),
+        memoryMonitor: sl<MemoryPressureMonitor>(),
+      ));
+
+  // Story 2.5 Task 3: 智能内存管理系统
+  // AdvancedMemoryManager (单例模式)
+  sl.registerLazySingleton<AdvancedMemoryManager>(
+      () => AdvancedMemoryManager.instance);
+
+  // DeviceCapabilityDetector (单例模式)
+  sl.registerLazySingleton<device_detector.DeviceCapabilityDetector>(
+      () => device_detector.DeviceCapabilityDetector());
+
+  // MemoryPressureMonitor (单例模式)
+  sl.registerLazySingleton<MemoryPressureMonitor>(() => MemoryPressureMonitor(
+        memoryManager: sl<AdvancedMemoryManager>(),
+      ));
+
+  // DynamicCacheAdjuster (单例模式)
+  sl.registerLazySingleton<DynamicCacheAdjuster>(() => DynamicCacheAdjuster(
+        deviceDetector: sl<device_detector.DeviceCapabilityDetector>(),
+        memoryManager: sl<AdvancedMemoryManager>(),
+      ));
+
+  // MemoryCleanupManager (单例模式)
+  sl.registerLazySingleton<MemoryCleanupManager>(() => MemoryCleanupManager(
+        memoryManager: sl<AdvancedMemoryManager>(),
+      ));
+
+  // Story 2.5 Task 4: 自适应数据压缩和传输优化
+  // AdaptiveCompressionStrategy (单例模式)
+  sl.registerLazySingleton<AdaptiveCompressionStrategy>(
+      () => AdaptiveCompressionStrategy());
+
+  // SmartNetworkOptimizer (单例模式)
+  sl.registerLazySingleton<network.SmartNetworkOptimizer>(() =>
+      network.SmartNetworkOptimizer(
+        deviceDetector: network.DeviceCapabilityDetector(), // 使用network命名空间中的定义
+        memoryMonitor: sl<MemoryPressureMonitor>(),
+      ));
+
+  // ConnectionPoolManager (单例模式)
+  sl.registerLazySingleton<ConnectionPoolManager>(
+      () => ConnectionPoolManager());
+
+  // DataDeduplicationManager (单例模式)
+  sl.registerLazySingleton<DataDeduplicationManager>(
+      () => DataDeduplicationManager());
+
+  // Story 2.5 Task 5: 智能设备性能检测和降级策略
+  // DeviceProfileManager (单例模式)
+  sl.registerLazySingleton<DeviceProfileManager>(() {
+    final manager = DeviceProfileManager.instance;
+    // 异步初始化，不阻塞依赖注入
+    manager.initialize().catchError((e) {
+      AppLogger.error('DeviceProfileManager initialization failed', e);
+    });
+    return manager;
+  });
+
+  // PerformanceDegradationManager (单例模式)
+  sl.registerLazySingleton<PerformanceDegradationManager>(() {
+    final manager = PerformanceDegradationManager.instance;
+    // 异步初始化，不阻塞依赖注入
+    manager
+        .initialize(
+      deviceDetector: sl<device_detector.DeviceCapabilityDetector>(),
+      memoryMonitor: sl<MemoryPressureMonitor>(),
+      profileManager: sl<DeviceProfileManager>(),
+    )
+        .catchError((e) {
+      AppLogger.error('PerformanceDegradationManager initialization failed', e);
+    });
+    return manager;
+  });
+
+  // UserPerformancePreferencesManager (单例模式)
+  sl.registerLazySingleton<UserPerformancePreferencesManager>(() {
+    final manager = UserPerformancePreferencesManager.instance;
+    // 异步初始化，不阻塞依赖注入
+    manager.initialize().catchError((e) {
+      AppLogger.error(
+          'UserPerformancePreferencesManager initialization failed', e);
+    });
+    return manager;
+  });
+
+  // Story 2.5 Task 6: 背压控制和批量处理优化
+  // SmartBatchProcessor, BackpressureController, AdaptiveBatchSizer 已在上面注册
+
+  // Story 2.5 Task 7: 低开销性能监控系统
+  // LowOverheadMonitor (单例模式)
+  sl.registerLazySingleton<LowOverheadMonitor>(() {
+    final monitor = LowOverheadMonitor(
+      memoryManager: sl<AdvancedMemoryManager>(),
+      memoryMonitor: sl<MemoryPressureMonitor>(),
+      deviceDetector: sl<device_detector.DeviceCapabilityDetector>(),
+      profileManager: sl<DeviceProfileManager>(),
+      degradationManager: sl<PerformanceDegradationManager>(),
+    );
+    // 异步初始化，不阻塞依赖注入
+    monitor.initialize().catchError((e) {
+      AppLogger.error('LowOverheadMonitor initialization failed', e);
+    });
+    return monitor;
+  });
+
+  // ===== Story 2.3 市场指数相关依赖 =====
+
+  // 指数变化分析器
+  sl.registerLazySingleton<IndexChangeAnalyzer>(() => IndexChangeAnalyzer());
+
+  // 指数延迟监控器
+  sl.registerLazySingleton<IndexLatencyMonitor>(() => IndexLatencyMonitor());
+
+  // 市场指数数据管理器 (单例模式)
+  sl.registerLazySingleton<MarketIndexDataManager>(
+      () => MarketIndexDataManager());
+
+  // 市场指数Cubit
+  sl.registerLazySingleton<MarketIndexCubit>(() => MarketIndexCubit(
+        dataManager: sl<MarketIndexDataManager>(),
+        changeAnalyzer: sl<IndexChangeAnalyzer>(),
+        latencyMonitor: sl<IndexLatencyMonitor>(),
+      ));
+
+  // 指数趋势Cubit
+  sl.registerLazySingleton<IndexTrendCubit>(() => IndexTrendCubit(
+        dataManager: sl<MarketIndexDataManager>(),
+      ));
+
   // ===== Week 5 数据源层核心组件 =====
   // 注意：Week 5 组件具有复杂的依赖关系，暂时不直接集成到主DI容器中
   // 组件已正确实现并可通过测试验证功能
   // 如需集成，请参考测试文件中的组件初始化方式
+
+  // ===== Story R.1: 状态管理统一化相关依赖 =====
+
+  // 特性开关服务 (单例模式)
+  sl.registerLazySingleton<FeatureToggleService>(
+      () => FeatureToggleService.instance);
+
+  // BLoC工厂初始化器
+  sl.registerLazySingleton<BlocFactoryInitializer>(() {
+    final initializer = BlocFactoryInitializer();
+    // 立即初始化所有BLoC工厂
+    BlocFactoryInitializer.initialize();
+    return initializer;
+  });
+
+  // 统一BLoC工厂 (单例模式)
+  sl.registerLazySingleton<UnifiedBlocFactory>(
+      () => UnifiedBlocFactory.instance);
+
+  // 全局状态管理器 (单例模式)
+  sl.registerLazySingleton<GlobalStateManager>(() {
+    final manager = GlobalStateManager.instance;
+    // 异步初始化，不阻塞依赖注入
+    manager.initialize().catchError((e) {
+      AppLogger.error('GlobalStateManager initialization failed', e);
+    });
+    return manager;
+  });
+
+  // 推送通知历史管理器 (单例模式)
+  sl.registerLazySingleton<PushHistoryManager>(() {
+    final manager = PushHistoryManager.instance;
+    // 异步初始化，不阻塞依赖注入
+    manager.initialize().catchError((e) {
+      AppLogger.error('PushHistoryManager initialization failed', e);
+    });
+    return manager;
+  });
+
+  // 推送分析服务 (单例模式)
+  sl.registerLazySingleton<PushAnalyticsService>(() {
+    final service = PushAnalyticsService.instance;
+    // 异步初始化，不阻塞依赖注入
+    service.initialize().catchError((e) {
+      AppLogger.error('PushAnalyticsService initialization failed', e);
+    });
+    return service;
+  });
+
+  // Android权限服务 (单例模式)
+  sl.registerLazySingleton<AndroidPermissionService>(
+      () => AndroidPermissionService.instance);
+
+  // 推送通知Cubit (单例模式) - 暂时注释掉参数问题
+  // sl.registerLazySingleton<PushNotificationCubit>(() => PushNotificationCubit());
+
+  // 推送通知BLoC工厂注册 - 暂时注释
+  // sl.registerLazySingleton<PushNotificationBlocFactory>(() => PushNotificationBlocFactory());
 
   // debugPrint('依赖注入初始化完成');
 }

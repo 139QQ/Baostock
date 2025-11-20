@@ -12,8 +12,30 @@ abstract class MarketRealService {
   /// 获取单个指数数据
   Future<IndexData> getSingleIndex(String symbol);
 
-  /// 获取指数近期历史数据
+  /// 获取指数近期历史数据（保持兼容性，使用模拟数据）
   Future<List<ChartPoint>> getIndexRecentHistory(String symbol);
+
+  /// 获取指数历史日线数据（东方财富API）
+  Future<List<IndexHistoryData>> getIndexHistory(HistoryQueryParams params);
+
+  /// 获取指数分时历史数据（东方财富API）
+  Future<List<IndexIntradayData>> getIndexIntradayData(
+      HistoryQueryParams params);
+
+  /// 根据历史数据生成图表点
+  Future<List<ChartPoint>> getHistoryChartPoints(
+    String symbol, {
+    DateTime? startDate,
+    DateTime? endDate,
+  });
+
+  /// 根据分时数据生成图表点
+  Future<List<ChartPoint>> getIntradayChartPoints(
+    String symbol, {
+    String period = '1',
+    DateTime? startDate,
+    DateTime? endDate,
+  });
 }
 
 /// 基于东方财富网的真实市场数据服务
@@ -21,14 +43,20 @@ abstract class MarketRealService {
 /// 地址: https://quote.eastmoney.com/center/gridlist.html#index_sz
 class MarketRealServiceOriginal implements MarketRealService {
   static String baseUrl = 'http://154.44.25.92:8080';
+
+  // 针对不同数据类型的超时配置
+  static Duration realtimeTimeout = const Duration(seconds: 8);
+  static Duration historyTimeout = const Duration(seconds: 25);
+  static Duration intradayTimeout = const Duration(seconds: 12);
+
   final Dio _dio;
 
   MarketRealServiceOriginal() : _dio = Dio() {
     _dio.options.baseUrl = baseUrl;
-    // 优化超时配置 - 增加到30秒以处理网络延迟
-    _dio.options.connectTimeout = const Duration(seconds: 30);
-    _dio.options.receiveTimeout = const Duration(seconds: 30);
-    _dio.options.sendTimeout = const Duration(seconds: 30);
+    // 差异化超时配置 - 针对不同数据类型优化
+    _dio.options.connectTimeout = const Duration(seconds: 10);
+    _dio.options.receiveTimeout = const Duration(seconds: 15); // 默认接收超时
+    _dio.options.sendTimeout = const Duration(seconds: 10);
 
     // 添加基础的错误处理
     _dio.interceptors.add(
@@ -50,12 +78,30 @@ class MarketRealServiceOriginal implements MarketRealService {
     );
   }
 
+  /// 带自定义超时的GET请求
+  Future<Response> _getWithTimeout(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+    Duration? timeout,
+  }) async {
+    final originalTimeout = _dio.options.receiveTimeout;
+    _dio.options.receiveTimeout = timeout ?? const Duration(seconds: 15);
+
+    try {
+      return await _dio.get(path, queryParameters: queryParameters);
+    } finally {
+      _dio.options.receiveTimeout = originalTimeout;
+    }
+  }
+
   @override
   Future<MarketIndicesData> getRealTimeIndices() async {
     try {
       AppLogger.info('📊 开始获取实时指数数据...');
 
-      final response = await _dio.get('/api/public/stock_zh_index_spot_em');
+      final response = await _getWithTimeout(
+          '/api/public/stock_zh_index_spot_em',
+          timeout: realtimeTimeout);
       final allData = response.data as List;
 
       AppLogger.info('✅ 成功获取 ${allData.length} 条指数数据');
@@ -113,7 +159,9 @@ class MarketRealServiceOriginal implements MarketRealService {
     try {
       AppLogger.info('📈 开始获取单个指数数据: $symbol');
 
-      final response = await _dio.get('/api/public/stock_zh_index_spot_em');
+      final response = await _getWithTimeout(
+          '/api/public/stock_zh_index_spot_em',
+          timeout: realtimeTimeout);
       final data = response.data as List;
 
       final indexData = data.firstWhere(
@@ -177,6 +225,160 @@ class MarketRealServiceOriginal implements MarketRealService {
       // 返回空列表而不是抛出异常
       return [];
     }
+  }
+
+  @override
+  Future<List<IndexHistoryData>> getIndexHistory(
+      HistoryQueryParams params) async {
+    try {
+      AppLogger.info('📊 开始获取指数历史日线数据: ${params.symbol}');
+
+      // 构建查询参数，正确传递start_date和end_date
+      final queryParams = <String, dynamic>{'symbol': params.symbol};
+
+      if (params.startDate != null) {
+        queryParams['start_date'] = _formatDateForEastMoney(params.startDate!);
+      }
+
+      if (params.endDate != null) {
+        queryParams['end_date'] = _formatDateForEastMoney(params.endDate!);
+      }
+
+      // 调用东方财富历史数据API - stock_zh_index_daily_em
+      final response = await _getWithTimeout(
+        '/api/public/stock_zh_index_daily_em',
+        queryParameters: queryParams,
+        timeout: historyTimeout,
+      );
+
+      final data = response.data as List;
+      AppLogger.info('✅ 成功获取 ${data.length} 条历史数据');
+
+      final historyData = data.map((item) {
+        return IndexHistoryData.fromEastMoney(
+          Map<String, dynamic>.from(item),
+          params.symbol,
+          _getIndexName(params.symbol),
+        );
+      }).toList();
+
+      return historyData;
+    } catch (e) {
+      AppLogger.error('❌ 获取指数历史数据失败: ${params.symbol} - $e', e);
+      return [];
+    }
+  }
+
+  @override
+  Future<List<IndexIntradayData>> getIndexIntradayData(
+      HistoryQueryParams params) async {
+    try {
+      AppLogger.info('📈 开始获取指数分时数据: ${params.symbol}');
+
+      if (params.period == null) {
+        throw ArgumentError('分时数据需要指定period参数');
+      }
+
+      final queryParams = params.toQueryParams();
+
+      // 调用东方财富分时数据API
+      final response = await _getWithTimeout(
+        '/api/public/index_zh_a_hist_min_em',
+        queryParameters: queryParams,
+        timeout: intradayTimeout,
+      );
+
+      final data = response.data as List;
+      AppLogger.info('✅ 成功获取 ${data.length} 条分时数据');
+
+      return data.map((item) {
+        return IndexIntradayData.fromEastMoney(
+          Map<String, dynamic>.from(item),
+          params.symbol,
+          _getIndexName(params.symbol),
+        );
+      }).toList();
+    } catch (e) {
+      AppLogger.error('❌ 获取指数分时数据失败: ${params.symbol} - $e', e);
+      return [];
+    }
+  }
+
+  @override
+  Future<List<ChartPoint>> getHistoryChartPoints(
+    String symbol, {
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    try {
+      final params = HistoryQueryParams(
+        symbol: symbol,
+        startDate: startDate,
+        endDate: endDate,
+      );
+      final historyData = await getIndexHistory(params);
+
+      return historyData
+          .asMap()
+          .entries
+          .map((entry) => ChartPoint.fromHistoryData(entry.value, entry.key))
+          .toList();
+    } catch (e) {
+      AppLogger.error('❌ 生成历史图表点失败: $symbol - $e', e);
+      return [];
+    }
+  }
+
+  @override
+  Future<List<ChartPoint>> getIntradayChartPoints(
+    String symbol, {
+    String period = '1',
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    try {
+      final params = HistoryQueryParams(
+        symbol: symbol,
+        period: period,
+        startDate: startDate,
+        endDate: endDate,
+      );
+
+      final intradayData = await getIndexIntradayData(params);
+
+      return intradayData
+          .asMap()
+          .entries
+          .map((entry) => ChartPoint.fromIntradayData(entry.value, entry.key))
+          .toList();
+    } catch (e) {
+      AppLogger.error('❌ 生成分时图表点失败: $symbol - $e', e);
+      return [];
+    }
+  }
+
+  /// 根据指数代码获取指数名称
+  String _getIndexName(String symbol) {
+    final indexNames = {
+      '000001': '上证指数',
+      '399001': '深证成指',
+      '399006': '创业板指',
+      '000300': '沪深300',
+      '000688': '科创50',
+      '399005': '中小板指',
+      '399295': '深证100',
+      '000905': '中证500',
+      '000016': '上证50',
+      '000906': '中证800',
+    };
+    return indexNames[symbol] ?? '未知指数';
+  }
+
+  /// 格式化日期为东方财富API所需格式 (YYYYMMDD)
+  String _formatDateForEastMoney(DateTime dateTime) {
+    return "${dateTime.year.toString().padLeft(4, '0')}"
+        "${dateTime.month.toString().padLeft(2, '0')}"
+        "${dateTime.day.toString().padLeft(2, '0')}";
   }
 }
 

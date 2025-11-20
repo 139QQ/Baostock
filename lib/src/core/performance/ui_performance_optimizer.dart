@@ -3,25 +3,26 @@
 library ui_performance_optimizer;
 
 import 'dart:async';
-import 'dart:developer' as developer;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+
 import '../utils/logger.dart';
 
 /// UI性能指标
 class UIPerformanceMetrics {
-  final Duration frameTime;
-  final int widgetCount;
-  final int rebuildCount;
-  final DateTime timestamp;
-
+  // ignore: public_member_api_docs
   UIPerformanceMetrics({
     required this.frameTime,
     required this.widgetCount,
     required this.rebuildCount,
     required this.timestamp,
   });
+  final Duration frameTime;
+  final int widgetCount;
+  final int rebuildCount;
+  final DateTime timestamp;
 
   Map<String, dynamic> toJson() {
     return {
@@ -126,11 +127,8 @@ class UIPerformanceOptimizer {
           '⚠️ 帧渲染时间过长: ${frameTime.inMilliseconds}ms (阈值: ${_config.frameTimeThreshold.inMilliseconds}ms)');
 
       if (kDebugMode) {
-        developer.log(
-          '性能警告: 帧时间 ${frameTime.inMilliseconds}ms 超过阈值',
-          name: 'UIPerformance',
-          level: 900,
-        );
+        AppLogger.warn(
+            '性能警告: 帧时间 ${frameTime.inMilliseconds}ms 超过阈值', 'UIPerformance');
       }
     }
   }
@@ -167,9 +165,9 @@ class UIPerformanceOptimizer {
 
     // 在调试模式下输出详细信息
     if (kDebugMode) {
-      developer.log(
+      AppLogger.business(
           'UI性能报告: 平均帧时间 ${(avgFrameTime / 1000).toStringAsFixed(2)}ms',
-          name: 'UIPerformance');
+          'UIPerformance');
     }
   }
 

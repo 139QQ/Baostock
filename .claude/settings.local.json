@@ -49,10 +49,32 @@
       "SlashCommand(/bmad:bmm:workflows:create-story)",
       "Bash(tasklist:*)",
       "SlashCommand(/bmad:bmm:workflows:dev-story)",
-      "SlashCommand(/bmad:bmm:workflows:story-context)"
+      "SlashCommand(/bmad:bmm:workflows:story-context)",
+      "Bash(claude mcp list:*)",
+      "Bash(claude mcp add:*)",
+      "Bash(claude mcp get:*)",
+      "Bash(claude mcp remove:*)",
+      "mcp__context7__resolve-library-id",
+      "mcp__sequential-thinking__sequentialthinking",
+      "mcp__exa__web_search_exa",
+      "mcp__searxng-public__search",
+      "mcp__serena__get_current_config",
+      "mcp__serena__list_dir",
+      "mcp__serena__find_symbol",
+      "mcp__serena__search_for_pattern",
+      "mcp__serena__find_file",
+      "mcp__serena__get_symbols_overview",
+      "mcp__Playwright__browser_navigate",
+      "mcp__spec-workflow__spec-status",
+      "SlashCommand(/bmad:bmb:workflows:redoc)",
+      "mcp__serena__activate_project"
     ],
     "deny": [],
     "ask": []
   },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "searxng"
+  ],
   "outputStyle": "engineer-professional"
 }

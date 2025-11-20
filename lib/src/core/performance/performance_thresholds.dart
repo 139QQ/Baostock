@@ -2,6 +2,8 @@
 ///
 /// 定义应用各项性能指标的阈值标准
 /// 基于用户体验期望和行业最佳实践
+// ignore_for_file: public_member_api_docs, dangling_library_doc_comments
+
 class PerformanceThresholds {
   // 私有构造函数，防止实例化
   PerformanceThresholds._();
@@ -223,12 +225,6 @@ enum PerformanceCategory {
 
 /// 性能指标定义
 class PerformanceMetric {
-  final String name;
-  final String description;
-  final PerformanceCategory category;
-  final String unit;
-  final Map<PerformanceStatus, double> thresholds;
-
   const PerformanceMetric({
     required this.name,
     required this.description,
@@ -236,6 +232,11 @@ class PerformanceMetric {
     required this.unit,
     required this.thresholds,
   });
+  final String name;
+  final String description;
+  final PerformanceCategory category;
+  final String unit;
+  final Map<PerformanceStatus, double> thresholds;
 
   /// 获取状态
   PerformanceStatus getStatus(double value) {

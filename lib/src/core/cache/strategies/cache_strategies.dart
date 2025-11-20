@@ -6,6 +6,8 @@
 /// - TTL (时间过期)
 /// - Adaptive (自适应)
 /// - PriorityBased (基于优先级)
+// ignore_for_file: public_member_api_docs, sort_constructors_first
+
 library cache_strategies;
 
 import 'dart:async';
