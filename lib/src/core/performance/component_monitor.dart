@@ -59,7 +59,8 @@ class ComponentMonitor {
     final timestamp = DateTime.now();
     _lastRenderTime[componentKey] = timestamp;
 
-    _componentMetrics.putIfAbsent(componentKey, () => ComponentMetrics(componentKey));
+    _componentMetrics.putIfAbsent(
+        componentKey, () => ComponentMetrics(componentKey));
 
     // 检查是否为不必要的重建
     if (_isUnnecessaryRebuild(componentKey)) {
@@ -74,7 +75,9 @@ class ComponentMonitor {
     final startTime = _lastRenderTime[componentKey];
     if (startTime == null) return;
 
-    final renderTime = DateTime.now().difference(startTime).inMicroseconds.toDouble() / 1000.0; // 转换为毫秒
+    final renderTime =
+        DateTime.now().difference(startTime).inMicroseconds.toDouble() /
+            1000.0; // 转换为毫秒
 
     _renderTimeHistory.putIfAbsent(componentKey, () => Queue());
     final history = _renderTimeHistory[componentKey]!;
@@ -150,7 +153,8 @@ class ComponentMonitor {
     final history = _renderTimeHistory[componentKey];
     if (history == null || history.isEmpty) return 0.0;
 
-    final totalTime = history.fold<double>(0.0, (sum, record) => sum + record.renderTime);
+    final totalTime =
+        history.fold<double>(0.0, (sum, record) => sum + record.renderTime);
     return totalTime / history.length;
   }
 
@@ -190,10 +194,12 @@ class ComponentMonitor {
       final optimizationRate = getRebuildOptimizationRate(componentKey);
 
       if (optimizationRate < 60.0) {
-        AppLogger.warning('AC7验收失败: $componentKey 优化率 ${optimizationRate.toStringAsFixed(1)}% < 60%');
+        AppLogger.warning(
+            'AC7验收失败: $componentKey 优化率 ${optimizationRate.toStringAsFixed(1)}% < 60%');
         allComponentsComply = false;
       } else {
-        AppLogger.info('✅ AC7验收通过: $componentKey 优化率 ${optimizationRate.toStringAsFixed(1)}% ≥ 60%');
+        AppLogger.info(
+            '✅ AC7验收通过: $componentKey 优化率 ${optimizationRate.toStringAsFixed(1)}% ≥ 60%');
       }
     }
 
@@ -229,8 +235,10 @@ class ComponentMonitor {
     // 生成汇总数据
     data['summary'] = {
       'totalComponents': _componentMetrics.length,
-      'totalRenders': _componentMetrics.values.fold(0, (sum, m) => sum + m.renderCount),
-      'totalUnnecessaryRebuilds': _componentMetrics.values.fold(0, (sum, m) => sum + m.unnecessaryRebuilds),
+      'totalRenders':
+          _componentMetrics.values.fold(0, (sum, m) => sum + m.renderCount),
+      'totalUnnecessaryRebuilds': _componentMetrics.values
+          .fold(0, (sum, m) => sum + m.unnecessaryRebuilds),
       'averageOptimizationRate': _calculateAverageOptimizationRate(),
       'ac7Compliance': _checkAC7Compliance(),
     };
@@ -372,18 +380,15 @@ mixin ComponentMonitorMixin<T extends StatefulWidget> on State<T> {
   }
 
   /// 获取当前组件的性能指标
-  ComponentMetrics? get performanceMetrics =>
-      _monitor.getMetrics(componentKey);
+  ComponentMetrics? get performanceMetrics => _monitor.getMetrics(componentKey);
 
   /// 获取重建优化率
   double get rebuildOptimizationRate =>
       _monitor.getRebuildOptimizationRate(componentKey);
 
   /// 手动记录缓存命中
-  void recordCacheHit() =>
-      _monitor.recordCacheHit(componentKey);
+  void recordCacheHit() => _monitor.recordCacheHit(componentKey);
 
   /// 手动记录缓存未命中
-  void recordCacheMiss() =>
-      _monitor.recordCacheMiss(componentKey);
+  void recordCacheMiss() => _monitor.recordCacheMiss(componentKey);
 }

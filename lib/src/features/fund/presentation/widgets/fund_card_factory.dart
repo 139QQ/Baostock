@@ -383,7 +383,8 @@ class FundCardFactory {
   }
 
   /// 根据性能级别获取动画级别
-  static AnimationLevel _getAnimationLevelForPerformance(PerformanceLevel level) {
+  static AnimationLevel _getAnimationLevelForPerformance(
+      PerformanceLevel level) {
     switch (level) {
       case PerformanceLevel.excellent:
         return AnimationLevel.enhanced;
@@ -410,7 +411,8 @@ class FundCardFactory {
 
   /// 从配置获取动画级别
   static AnimationLevel _getAnimationLevelFromConfig(FundCardConfig config) {
-    return AnimationLevel.values[config.animationLevel.clamp(0, AnimationLevel.values.length - 1)];
+    return AnimationLevel.values[
+        config.animationLevel.clamp(0, AnimationLevel.values.length - 1)];
   }
 }
 

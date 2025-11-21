@@ -269,7 +269,8 @@ class FundCardUtils {
   }
 
   /// 获取卡片阴影
-  static List<BoxShadow> getCardShadows(BuildContext context, {
+  static List<BoxShadow> getCardShadows(
+    BuildContext context, {
     bool isHovered = false,
     bool isPressed = false,
     CardState state = CardState.normal,
@@ -307,7 +308,8 @@ class FundCardUtils {
   }
 
   /// 获取卡片边框
-  static BoxBorder? getCardBorder(BuildContext context, {
+  static BoxBorder? getCardBorder(
+    BuildContext context, {
     CardState state = CardState.normal,
     bool isSelected = false,
   }) {
@@ -337,7 +339,8 @@ class FundCardUtils {
   }
 
   /// 获取卡片背景颜色
-  static Color getCardBackgroundColor(BuildContext context, {
+  static Color getCardBackgroundColor(
+    BuildContext context, {
     CardState state = CardState.normal,
     bool isSelected = false,
   }) {
@@ -378,14 +381,15 @@ class FundCardUtils {
   /// 验证基金数据完整性
   static bool validateFundData(Fund fund) {
     return fund.code.isNotEmpty &&
-           fund.name.isNotEmpty &&
-           fund.unitNav >= 0 &&
-           fund.dailyReturn >= -100 &&
-           fund.dailyReturn <= 1000;
+        fund.name.isNotEmpty &&
+        fund.unitNav >= 0 &&
+        fund.dailyReturn >= -100 &&
+        fund.dailyReturn <= 1000;
   }
 
   /// 获取推荐的动画配置
-  static FundCardConfig getRecommendedConfig(Fund fund, {
+  static FundCardConfig getRecommendedConfig(
+    Fund fund, {
     int animationLevel = 1,
     bool isHighPerformanceDevice = false,
   }) {

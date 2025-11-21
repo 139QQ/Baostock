@@ -50,7 +50,10 @@ class AdaptiveFundCard extends BaseFundCard {
 }
 
 class _AdaptiveFundCardState extends State<AdaptiveFundCard>
-    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin, ComponentMonitorMixin {
+    with
+        TickerProviderStateMixin,
+        AutomaticKeepAliveClientMixin,
+        ComponentMonitorMixin {
   late AnimationController _slideController;
   late AnimationController _fadeController;
   AnimationController? _hoverController;
@@ -220,7 +223,8 @@ class _AdaptiveFundCardState extends State<AdaptiveFundCard>
     // 在 enhanced 模式下，_hoverController 保证不为 null
     final hoverController = _hoverController!;
     return AnimatedBuilder(
-      animation: Listenable.merge([_slideController, _fadeController, hoverController]),
+      animation: Listenable.merge(
+          [_slideController, _fadeController, hoverController]),
       builder: (context, child) {
         return Transform.translate(
           offset: Offset(0, _slideController.value * 20),
@@ -283,21 +287,22 @@ class _AdaptiveFundCardState extends State<AdaptiveFundCard>
               Text(
                 widget.fund.name,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
               Text(
                 widget.fund.code,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.grey[600],
-                ),
+                      color: Colors.grey[600],
+                    ),
               ),
             ],
           ),
         ),
 
         // 快速操作按钮
-        if (widget.showQuickActions && _animationLevel != AnimationLevel.disabled)
+        if (widget.showQuickActions &&
+            _animationLevel != AnimationLevel.disabled)
           _buildQuickActions(),
       ],
     );
@@ -335,8 +340,8 @@ class _AdaptiveFundCardState extends State<AdaptiveFundCard>
             Text(
               widget.fund.unitNav.toStringAsFixed(4),
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
           ],
         ),
@@ -350,9 +355,11 @@ class _AdaptiveFundCardState extends State<AdaptiveFundCard>
             Text(
               '${widget.fund.dailyReturn.toStringAsFixed(2)}%',
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: widget.fund.dailyReturn >= 0 ? Colors.green : Colors.red,
-              ),
+                    fontWeight: FontWeight.bold,
+                    color: widget.fund.dailyReturn >= 0
+                        ? Colors.green
+                        : Colors.red,
+                  ),
             ),
           ],
         ),
@@ -425,7 +432,8 @@ class _AdaptiveFundCardState extends State<AdaptiveFundCard>
     return monitoredBuild(context, () {
       return Semantics(
         button: true,
-        label: '基金卡片: ${widget.fund.name}, 收益率: ${widget.fund.dailyReturn.toStringAsFixed(2)}%',
+        label:
+            '基金卡片: ${widget.fund.name}, 收益率: ${widget.fund.dailyReturn.toStringAsFixed(2)}%',
         child: GestureDetector(
           onTap: widget.onTap,
           onTapDown: _handleTapDown,

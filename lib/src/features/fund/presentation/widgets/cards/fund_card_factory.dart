@@ -99,7 +99,8 @@ class FundCardFactory {
           onSwipeLeft: onSwipeLeft,
           onSwipeRight: onSwipeRight,
           performanceLevel: performanceLevel ?? PerformanceLevelSimple.medium,
-          enablePerformanceMonitoring: config?.enablePerformanceMonitoring ?? true,
+          enablePerformanceMonitoring:
+              config?.enablePerformanceMonitoring ?? true,
           enableAccessibility: config?.enableAccessibility ?? true,
         );
         break;
@@ -120,7 +121,8 @@ class FundCardFactory {
           onSwipeLeft: onSwipeLeft,
           onSwipeRight: onSwipeRight,
           performanceLevel: performanceLevel ?? PerformanceLevelSimple.medium,
-          enablePerformanceMonitoring: config?.enablePerformanceMonitoring ?? true,
+          enablePerformanceMonitoring:
+              config?.enablePerformanceMonitoring ?? true,
           enableAccessibility: config?.enableAccessibility ?? true,
           enableSwipeGestures: true,
           enableHapticFeedback: config?.enableGestureFeedback ?? true,
@@ -166,8 +168,10 @@ class FundCardFactory {
   }) async {
     final performanceDetector = SmartPerformanceDetector.instance;
     final performanceResult = await performanceDetector.detectPerformance();
-    final performanceLevelSimple = _convertToSimpleLevel(performanceResult.level);
-    final recommendedType = _getRecommendedCardType(performanceLevelSimple, config);
+    final performanceLevelSimple =
+        _convertToSimpleLevel(performanceResult.level);
+    final recommendedType =
+        _getRecommendedCardType(performanceLevelSimple, config);
 
     return createFundCard(
       fund: fund,
@@ -231,7 +235,8 @@ class FundCardFactory {
   }
 
   /// 将详细的性能级别转换为简化级别
-  static PerformanceLevelSimple _convertToSimpleLevel(PerformanceLevel performanceLevel) {
+  static PerformanceLevelSimple _convertToSimpleLevel(
+      PerformanceLevel performanceLevel) {
     switch (performanceLevel) {
       case PerformanceLevel.excellent:
       case PerformanceLevel.good:
@@ -273,7 +278,8 @@ class FundCardFactory {
   }
 
   /// 生成完整缓存键
-  static String _generateCacheKey(Fund fund, FundCardType cardType, FundCardConfig? config) {
+  static String _generateCacheKey(
+      Fund fund, FundCardType cardType, FundCardConfig? config) {
     final configHash = config?.hashCode ?? 0;
     return '${fund.code}_${cardType.name}_full_$configHash';
   }
@@ -335,10 +341,14 @@ class FundCardFactory {
 
     // 如果缓存仍然过大，优先保留高频访问的
     if (_cardCache.length - keysToRemove.length > _maxCacheSize) {
-      final sortedEntries = _cardCache.entries.where((e) => !_highAccessCache.contains(e.key)).toList()
-        ..sort((a, b) => a.value.lastAccessedAt.compareTo(b.value.lastAccessedAt));
+      final sortedEntries = _cardCache.entries
+          .where((e) => !_highAccessCache.contains(e.key))
+          .toList()
+        ..sort(
+            (a, b) => a.value.lastAccessedAt.compareTo(b.value.lastAccessedAt));
 
-      final excessToRemove = _cardCache.length - keysToRemove.length - _maxCacheSize;
+      final excessToRemove =
+          _cardCache.length - keysToRemove.length - _maxCacheSize;
       for (int i = 0; i < excessToRemove && i < sortedEntries.length; i++) {
         keysToRemove.add(sortedEntries[i].key);
       }
@@ -368,9 +378,8 @@ class FundCardFactory {
 
   /// 清理特定基金的缓存
   static void clearFundCache(String fundCode) {
-    final keysToRemove = _cardCache.keys
-        .where((key) => key.startsWith('${fundCode}_'))
-        .toList();
+    final keysToRemove =
+        _cardCache.keys.where((key) => key.startsWith('${fundCode}_')).toList();
 
     for (final key in keysToRemove) {
       _cardCache.remove(key);
@@ -433,7 +442,8 @@ class FundCardFactory {
     FundCardType preferredType = FundCardType.adaptive,
     FundCardConfig? config,
   }) async {
-    for (final fund in popularFunds.take(20)) { // 增加预热数量
+    for (final fund in popularFunds.take(20)) {
+      // 增加预热数量
       // 多次访问同一卡片以触发高频缓存保护
       for (int i = 0; i < 3; i++) {
         createFundCard(
@@ -523,7 +533,8 @@ class FundCardFactory {
         }
 
         // 策略4: 访问频率低的缓存
-        if (cacheEntry.accessCount < 2 && cacheEntry.ageInMs > Duration(minutes: 15).inMilliseconds) {
+        if (cacheEntry.accessCount < 2 &&
+            cacheEntry.ageInMs > Duration(minutes: 15).inMilliseconds) {
           keysToRemove.add(key);
         }
       }
@@ -544,8 +555,8 @@ class FundCardFactory {
   /// 验证卡片配置
   static bool validateCardConfig(FundCardConfig config) {
     return config.animationLevel >= 0 &&
-           config.animationLevel <= 2 &&
-           config.animationDuration.inMilliseconds > 0;
+        config.animationLevel <= 2 &&
+        config.animationDuration.inMilliseconds > 0;
   }
 
   /// 获取默认配置
@@ -660,5 +671,6 @@ class _CacheEntry {
   int get ageInMs => DateTime.now().difference(createdAt).inMilliseconds;
 
   /// 获取最后访问间隔（毫秒）
-  int get lastAccessAgeInMs => DateTime.now().difference(lastAccessedAt).inMilliseconds;
+  int get lastAccessAgeInMs =>
+      DateTime.now().difference(lastAccessedAt).inMilliseconds;
 }

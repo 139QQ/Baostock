@@ -73,7 +73,8 @@ class MicrointeractiveFundCard extends BaseFundCard {
   final int? forceAnimationLevel;
 
   @override
-  State<MicrointeractiveFundCard> createState() => _MicrointeractiveFundCardState();
+  State<MicrointeractiveFundCard> createState() =>
+      _MicrointeractiveFundCardState();
 }
 
 class _MicrointeractiveFundCardState extends State<MicrointeractiveFundCard>
@@ -192,10 +193,12 @@ class _MicrointeractiveFundCardState extends State<MicrointeractiveFundCard>
     if (!mounted || !widget.enablePerformanceMonitoring) return;
 
     final now = DateTime.now();
-    final frameTime = now.difference(_performanceCheckTime).inMicroseconds / 1000.0;
+    final frameTime =
+        now.difference(_performanceCheckTime).inMicroseconds / 1000.0;
 
     _frameTimes.add(frameTime);
-    if (_frameTimes.length > 60) { // 保留最近60帧
+    if (_frameTimes.length > 60) {
+      // 保留最近60帧
       _frameTimes.removeAt(0);
     }
 
@@ -209,7 +212,8 @@ class _MicrointeractiveFundCardState extends State<MicrointeractiveFundCard>
   }
 
   void _handlePerformanceIssue(double frameTime) {
-    debugPrint('Performance warning: Frame time ${frameTime.toStringAsFixed(2)}ms exceeds threshold');
+    debugPrint(
+        'Performance warning: Frame time ${frameTime.toStringAsFixed(2)}ms exceeds threshold');
 
     // 如果性能问题严重，自动降级
     if (frameTime > widget.performanceWarningThreshold * 2) {
@@ -262,12 +266,14 @@ class _MicrointeractiveFundCardState extends State<MicrointeractiveFundCard>
     final deltaX = currentPosition.dx - _swipeStartPosition!.dx;
 
     // 检测滑动方向
-    if (deltaX.abs() > 10) { // 10像素的死区
+    if (deltaX.abs() > 10) {
+      // 10像素的死区
       final direction = deltaX > 0 ? SwipeDirection.right : SwipeDirection.left;
 
       if (_gestureManager.canProcessGesture(direction)) {
         _pendingSwipeDirection = direction;
-        _swipeController.value = (deltaX.abs() / renderBox.size.width).clamp(0.0, 1.0);
+        _swipeController.value =
+            (deltaX.abs() / renderBox.size.width).clamp(0.0, 1.0);
       }
     }
   }
@@ -279,11 +285,12 @@ class _MicrointeractiveFundCardState extends State<MicrointeractiveFundCard>
 
     final velocity = details.primaryVelocity ?? 0;
     final currentTime = DateTime.now();
-    final swipeDuration = currentTime.difference(_swipeStartTime!).inMilliseconds;
+    final swipeDuration =
+        currentTime.difference(_swipeStartTime!).inMilliseconds;
 
     // 判断是否为有效滑动
     final isValidSwipe = _pendingSwipeDirection != null &&
-                         (velocity.abs() > 300 || swipeDuration < 300);
+        (velocity.abs() > 300 || swipeDuration < 300);
 
     if (isValidSwipe) {
       _executeSwipeAction(_pendingSwipeDirection!);
@@ -375,7 +382,8 @@ class _MicrointeractiveFundCardState extends State<MicrointeractiveFundCard>
             return Stack(
               children: [
                 // 左侧收藏指示器
-                if (_pendingSwipeDirection == SwipeDirection.left || _showSwipeHint)
+                if (_pendingSwipeDirection == SwipeDirection.left ||
+                    _showSwipeHint)
                   Positioned(
                     left: 0,
                     top: 0,
@@ -383,7 +391,8 @@ class _MicrointeractiveFundCardState extends State<MicrointeractiveFundCard>
                     width: 80,
                     child: DecoratedBox(
                       decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.3 * _swipeAnimation.value),
+                        color:
+                            Colors.red.withOpacity(0.3 * _swipeAnimation.value),
                         borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(12),
                           bottomLeft: Radius.circular(12),
@@ -400,7 +409,8 @@ class _MicrointeractiveFundCardState extends State<MicrointeractiveFundCard>
                   ),
 
                 // 右侧对比指示器
-                if (_pendingSwipeDirection == SwipeDirection.right || _showSwipeHint)
+                if (_pendingSwipeDirection == SwipeDirection.right ||
+                    _showSwipeHint)
                   Positioned(
                     right: 0,
                     top: 0,
@@ -408,7 +418,8 @@ class _MicrointeractiveFundCardState extends State<MicrointeractiveFundCard>
                     width: 80,
                     child: DecoratedBox(
                       decoration: BoxDecoration(
-                        color: Colors.blue.withOpacity(0.3 * _swipeAnimation.value),
+                        color: Colors.blue
+                            .withOpacity(0.3 * _swipeAnimation.value),
                         borderRadius: const BorderRadius.only(
                           topRight: Radius.circular(12),
                           bottomRight: Radius.circular(12),
@@ -431,7 +442,8 @@ class _MicrointeractiveFundCardState extends State<MicrointeractiveFundCard>
                       animation: _shimmerAnimation,
                       builder: (context, child) {
                         return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
                           decoration: BoxDecoration(
                             color: Colors.black.withOpacity(0.7),
                             borderRadius: BorderRadius.circular(20),
@@ -469,8 +481,8 @@ class _MicrointeractiveFundCardState extends State<MicrointeractiveFundCard>
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: Theme.of(context).primaryColor.withOpacity(
-                    _rippleAnimation.value * 0.5,
-                  ),
+                        _rippleAnimation.value * 0.5,
+                      ),
                   width: 2,
                 ),
               ),
@@ -504,18 +516,20 @@ class _MicrointeractiveFundCardState extends State<MicrointeractiveFundCard>
                       children: [
                         Text(
                           widget.fund.name,
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 4),
                         Text(
                           widget.fund.code,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.grey[600],
-                          ),
+                          style:
+                              Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: Colors.grey[600],
+                                  ),
                         ),
                       ],
                     ),
@@ -527,7 +541,9 @@ class _MicrointeractiveFundCardState extends State<MicrointeractiveFundCard>
                       children: [
                         IconButton(
                           icon: Icon(
-                            widget.isSelected ? Icons.favorite : Icons.favorite_border,
+                            widget.isSelected
+                                ? Icons.favorite
+                                : Icons.favorite_border,
                             color: widget.isSelected ? Colors.red : null,
                           ),
                           onPressed: () {
@@ -557,14 +573,14 @@ class _MicrointeractiveFundCardState extends State<MicrointeractiveFundCard>
                       Text(
                         '单位净值',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.grey[600],
-                        ),
+                              color: Colors.grey[600],
+                            ),
                       ),
                       Text(
                         widget.fund.unitNav.toStringAsFixed(4),
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                              fontWeight: FontWeight.bold,
+                            ),
                       ),
                     ],
                   ),
@@ -574,15 +590,17 @@ class _MicrointeractiveFundCardState extends State<MicrointeractiveFundCard>
                       Text(
                         '日收益率',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.grey[600],
-                        ),
+                              color: Colors.grey[600],
+                            ),
                       ),
                       Text(
                         '${widget.fund.dailyReturn >= 0 ? '+' : ''}${widget.fund.dailyReturn.toStringAsFixed(2)}%',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: widget.fund.dailyReturn >= 0 ? Colors.green : Colors.red,
-                        ),
+                              fontWeight: FontWeight.bold,
+                              color: widget.fund.dailyReturn >= 0
+                                  ? Colors.green
+                                  : Colors.red,
+                            ),
                       ),
                     ],
                   ),
@@ -605,8 +623,7 @@ class _MicrointeractiveFundCardState extends State<MicrointeractiveFundCard>
         _buildBasicCardContent(context),
 
         // 滑动指示器
-        if (widget.enableSwipeGestures)
-          _buildSwipeIndicators(),
+        if (widget.enableSwipeGestures) _buildSwipeIndicators(),
 
         // 波纹效果
         _buildRippleEffect(),
