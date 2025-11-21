@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 
 import '../../../../../../features/fund/domain/entities/fund.dart';
 import '../../../../../../features/fund/domain/entities/fund_ranking.dart';
-import '../../../widgets/unified_fund_card.dart';
-import '../../../widgets/fund_card_factory.dart';
+import '../../../widgets/cards/adaptive_fund_card.dart';
+import '../../../widgets/cards/fund_card_factory.dart';
 
 /// 视图模式枚举
 enum ViewMode {

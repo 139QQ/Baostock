@@ -135,13 +135,10 @@ test_cache/
 
 # Additional project-specific ignores
 .bmad-core/
-.claude/
 .docs-templates/
-.docs-config.yaml
 .metadata
 .idea/
 .vscode/
-*.iml
 *.ipr
 *.iws
 *.swp
@@ -173,11 +170,6 @@ claude-code/
 .node_repl_history
 
 # Sensitive and temporary files
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
 *.log
 *.tmp
 
@@ -217,7 +209,6 @@ dist/
 .factorypath
 
 # Claude-specific files
-.claude/
 .spec-workflow/
 
 # Documentation build artifacts
@@ -246,11 +237,15 @@ test/reports/
 test/coverage/
 test/logs/
 
-# Test directory (exclude entire test folder from version control)
-test/
+# Test directory (exclude only temporary test files)
+test_*/
+temp_*/
+verify_notification_fix.dart
 
-# Documentation directory (exclude entire docs folder from version control)
-docs/
+# Allow specific test directories but exclude temporary ones
+!/test/unit/
+!/test/integration/
+!/test/performance/
 
 # Local development files
 local.properties
@@ -286,8 +281,26 @@ yarn-error.log*
 *.sublime-project
 *.sublime-workspace
 qa/
-test/
 
 test_cache_ui/
 bmad/
 v4-backup/
+
+# Development-specific directories and files
+.claude/
+.serenamcp/
+bmad/
+*.iml
+jisu_fund_analyzer.iml
+
+# MCP configuration files
+.mcp.json
+.mcp-*
+
+# Temporary and cache directories
+temp_hive/
+test_hive/
+test_temp/
+
+# Documentation automation (disabled)
+.github/workflows/docs-automation.yml.disabled

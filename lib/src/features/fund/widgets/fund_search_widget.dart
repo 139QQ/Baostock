@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../bloc/fund_search_bloc.dart';
 import '../../../models/fund_info.dart';
 import '../domain/entities/fund.dart';
-import '../presentation/widgets/unified_fund_card.dart';
+import '../presentation/widgets/cards/adaptive_fund_card.dart';
 
 /// 基金搜索结果组件
 class FundSearchWidget extends StatelessWidget {
@@ -71,7 +71,7 @@ class FundSearchWidget extends StatelessWidget {
           final fund = _fundInfoToFund(fundInfo);
           return Padding(
             padding: const EdgeInsets.only(bottom: 8.0),
-            child: UnifiedFundCard(
+            child: AdaptiveFundCard(
               fund: fund,
               onTap: () {
                 Navigator.pushNamed(

@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../bloc/fund_search_bloc.dart';
 import '../../../models/fund_info.dart';
 import '../domain/entities/fund.dart';
-import '../presentation/widgets/unified_fund_card.dart';
+import '../presentation/widgets/cards/adaptive_fund_card.dart';
 
 /// 推荐基金组件
 class FundRecommendationWidget extends StatefulWidget {
@@ -89,7 +89,7 @@ class _FundRecommendationWidgetState extends State<FundRecommendationWidget> {
               return Container(
                 width: 280,
                 margin: const EdgeInsets.only(right: 12),
-                child: UnifiedFundCard(
+                child: AdaptiveFundCard(
                   fund: fund,
                   onTap: () {
                     Navigator.pushNamed(

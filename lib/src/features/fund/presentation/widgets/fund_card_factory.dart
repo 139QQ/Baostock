@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../domain/entities/fund.dart';
-import 'unified_fund_card.dart';
-import 'base_fund_card.dart';
+import 'cards/adaptive_fund_card.dart';
+import 'cards/base_fund_card.dart';
+import 'cards/performance_detector_adapter.dart';
+import '../../../../core/performance/performance_detector.dart';
 
 /// 基金卡片工厂类
 ///
@@ -27,7 +29,7 @@ class FundCardFactory {
     Function()? onSwipeLeft,
     Function()? onSwipeRight,
   }) {
-    return UnifiedFundCard(
+    return AdaptiveFundCard(
       key: key,
       fund: fund,
       showComparisonCheckbox: showComparisonCheckbox,
@@ -57,8 +59,10 @@ class FundCardFactory {
     VoidCallback? onAddToWatchlist,
     VoidCallback? onCompare,
     VoidCallback? onShare,
+    Function()? onSwipeLeft,
+    Function()? onSwipeRight,
   }) {
-    return UnifiedFundCard(
+    return AdaptiveFundCard(
       key: key,
       fund: fund,
       showComparisonCheckbox: showComparisonCheckbox,
@@ -70,7 +74,9 @@ class FundCardFactory {
       onAddToWatchlist: onAddToWatchlist,
       onCompare: onCompare,
       onShare: onShare,
-      forceStyle: CardStyle.minimal,
+      onSwipeLeft: onSwipeLeft,
+      onSwipeRight: onSwipeRight,
+      forceAnimationLevel: AnimationLevel.disabled,
     );
   }
 
@@ -90,7 +96,7 @@ class FundCardFactory {
     Function()? onSwipeLeft,
     Function()? onSwipeRight,
   }) {
-    return UnifiedFundCard(
+    return AdaptiveFundCard(
       key: key,
       fund: fund,
       showComparisonCheckbox: showComparisonCheckbox,
@@ -104,7 +110,7 @@ class FundCardFactory {
       onShare: onShare,
       onSwipeLeft: onSwipeLeft,
       onSwipeRight: onSwipeRight,
-      forceStyle: CardStyle.modern,
+      forceAnimationLevel: AnimationLevel.basic,
     );
   }
 
@@ -124,7 +130,7 @@ class FundCardFactory {
     Function()? onSwipeLeft,
     Function()? onSwipeRight,
   }) {
-    return UnifiedFundCard(
+    return AdaptiveFundCard(
       key: key,
       fund: fund,
       showComparisonCheckbox: showComparisonCheckbox,
@@ -138,7 +144,7 @@ class FundCardFactory {
       onShare: onShare,
       onSwipeLeft: onSwipeLeft,
       onSwipeRight: onSwipeRight,
-      forceStyle: CardStyle.enhanced,
+      forceAnimationLevel: AnimationLevel.enhanced,
     );
   }
 
@@ -159,9 +165,13 @@ class FundCardFactory {
     Function()? onSwipeLeft,
     Function()? onSwipeRight,
   }) {
-    final config = DevicePerformanceService.getRecommendedConfig(context);
+    final performanceDetector = PerformanceDetector();
+    final performanceLevel = performanceDetector.getPerformanceLevel();
 
-    return UnifiedFundCard(
+    // 根据性能级别选择合适的配置
+    final animationLevel = _getAnimationLevelForPerformance(performanceLevel);
+
+    return AdaptiveFundCard(
       key: key,
       fund: fund,
       showComparisonCheckbox: showComparisonCheckbox,
@@ -175,7 +185,7 @@ class FundCardFactory {
       onShare: onShare,
       onSwipeLeft: onSwipeLeft,
       onSwipeRight: onSwipeRight,
-      config: config,
+      forceAnimationLevel: animationLevel,
     );
   }
 
@@ -196,7 +206,7 @@ class FundCardFactory {
     Function()? onSwipeLeft,
     Function()? onSwipeRight,
   }) {
-    return UnifiedFundCard(
+    return AdaptiveFundCard(
       key: key,
       fund: fund,
       showComparisonCheckbox: showComparisonCheckbox,
@@ -210,7 +220,7 @@ class FundCardFactory {
       onShare: onShare,
       onSwipeLeft: onSwipeLeft,
       onSwipeRight: onSwipeRight,
-      config: config,
+      forceAnimationLevel: _getAnimationLevelFromConfig(config),
     );
   }
 
@@ -236,7 +246,7 @@ class FundCardFactory {
         key: ValueKey(fund.code),
         fund: fund,
         config: FundCardConfig(
-          cardStyle: style,
+          animationLevel: _getAnimationLevelFromStyle(style).index,
           enableAnimations: true,
           enableHoverEffects: true,
           enableGestureFeedback: true,
@@ -293,7 +303,7 @@ class FundCardFactory {
             key: ValueKey('grid_${fund.code}'),
             fund: fund,
             config: FundCardConfig(
-              cardStyle: style,
+              animationLevel: _getAnimationLevelFromStyle(style).index,
               enableAnimations: true,
               enableHoverEffects: true,
               enableGestureFeedback: true,
@@ -346,7 +356,7 @@ class FundCardFactory {
             key: ValueKey('list_${fund.code}'),
             fund: fund,
             config: FundCardConfig(
-              cardStyle: style,
+              animationLevel: _getAnimationLevelFromStyle(style).index,
               enableAnimations: true,
               enableHoverEffects: true,
               enableGestureFeedback: true,
@@ -371,6 +381,37 @@ class FundCardFactory {
       ),
     );
   }
+
+  /// 根据性能级别获取动画级别
+  static AnimationLevel _getAnimationLevelForPerformance(PerformanceLevel level) {
+    switch (level) {
+      case PerformanceLevel.excellent:
+        return AnimationLevel.enhanced;
+      case PerformanceLevel.good:
+        return AnimationLevel.basic;
+      case PerformanceLevel.fair:
+        return AnimationLevel.disabled;
+      case PerformanceLevel.poor:
+        return AnimationLevel.disabled;
+    }
+  }
+
+  /// 根据样式获取动画级别
+  static AnimationLevel _getAnimationLevelFromStyle(CardStyle style) {
+    switch (style) {
+      case CardStyle.minimal:
+        return AnimationLevel.disabled;
+      case CardStyle.modern:
+        return AnimationLevel.basic;
+      case CardStyle.enhanced:
+        return AnimationLevel.enhanced;
+    }
+  }
+
+  /// 从配置获取动画级别
+  static AnimationLevel _getAnimationLevelFromConfig(FundCardConfig config) {
+    return AnimationLevel.values[config.animationLevel.clamp(0, AnimationLevel.values.length - 1)];
+  }
 }
 
 /// 主题适配器
@@ -381,17 +422,17 @@ class FundCardThemeAdapter {
     final isDark = theme.brightness == Brightness.dark;
 
     return FundCardConfig(
-      cardStyle: isDark ? CardStyle.enhanced : CardStyle.modern,
-      enableAnimations: !isDark, // 暗色主题减少动画
+      animationLevel: isDark ? 0 : 1, // 暗色主题减少动画
+      enableAnimations: !isDark,
       enableHoverEffects: true,
       enableGestureFeedback: true,
+      enablePerformanceMonitoring: true,
     );
   }
 
   /// 创建Material 3风格配置
   static FundCardConfig createMaterial3Config(BuildContext context) {
     return FundCardConfig(
-      cardStyle: CardStyle.modern,
       animationLevel: 2,
       enableAnimations: true,
       enableHoverEffects: true,
@@ -403,7 +444,6 @@ class FundCardThemeAdapter {
   /// 创建iOS风格配置
   static FundCardConfig createIosConfig(BuildContext context) {
     return FundCardConfig(
-      cardStyle: CardStyle.minimal,
       animationLevel: 1,
       enableAnimations: true,
       enableHoverEffects: false, // iOS风格减少悬停效果

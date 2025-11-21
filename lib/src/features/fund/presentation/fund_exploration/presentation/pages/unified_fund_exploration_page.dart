@@ -14,8 +14,8 @@ import '../widgets/hot_funds_section.dart';
 import '../widgets/user_feedback_collector.dart';
 import '../widgets/user_onboarding_guide.dart';
 // import '../widgets/micro_interaction_fund_card.dart'; // 已删除，使用统一基金卡片
-import '../../../widgets/unified_fund_card.dart';
-import '../../../widgets/fund_card_factory.dart';
+import '../../../widgets/cards/adaptive_fund_card.dart';
+import '../../../widgets/cards/fund_card_factory.dart';
 import 'widgets/market_snapshot_widget.dart';
 import 'widgets/hot_sectors_preview.dart';
 import 'widgets/intelligent_search_bar.dart';

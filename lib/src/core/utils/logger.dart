@@ -179,6 +179,8 @@ class AppLogger {
       print('\x1B[2J\x1B[0;0H'); // 清除控制台
     }
   }
+
+  static void warning(String s) {}
 }
 
 /// 错误监控服务接口

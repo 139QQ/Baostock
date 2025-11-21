@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "searxng": {
+      "command": "ssh",
+      "args": [
+        "your-username@your-server-ip",
+        "docker",
+        "exec",
+        "-i",
+        "mcp-searxng",
+        "node",
+        "dist/index.js"
+      ],
+      "env": {
+        "SEARXNG_URL": "https://www.searss.website/search"
+      }
+    }
+  }
+}

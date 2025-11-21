@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 // import 'fund_data_card.dart'; // 已删除，使用统一组件
-import '../../../widgets/unified_fund_card.dart';
-import '../../../widgets/fund_card_factory.dart';
-import '../../../widgets/base_fund_card.dart';
+import '../../../widgets/cards/adaptive_fund_card.dart';
+import '../../../widgets/cards/fund_card_factory.dart';
+import '../../../widgets/cards/base_fund_card.dart';
 import '../../../../../../features/fund/domain/entities/fund.dart';
 
 /// 响应式基金网格布局组件
@@ -58,8 +58,7 @@ class ResponsiveFundGrid extends StatelessWidget {
                 itemCount: funds.length,
                 itemBuilder: (context, index) {
                   final fund = funds[index];
-                  return FundCardFactory.createAdaptive(
-                    context: context,
+                  return AdaptiveFundCard(
                     fund: fund,
                     compactMode: true,
                     onTap: () => onFundTap(fund),

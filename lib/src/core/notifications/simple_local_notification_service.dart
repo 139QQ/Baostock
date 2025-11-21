@@ -1,15 +1,19 @@
 import 'dart:io';
+import 'package:flutter/widgets.dart';
 import 'package:local_notifier/local_notifier.dart';
 import '../utils/logger.dart';
 
 /// 简化的本地通知服务
 /// 使用local_notifier插件实现跨平台桌面通知
 class SimpleLocalNotificationService {
+  SimpleLocalNotificationService._();
+
+  /// 单例实例
   static final SimpleLocalNotificationService _instance =
       SimpleLocalNotificationService._();
-  static SimpleLocalNotificationService get instance => _instance;
 
-  SimpleLocalNotificationService._();
+  /// 获取服务实例
+  static SimpleLocalNotificationService get instance => _instance;
 
   bool _isInitialized = false;
 
@@ -18,16 +22,24 @@ class SimpleLocalNotificationService {
     if (_isInitialized) return;
 
     try {
+      // 确保Flutter Binding已初始化（所有环境都需要）
+      WidgetsFlutterBinding.ensureInitialized();
+
       AppLogger.info('🔔 初始化SimpleLocalNotificationService');
 
       // 检查是否支持本地通知
       if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-        // 设置本地通知器
-        await localNotifier.setup(
-          appName: '基速基金分析平台',
-        );
-
-        AppLogger.info('✅ local_notifier设置完成');
+        try {
+          // 设置本地通知器
+          await localNotifier.setup(
+            appName: '基速基金分析平台',
+          );
+          AppLogger.info('✅ local_notifier设置完成');
+        } catch (e) {
+          AppLogger.error('❌ local_notifier设置失败', e);
+          // 继续执行，不抛出异常，允许应用在没有通知的情况下运行
+          AppLogger.warn('⚠️ 继续执行，但通知功能可能不可用');
+        }
       } else {
         AppLogger.warn('⚠️ 当前平台不支持本地通知: ${Platform.operatingSystem}');
       }
@@ -36,7 +48,9 @@ class SimpleLocalNotificationService {
       AppLogger.info('✅ SimpleLocalNotificationService初始化完成');
     } catch (e) {
       AppLogger.error('❌ SimpleLocalNotificationService初始化失败', e);
-      rethrow;
+      // 不重新抛出异常，允许应用继续运行
+      AppLogger.warn('⚠️ 通知服务初始化失败，应用将继续运行但通知功能可能不可用');
+      _isInitialized = true; // 标记为已初始化，避免重复尝试
     }
   }
 

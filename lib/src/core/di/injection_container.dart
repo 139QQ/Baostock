@@ -728,16 +728,6 @@ Future<void> initDependencies() async {
     return manager;
   });
 
-  // 推送通知历史管理器 (单例模式)
-  sl.registerLazySingleton<PushHistoryManager>(() {
-    final manager = PushHistoryManager.instance;
-    // 异步初始化，不阻塞依赖注入
-    manager.initialize().catchError((e) {
-      AppLogger.error('PushHistoryManager initialization failed', e);
-    });
-    return manager;
-  });
-
   // 推送分析服务 (单例模式)
   sl.registerLazySingleton<PushAnalyticsService>(() {
     final service = PushAnalyticsService.instance;
