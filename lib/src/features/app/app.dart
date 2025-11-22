@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../core/di/injection_container.dart';
+import '../../core/di/di_initializer.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/app_lifecycle_manager.dart';
 import '../auth/domain/entities/user.dart';

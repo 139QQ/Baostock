@@ -7,7 +7,7 @@ import 'package:jisu_fund_analyzer/src/features/portfolio/domain/fund_favorite/s
 import 'package:jisu_fund_analyzer/src/features/portfolio/data/services/fund_favorite_service.dart';
 import 'package:jisu_fund_analyzer/src/features/portfolio/presentation/widgets/portfolio_manager.dart';
 import 'package:jisu_fund_analyzer/src/services/optimized_cache_manager_v3.dart';
-import 'package:jisu_fund_analyzer/src/core/di/injection_container.dart';
+import 'package:jisu_fund_analyzer/src/core/di/di_initializer.dart';
 import 'package:jisu_fund_analyzer/src/models/fund_info.dart' as models;
 import 'package:jisu_fund_analyzer/src/services/fund_api_analyzer.dart';
 

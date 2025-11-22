@@ -7,7 +7,7 @@ import '../../../../core/theme/widgets/modern_brand_logo.dart';
 import '../../../../core/theme/widgets/gradient_container.dart';
 import '../../../../core/theme/design_tokens/app_colors.dart';
 // 为依赖注入容器创建别名
-import '../../../../core/di/injection_container.dart' as di;
+import '../../../../core/di/di_initializer.dart' as di;
 
 /// 全局导航栏组件
 ///

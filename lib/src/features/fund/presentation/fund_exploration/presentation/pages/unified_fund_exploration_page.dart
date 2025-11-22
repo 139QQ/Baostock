@@ -5,7 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../../../../bloc/fund_search_bloc.dart';
-import '../../../../../../core/di/injection_container.dart';
+import '../../../../../../core/di/di_initializer.dart';
 import '../../../../../../core/state/tool_panel/tool_panel_cubit.dart';
 import '../../../../shared/models/fund_ranking.dart';
 import '../../domain/models/fund_filter.dart';

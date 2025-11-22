@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../auth/domain/entities/user.dart';
 import '../../../../core/navigation/navigation_manager.dart';
 import '../../../../core/navigation/responsive_navigation_adapter.dart';
-import '../../../../core/di/injection_container.dart';
+import '../../../../core/di/di_initializer.dart';
 import '../../../home/presentation/pages/dashboard_page.dart';
 import '../../../fund/presentation/fund_exploration/presentation/pages/fund_exploration_page.dart';
 import '../../../fund/presentation/fund_exploration/presentation/pages/minimalist_fund_exploration_page.dart';

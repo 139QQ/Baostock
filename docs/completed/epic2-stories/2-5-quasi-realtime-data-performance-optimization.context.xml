@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context id="bmad/bmm/workflows/4-implementation/story-context" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>5</storyId>
+    <title>准实时数据性能优化</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-12</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/2-5-quasi-realtime-data-performance-optimization.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>专业投资者</asA>
+    <iWant>轮询数据功能能够高效运行而不影响应用整体性能</iWant>
+    <soThat>我能够流畅使用基金分析功能的同时享受准实时数据更新，获得最佳的用户体验</soThat>
+    <tasks>
+### 第一阶段：关键内存泄漏和Isolate管理修复（优先级：高）
+- [ ] **Task 1**: 实现Isolate生命周期管理和内存泄漏预防 (AC: 1, 5)
+  - [ ] Subtask 1.1: 创建ImprovedIsolateManager，实现心跳监控和优雅关闭机制
+  - [ ] Subtask 1.2: 实现StreamLifecycleManager，自动管理Stream订阅生命周期
+  - [ ] Subtask 1.3: 创建内存泄漏检测工具，集成到开发环境
+  - [ ] Subtask 1.4: 实现24小时连续运行稳定性测试套件
+
+### 第二阶段：核心性能优化实施（优先级：高）
+- [ ] **Task 2**: 实现异步数据处理性能优化 (AC: 2)
+  - [ ] Subtask 2.1: 优化JSON解析性能，使用FlatBuffers或Protocol Buffers替代JSON
+  - [ ] Subtask 2.2: 实现内存映射文件传输机制，处理大数据对象
+  - [ ] Subtask 2.3: 优化Isolate间通信，减少序列化开销
+  - [ ] Subtask 2.4: 实现10,000条数据基准测试套件
+
+### 第三阶段：智能内存和缓存系统（优先级：中）
+- [ ] **Task 3**: 实现智能内存管理系统 (AC: 3)
+  - [ ] Subtask 3.1: 创建AdvancedMemoryManager，实现弱引用LRU缓存
+  - [ ] Subtask 3.2: 实现基于内存压力的动态缓存调整机制
+  - [ ] Subtask 3.3: 创建定期清理和垃圾回收优化机制
+  - [ ] Subtask 3.4: 实现内存压力检测和预警系统
+
+### 第四阶段：数据传输和压缩优化（优先级：中）
+- [ ] **Task 4**: 实现自适应数据压缩和传输优化 (AC: 4)
+  - [ ] Subtask 4.1: 创建AdaptiveCompressionStrategy，根据数据特征选择压缩算法
+  - [ ] Subtask 4.2: 实现智能网络传输优化，处理URL长度限制
+  - [ ] Subtask 4.3: 创建连接池和请求队列管理系统
+  - [ ] Subtask 4.4: 实现数据去重和增量更新机制
+
+### 第五阶段：设备自适应和降级策略（优先级：中）
+- [ ] **Task 5**: 实现智能设备性能检测和降级策略 (AC: 6)
+  - [ ] Subtask 5.1: 创建DeviceCapabilityDetector，实现多维度设备性能检测
+  - [ ] Subtask 5.2: 实现基于设备层级的性能配置文件系统
+  - [ ] Subtask 5.3: 创建动态降级策略，支持运行时调整
+  - [ ] Subtask 5.4: 实现用户自定义性能偏好管理系统
+
+### 第六阶段：批量处理和背压控制（优先级：低）
+- [ ] **Task 6**: 实现背压控制和批量处理优化 (AC: 7)
+  - [ ] Subtask 6.1: 创建SmartBatchProcessor，实现动态批次大小调整
+  - [ ] Subtask 6.2: 实现BackpressureController，防止队列溢出
+  - [ ] Subtask 6.3: 创建AdaptiveBatchSizer，基于系统负载优化批次
+  - [ ] Subtask 6.4: 实现大数据量批量处理效率测试
+
+### 第七阶段：性能监控和预警系统（优先级：低）
+- [ ] **Task 7**: 实现低开销性能监控系统 (AC: 8)
+  - [ ] Subtask 7.1: 创建LightweightPerformanceMonitor，实现自适应采样
+  - [ ] Subtask 7.2: 实现循环缓冲区存储机制，减少内存开销
+  - [ ] Subtask 7.3: 创建开销感知调整机制，避免监控系统影响性能
+  - [ ] Subtask 7.4: 实现预警准确性和响应速度测试
+
+### 第八阶段：测试和质量保证
+- [ ] **Task 8**: 实现完整的性能测试覆盖和质量保证
+  - [ ] Subtask 8.1: 创建内存泄漏和稳定性自动化测试
+  - [ ] Subtask 8.2: 实现性能回归测试套件
+  - [ ] Subtask 8.3: 创建不同设备和网络环境兼容性测试
+  - [ ] Subtask 8.4: 实现性能基准对比和验证测试
+  - [ ] Subtask 8.5: 创建异常场景恢复和容错测试
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. **AC1**: Isolate生命周期管理和内存泄漏预防
+   - 验证: Isolate进程可优雅启动/关闭，无僵尸进程，内存泄漏率为0%
+   - 测试方法: 24小时连续运行测试 + 内存泄漏检测工具验证
+
+2. **AC2**: 异步数据处理性能优化（优先级：高）
+   - 验证: JSON解析性能提升&gt;200%，Isolate数据处理延迟&lt;100ms
+   - 测试方法: 10,000条数据基准测试 + Flutter DevTools性能分析
+
+3. **AC3**: 智能内存管理系统
+   - 验证: 内存使用&lt;50MB增量，LRU淘汰机制正常，压力感知调整生效
+   - 测试方法: 内存压力测试 + 长期运行内存监控
+
+4. **AC4**: 自适应数据压缩和传输优化
+   - 验证: 数据压缩率&gt;70%，传输效率提升&gt;50%，URL长度限制处理
+   - 测试方法: 网络传输基准测试 + 不同数据特征压缩效果验证
+
+5. **AC5**: Stream订阅生命周期管理
+   - 验证: 所有Stream订阅正确取消，无内存泄漏，异常恢复机制有效
+   - 测试方法: Stream生命周期测试 + 异常场景恢复测试
+
+6. **AC6**: 智能设备性能检测和降级策略
+   - 验证: 设备分层检测准确，自动降级策略生效，用户体验保持
+   - 测试方法: 多设备性能测试 + 降级策略效果验证
+
+7. **AC7**: 背压控制和批量处理优化
+   - 验证: 批量处理效率提升&gt;80%，队列长度控制，内存溢出预防
+   - 测试方法: 大数据量批量处理测试 + 背压控制机制验证
+
+8. **AC8**: 低开销性能监控系统
+   - 验证: 监控开销&lt;1%CPU，自适应采样频率，预警准确率&gt;90%
+   - 测试方法: 监控系统开销测试 + 预警机制准确性验证
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics/epic-2-quasi-realtime-market-data-system.md</path>
+        <title>Epic 2: 准实时市场数据集成系统</title>
+        <section>Story 2.5: 轮询数据性能优化</section>
+        <snippet>Epic 2实现基速基金量化分析平台的准实时市场数据集成系统。Story 2.5专注于轮询数据的性能优化，确保准实时功能对应用整体性能影响&lt;5%。</snippet>
+      </doc>
+      <doc>
+        <path>docs/cache/PERFORMANCE_BENCHMARK_REPORT.md</path>
+        <title>统一缓存系统性能基准报告</title>
+        <section>详细性能指标</section>
+        <snippet>统一缓存系统展现出卓越的性能表现：100%测试通过率，亚毫秒级响应时间(0.07ms)，6,369 ops/sec吞吐量，100%缓存命中率。</snippet>
+      </doc>
+      <doc>
+        <path>docs/implementation/WEEK9_PERFORMANCE_OPTIMIZATION_REPORT.md</path>
+        <title>第九周性能优化实施报告</title>
+        <section>性能优化成果</section>
+        <snippet>全面的性能优化实施，包含内存管理、UI渲染优化、数据缓存策略等多个方面的优化成果和经验总结。</snippet>
+      </doc>
+      <doc>
+        <path>docs/fullstack-architecture.md</path>
+        <title>基金分析应用全栈架构设计</title>
+        <section>前端架构设计</section>
+        <snippet>基于Clean Architecture + BLoC模式的前端架构设计，支持高性能、高可用、可扩展的基金分析应用。</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/2-4-smart-market-change-push.md</path>
+        <title>Story 2.4: 智能市场变化推送</title>
+        <section>Dev Agent Record</section>
+        <snippet>包含了完整的性能优化经验、新创建的服务和架构决策，为Story 2.5提供重要的技术基础和经验参考。</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <artifact>
+        <path>lib/src/core/network/polling/polling_manager.dart</path>
+        <kind>service</kind>
+        <symbol>PollingManager</symbol>
+        <lines>15-35</lines>
+        <reason>现有轮询管理器，实现了批量处理和并发控制，是性能优化的基础组件</reason>
+      </artifact>
+      <artifact>
+        <path>lib/src/services/optimized_cache_manager_v3.dart</path>
+        <kind>service</kind>
+        <symbol>OptimizedCacheManagerV3</symbol>
+        <lines>120-150</lines>
+        <reason>优化的缓存管理器，实现了三步走策略和Isolate异步解析，性能优化的核心组件</reason>
+      </artifact>
+      <artifact>
+        <path>lib/src/core/state/global_cubit_manager.dart</path>
+        <kind>manager</kind>
+        <symbol>GlobalCubitManager</symbol>
+        <lines>85-110</lines>
+        <reason>全局状态管理器，支持实时连接服务和混合数据管理，提供性能状态监控接口</reason>
+      </artifact>
+      <artifact>
+        <path>lib/src/core/performance/core_performance_manager.dart</path>
+        <kind>manager</kind>
+        <symbol>CorePerformanceManager</symbol>
+        <lines>45-75</lines>
+        <reason>核心性能管理器，实现了性能监控、自适应优化和策略调整，是性能优化系统的核心</reason>
+      </artifact>
+      <artifact>
+        <path>lib/src/features/fund/presentation/fund_exploration/presentation/widgets/adaptive_fund_card.dart</path>
+        <kind>widget</kind>
+        <symbol>AdaptiveFundCard</symbol>
+        <lines>200-230</lines>
+        <reason>自适应基金卡片组件，实现了设备性能检测和动画自适应，为性能降级策略提供基础</reason>
+      </artifact>
+      <artifact>
+        <path>lib/src/core/memory/memory_optimization_manager.dart</path>
+        <kind>manager</kind>
+        <symbol>MemoryOptimizationManager</symbol>
+        <lines>60-90</lines>
+        <reason>内存优化管理器，提供内存监控、压力检测和优化策略，支持内存泄漏检测预防</reason>
+      </artifact>
+      <artifact>
+        <path>lib/src/core/network/fund_api_client.dart</path>
+        <kind>service</kind>
+        <symbol>FundApiClient</symbol>
+        <lines>35-65</lines>
+        <reason>基金API客户端，实现了HTTP重试机制、超时处理和压缩支持，为网络传输优化提供基础</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <ecosystem name="flutter">
+        <package name="dio" version="^5.3.0" reason="HTTP客户端，支持压缩和缓存"/>
+        <package name="hive" version="^2.2.3" reason="本地数据库，用于高性能缓存"/>
+        <package name="flutter_bloc" version="^9.1.1" reason="状态管理，支持高性能状态更新"/>
+        <package name="device_info_plus" version="^9.1.0" reason="设备信息获取，支持性能检测"/>
+        <package name="connectivity_plus" version="^5.0.1" reason="网络状态监控，支持自适应网络优化"/>
+        <package name="shared_preferences" version="^2.2.2" reason="本地偏好设置存储"/>
+        <package name="flutter_animate" version="^4.1.0" reason="动画库，支持自适应动画"/>
+        <package name="fl_chart" version="^0.55.2" reason="图表库，支持数据可视化优化"/>
+      </ecosystem>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="architecture">必须遵循Clean Architecture原则，保持数据层与表现层分离</constraint>
+    <constraint type="patterns">必须使用BLoC状态管理模式，保持状态管理的一致性</constraint>
+    <constraint type="performance">轮询功能对应用整体性能影响必须&lt;5%</constraint>
+    <constraint type="memory">轮询功能额外内存使用必须&lt;50MB</constraint>
+    <constraint type="threads">必须使用Isolate进行后台数据处理，避免阻塞UI线程</constraint>
+    <constraint type="cache">必须集成现有UnifiedHiveCacheManager的三级缓存系统</constraint>
+    <constraint type="compatibility">必须与现有Dio网络层和错误处理机制完全兼容</constraint>
+    <constraint type="platform">必须保持Windows桌面端优先的跨平台支持</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface name="PollingDataManager" kind="class">
+      <signature>abstract class IPollingDataManager { Future&lt;void&gt; start(); Future&lt;void&gt; stop(); Stream&lt;PollingFundData&gt; get fundDataStream; }</signature>
+      <path>lib/src/core/network/polling/polling_manager.dart</path>
+    </interface>
+    <interface name="PerformanceMonitor" kind="class">
+      <signature>abstract class IPerformanceMonitor { Stream&lt;PerformanceMetrics&gt; get metricsStream; Future&lt;void&gt; startMonitoring(); Future&lt;void&gt; stopMonitoring(); }</signature>
+      <path>lib/src/core/performance/core_performance_manager.dart</path>
+    </interface>
+    <interface name="CacheManager" kind="class">
+      <signature>abstract class ICacheManager { Future&lt;T&gt; get&lt;T&gt;(String key); Future&lt;void&gt; set&lt;T&gt;(String key, T value); Future&lt;void&gt; clear(); }</signature>
+      <path>lib/src/services/optimized_cache_manager_v3.dart</path>
+    </interface>
+    <interface name="MemoryManager" kind="class">
+      <signature>abstract class IMemoryManager { Future&lt;void&gt; optimizeMemory(); Stream&lt;MemoryPressureLevel&gt; get pressureStream; Future&lt;void&gt; forceGarbageCollection(); }</signature>
+      <path>lib/src/core/memory/memory_optimization_manager.dart</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>使用flutter_test框架进行单元测试，bloc_test进行状态管理测试，mockito进行Mock对象创建。测试覆盖率要求≥90%，所有性能相关功能必须包含性能基准测试。</standards>
+    <locations>
+      test/unit/core/performance/ - 性能管理器单元测试
+      test/unit/core/memory/ - 内存管理器测试
+      test/unit/core/network/polling/ - 轮询数据管理器测试
+      test/integration/performance_optimization_test.dart - 性能优化集成测试
+    </locations>
+    <ideas>
+      <test id="AC1" idea="测试后台线程隔离：使用Isolate处理大量数据时UI保持响应"/>
+      <test id="AC2" idea="测试数据压缩效果：对比压缩前后的传输数据量和处理时间"/>
+      <test id="AC3" idea="测试内存使用：长期运行监控内存使用情况和泄漏检测"/>
+      <test id="AC4" idea="测试性能降级：在低端设备上验证自动降级策略效果"/>
+      <test id="AC5" idea="测试功能开关：验证用户控制功能的开关节省资源效果"/>
+      <test id="AC6" idea="测试性能监控：模拟性能异常并验证预警和自动调整机制"/>
+      <test id="AC7" idea="测试批量处理：对比批量处理和单个处理的性能差异"/>
+    </ideas>
+  </tests>
+
+  <dev-agent-record>
+    Story 2.5完成技术文档优化：基于2024年Flutter性能优化最佳实践和深度技术调研，完成了全面的技术架构更新。
+
+    **核心技术优化内容：**
+    1. **Flutter 3.24+ Isolate优化**：新增心跳监控+资源监控组合方案、多层次内存泄漏检测、自动恢复机制
+    2. **Stream生命周期管理**：实现改进的StreamLifecycleManager，解决StreamController.done异步泄漏问题
+    3. **混合数据解析策略**：JSON + FlatBuffers智能选择，基于数据量阈值自动切换解析方式
+    4. **网络优化升级**：HTTP/2+HTTP/3混合策略、智能压缩算法选择、预测性预加载、连接池优化
+    5. **机器学习驱动优化**：MLPredictiveOptimizer基于用户行为模式预测性能需求
+    6. **自适应缓存策略**：基于设备性能和使用模式的动态缓存策略调整
+    7. **零拷贝数据传输**：内存映射文件、Isolate间共享内存通信优化
+
+    **风险识别和缓解：**
+    - 高风险项：Isolate僵尸进程、内存泄漏累积、性能监控开销
+    - 中风险项：第三方依赖兼容性、过度优化反效果、设备性能误判
+    - 提供了具体的代码实现方案和缓解策略
+
+    **性能基准测试框架：**
+    - 自动化Isolate内存测试（10,000个Isolate基准）
+    - 实时性能监控仪表板
+    - 设备性能分层测试（4个设备档次）
+    - 持续集成性能测试
+    - 24小时稳定性压力测试
+
+    **技术决策更新：**
+    - 第一阶段：关键问题修复（Isolate管理、内存泄漏、JSON解析）
+    - 新增机器学习驱动优化和零拷贝传输技术
+    - 完善的性能影响控制和回滚机制
+  </dev-agent-record>
+</story-context>

@@ -6,6 +6,7 @@ import '../base/i_unified_service.dart';
 import '../../utils/logger.dart';
 
 // 网络相关类定义
+// ignore: public_member_api_docs
 class ConnectionPoolConfig {
   // ignore: public_member_api_docs
   const ConnectionPoolConfig({
@@ -30,13 +31,9 @@ class ConnectionPoolConfig {
   final bool enableConnectionWarmup;
 }
 
+// ignore: public_member_api_docs
 class ConnectionPoolStats {
-  final int totalConnections;
-  final int activeConnections;
-  final int idleConnections;
-  final int successfulRequests;
-  final int failedRequests;
-
+  // ignore: public_member_api_docs
   const ConnectionPoolStats({
     required this.totalConnections,
     required this.activeConnections,
@@ -44,19 +41,18 @@ class ConnectionPoolStats {
     required this.successfulRequests,
     required this.failedRequests,
   });
+  final int totalConnections;
+  final int activeConnections;
+  final int idleConnections;
+  // ignore: public_member_api_docs
+  final int successfulRequests;
+  // ignore: public_member_api_docs
+  final int failedRequests;
 }
 
+// ignore: public_member_api_docs
 class WebSocketConnectionConfig {
-  final String url;
-  final List<String>? protocols;
-  final Map<String, String>? headers;
-  final bool autoReconnect;
-  final int maxReconnectAttempts;
-  final Duration baseReconnectDelay;
-  final Duration maxReconnectDelay;
-  final Duration connectTimeout;
-  final Duration heartbeatInterval;
-
+  // ignore: public_member_api_docs
   const WebSocketConnectionConfig({
     required this.url,
     this.protocols,
@@ -68,6 +64,15 @@ class WebSocketConnectionConfig {
     this.connectTimeout = const Duration(seconds: 10),
     this.heartbeatInterval = const Duration(seconds: 30),
   });
+  final String url;
+  final List<String>? protocols;
+  final Map<String, String>? headers;
+  final bool autoReconnect;
+  final int maxReconnectAttempts;
+  final Duration baseReconnectDelay;
+  final Duration maxReconnectDelay;
+  final Duration connectTimeout;
+  final Duration heartbeatInterval;
 }
 
 enum WebSocketConnectionState {

@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'fund_exploration_page.dart';
 import '../cubit/fund_exploration_cubit.dart';
-import '../../../../../../core/di/injection_container.dart' as sl;
+import '../../../../../../core/di/di_initializer.dart' as sl;
 
 /// 基金探索页面提供者
 ///

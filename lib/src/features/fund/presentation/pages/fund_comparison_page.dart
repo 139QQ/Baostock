@@ -4,7 +4,7 @@ import '../../domain/entities/multi_dimensional_comparison_criteria.dart';
 import '../../domain/entities/comparison_result.dart';
 import '../../domain/entities/fund_ranking.dart';
 import '../cubit/fund_comparison_cubit.dart';
-import '../../../../core/di/injection_container.dart';
+import '../../../../core/di/di_initializer.dart';
 import '../widgets/comparison_selector.dart';
 import '../widgets/comparison_table.dart';
 import '../widgets/comparison_carousel.dart';

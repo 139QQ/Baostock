@@ -9,7 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 import 'package:equatable/equatable.dart';
 
-import '../di/injection_container.dart' as di;
+import '../di/di_initializer.dart' as di;
 import 'feature_toggle_service.dart';
 // 简化的BLoC导入 - 为了避免编译错误，使用基础类型
 // import '../../../bloc/fund_search_bloc.dart';
@@ -300,7 +300,7 @@ abstract class BaseBlocFactory<T extends BlocBase> implements BlocFactory<T> {
   String get blocName => T.toString();
 
   /// 获取依赖注入容器
-  final GetIt getIt = di.sl;
+  GetIt get getIt => di.DIInitializer.containerManager.getIt;
 
   /// 创建通用参数
   Map<String, dynamic> createParameters(BlocCreationConfig config) {

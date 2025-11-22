@@ -1,0 +1,71 @@
+# generated: 2025-11-17 (Updated for Quick Flow)
+# project: Baostock
+# project_key: Baostock
+# tracking_system: file-system
+# story_location: {project-root}/docs/stories
+# workflow_track: quick-flow
+
+# STATUS DEFINITIONS - QUICK FLOW:
+# ==================================
+# Epic Status:
+#   - done: Epic completed and archived
+#   - in-progress: Epic currently being worked on
+#   - backlog: Epic planned but not started
+#
+# Story Status:
+#   - done: Story completed and documented
+#   - in-progress: Story currently being implemented
+#   - backlog: Story ready for implementation
+#
+# Quick Flow Notes:
+# ================
+# - Quick Flow uses tech-spec instead of full PRD/epic breakdown
+# - Stories have lightweight documentation with task breakdown
+# - Focus on rapid implementation with essential documentation
+# - Stories are created directly from architectural needs
+
+generated: "2025-11-17"
+project: "Baostock"
+project_key: "Baostock"
+tracking_system: "file-system"
+story_location: "{project-root}/docs/stories"
+workflow_track: "quick-flow"
+
+development_status:
+  # Epic 1: 基金探索界面极简重构 (已完成，存档)
+  epic-1: done
+  1-1-unified-search-service-refactoring: done
+  1-2-minimalist-main-interface-layout-refactoring: done
+  1-3-microinteractive-fund-card-design: done
+  1-4-intelligent-recommendation-system-minimalist-implementation: done
+  1-5-minimalist-comparison-interface-refactoring: done
+  1-6-collapsible-tool-panel-integration: done
+  epic-1-retrospective: done
+
+  # Epic 2: 混合数据获取策略 (已完成，存档)
+  epic-2: done
+  2-1-hybrid-data-connection-management: done
+  2-2-quasi-realtime-fund-nav-processing: done
+  2-3-quasi-realtime-market-index-integration: done
+  2-4-smart-market-change-push: done
+  2-5-quasi-realtime-data-performance-optimization: done
+  epic-2-retrospective: done
+
+  # Epic R: 架构重构与代码清理 (当前开发中)
+  epic-r: contexted
+  r-0-architecture-blueprint: done
+  r-1-state-unification: done
+  r-2-service-refactor: done ✅(含安全加强)
+  r-3-data-cleanup: done ✅
+    r-3-1-basic-architecture: done
+  r-4-component-refactor: done ✅ (条件通过，核心功能完成，小幅优化建议)
+  r-5-di-refactor: done ✅
+  epic-r-retrospective: optional
+
+  # Epic R 故事详细说明
+  # R.0: 架构蓝图设计 (已完成) - 8小时 - 建立重构基础
+  # R.1: 状态管理统一化 (已完成) - 8小时 - BLoC模式统一化，5个Task
+  # R.2: 服务层重构 (已完成) - 14小时 - 42个Service类合并为8个，6个Task，含企业级安全加强
+  # R.3: 数据层清理 (进行中) - 10小时 - 27个Manager类整合为8个，5个Task
+  # R.4: 组件架构重构 (已完成) - 8小时 - 组件设计模式统一，4个Task，Story R.4审查通过
+  # R.5: 依赖注入重构 (已完成) - 6小时 - GetIt配置重构，4个Task，配置简化65%

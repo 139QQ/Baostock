@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:hive_flutter/hive_flutter.dart';
-import 'src/core/di/injection_container.dart';
+import 'src/core/di/di_initializer.dart';
 import 'src/features/app/app.dart';
 import 'src/core/utils/logger.dart';
 import 'src/core/state/global_cubit_manager.dart';
@@ -108,7 +108,7 @@ Future<void> main() async {
           //   AppLogger.debug('LegacyType230兼容性适配器注册成功');
           // }
 
-          // Hive缓存适配器注册已完成，将在initDependencies中初始化缓存管理器
+          // Hive缓存适配器注册已完成，DI系统已初始化
           AppLogger.debug('Hive适配器注册完成');
         } catch (e, stack) {
           AppLogger.debug('Hive缓存初始化失败，使用内存缓存: $e');
@@ -123,7 +123,7 @@ Future<void> main() async {
     }
 
     // 初始化依赖注入
-    await initDependencies();
+    await DIInitializer.initialize();
     AppLogger.debug('依赖注入初始化完成');
 
     // 初始化Android权限服务（仅在非Web平台）

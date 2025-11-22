@@ -11,7 +11,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get_it/get_it.dart';
 
-import '../di/injection_container.dart' as di;
+import '../di/di_initializer.dart' as di;
 import 'feature_toggle_service.dart';
 import 'unified_bloc_factory.dart';
 import '../../features/fund/presentation/fund_exploration/presentation/cubit/fund_exploration_cubit.dart';

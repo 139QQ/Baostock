@@ -7,7 +7,7 @@ import 'package:permission_handler/permission_handler.dart';
 import '../cubits/push_notification_cubit.dart';
 import '../../data/models/push_history_record.dart';
 import '../../data/managers/push_history_manager.dart';
-import '../../../../core/di/injection_container.dart';
+import '../../../../core/di/di_initializer.dart';
 import '../../../../core/utils/logger.dart';
 import '../../../../core/notifications/real_flutter_notification_service.dart';
 import '../../../../core/notifications/windows_desktop_notification_service.dart';

@@ -1,0 +1,214 @@
+# 基速基金量化分析平台 - 文档自动化配置
+# 文档版本: v4.0
+
+project:
+  name: "基速基金量化分析平台"
+  version: "v4.0"
+  description: "专业的基金量化分析平台"
+  author: "开发团队"
+  repository: "https://github.com/baostock/jisu-fund-platform"
+
+# 文档模块配置
+modules:
+  prd:
+    enabled: true
+    path: "prd"
+    title: "产品需求文档"
+    description: "产品规划、需求分析和验收标准"
+    chapters:
+      - file: "1-目标与背景.md"
+        title: "目标与背景"
+        description: "项目愿景、市场背景和目标用户分析"
+      - file: "2-需求.md"
+        title: "需求详细说明"
+        description: "功能性和非功能性需求清单"
+      - file: "3-用户界面设计目标.md"
+        title: "用户界面设计目标"
+        description: "UI/UX设计原则和规范"
+      - file: "4-技术假设.md"
+        title: "技术假设与约束"
+        description: "技术栈选择和限制条件"
+      - file: "5-史诗列表.md"
+        title: "史诗功能列表"
+        description: "主要功能模块划分和优先级"
+      - file: "6-验收标准.md"
+        title: "验收标准"
+        description: "功能验收条件和质量标准"
+      - file: "7-风险和约束.md"
+        title: "风险和约束"
+        description: "项目风险识别和缓解策略"
+
+  architecture:
+    enabled: true
+    path: "architecture"
+    title: "系统架构文档"
+    description: "技术架构设计和实现方案"
+    chapters:
+      - file: "1-架构概述.md"
+        title: "架构概述"
+        description: "架构目标和设计原则"
+      - file: "2-技术栈选择.md"
+        title: "技术栈选择"
+        description: "前后端技术栈详细说明"
+      - file: "3-系统架构设计.md"
+        title: "系统架构设计"
+        description: "整体架构图和模块设计"
+      - file: "4-性能优化策略.md"
+        title: "性能优化策略"
+        description: "缓存策略和性能优化方案"
+      - file: "5-安全架构.md"
+        title: "安全架构"
+        description: "数据安全和加密策略"
+      - file: "6-部署架构.md"
+        title: "部署架构"
+        description: "部署环境配置和CI/CD"
+      - file: "7-扩展性设计.md"
+        title: "扩展性设计"
+        description: "水平扩展和模块化设计"
+      - file: "8-灾备方案.md"
+        title: "灾备方案"
+        description: "数据备份和故障恢复"
+      - file: "9-技术演进路线.md"
+        title: "技术演进路线"
+        description: "短期规划和技术演进"
+      - file: "10-架构决策记录.md"
+        title: "架构决策记录"
+        description: "重要架构决策和历史"
+      - file: "11-风险评估与缓解.md"
+        title: "风险评估与缓解"
+        description: "技术风险和应急预案"
+
+  stories:
+    enabled: true
+    path: "stories"
+    title: "用户故事文档"
+    description: "详细开发任务和验收标准"
+    epics:
+      - id: "EPIC-001"
+        title: "基础架构建设"
+        file: "EPIC-001-基础架构建设.md"
+        stories: 16
+      - id: "EPIC-002"
+        title: "基金数据管理"
+        file: "EPIC-002-基金数据管理.md"
+        stories: 16
+
+  qa:
+    enabled: true
+    path: "qa"
+    title: "质量保证文档"
+    description: "测试策略和质量标准"
+    main_file: "测试文档.md"
+
+# 输出配置
+output:
+  formats: ["markdown"]
+  encoding: "utf-8"
+  line_ending: "lf"
+  backup_dir: ".docs-backup"
+
+# 生成配置
+generation:
+  auto_index: true          # 自动生成索引
+  auto_toc: true           # 自动生成目录
+  auto_sync: true          # 自动同步更新
+  backup_original: true    # 备份原始文件
+  preserve_comments: true  # 保留注释
+  update_timestamps: true  # 更新时间戳
+
+# 质量检查配置
+quality:
+  check_links: true           # 检查链接有效性
+  check_format: true          # 检查格式规范
+  check_spelling: false       # 检查拼写
+  max_link_redirects: 3       # 最大链接重定向次数
+  required_sections:          # 必需章节
+    prd: ["目标与背景", "需求", "验收标准"]
+    architecture: ["架构概述", "技术栈选择", "系统架构设计"]
+
+  # 格式检查规则
+  format_rules:
+    max_line_length: 120
+    require_headings: true
+    require_alt_text: true
+    check_list_spacing: true
+
+# 同步配置
+sync:
+  watch_files: true           # 监听文件变化
+  auto_commit: false          # 自动提交Git
+  commit_message_prefix: "[docs]"  # 提交消息前缀
+  sync_interval: 300          # 同步间隔(秒)
+  ignore_patterns:            # 忽略模式
+    - "*.tmp"
+    - "*.bak"
+    - ".git/*"
+    - "node_modules/*"
+
+# 通知配置
+notifications:
+  on_success: false           # 成功时通知
+  on_failure: true            # 失败时通知
+  on_warning: true            # 警告时通知
+  channels:                   # 通知渠道
+    - "console"
+    - "file"
+  log_file: ".docs-automation.log"
+  log_level: "INFO"
+
+# 模板配置
+templates:
+  dir: ".docs-templates"
+  custom_variables:
+    project_name: "{{ project.name }}"
+    project_version: "{{ project.version }}"
+    current_year: "2025"
+    company_name: "基速科技"
+
+# 文档自动化状态 - 2025-11-21更新
+docs_automation:
+  enabled: false
+  auto_generate: false
+  auto_update: false
+  quality_check: false
+  deploy: false
+  manual_only: true
+  status: "disabled"
+  reason: "项目已达到生产就绪状态，AC7优化完成，文档自动化已禁用"
+  alternative: "使用 .github/workflows/docs-manual-trigger.yml 进行手动文档生成"
+
+# 集成配置
+integrations:
+  github:
+    enabled: false  # 已禁用
+    auto_pr: false
+    branch: "docs-auto-update"
+
+  slack:
+    enabled: false
+    webhook_url: ""
+    channel: "#docs"
+
+  email:
+    enabled: false
+    smtp_server: ""
+    recipients: []
+
+# 性能配置
+performance:
+  max_file_size: "10MB"
+  max_files_per_batch: 100
+  parallel_processing: true
+  cache_templates: true
+  cache_duration: 3600
+
+# 安全配置
+security:
+  validate_urls: true
+  sanitize_content: true
+  check_sensitive_data: true
+  sensitive_patterns:
+    - "password"
+    - "token"
+    - "secret"
+    - "key"

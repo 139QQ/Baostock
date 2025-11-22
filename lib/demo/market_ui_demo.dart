@@ -249,15 +249,15 @@ class _MarketUIDemoState extends State<MarketUIDemo> {
                     bottom: const TabBar(
                       tabs: [
                         Tab(
-                          icon: const Icon(Icons.trending_up),
+                          icon: Icon(Icons.trending_up),
                           text: '实时数据',
                         ),
                         Tab(
-                          icon: const Icon(Icons.history),
+                          icon: Icon(Icons.history),
                           text: '历史数据',
                         ),
                         Tab(
-                          icon: const Icon(Icons.timeline),
+                          icon: Icon(Icons.timeline),
                           text: '分时数据',
                         ),
                       ],

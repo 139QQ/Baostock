@@ -67,7 +67,8 @@ void main() {
         expect(memoryLeakDetector.getTrackedObjectCount(), equals(0));
       });
 
-      test('should handle object untracking for non-existent objects', () async {
+      test('should handle object untracking for non-existent objects',
+          () async {
         expect(() => memoryLeakDetector.untrackObject('non_existent_id'),
             returnsNormally);
       });
@@ -101,7 +102,8 @@ void main() {
         // 检测泄漏
         final leaks = memoryLeakDetector.detectMemoryLeaks();
         expect(leaks.length, equals(5));
-        expect(leaks.every((leak) => leak.objectType.startsWith('test_object')), isTrue);
+        expect(leaks.every((leak) => leak.objectType.startsWith('test_object')),
+            isTrue);
       });
 
       test('should handle weak reference cleanup automatically', () async {
@@ -161,7 +163,8 @@ void main() {
 
         // 检查是否触发了压力警告
         final alerts = memoryLeakDetector.getRecentAlerts();
-        expect(alerts.any((alert) => alert.message.contains('pressure')), isTrue);
+        expect(
+            alerts.any((alert) => alert.message.contains('pressure')), isTrue);
       });
 
       test('should provide memory trend analysis', () async {
@@ -215,7 +218,8 @@ void main() {
         expect(patterns.any((p) => p.type.contains('growing')), isTrue);
       });
 
-      test('should differentiate between temporary and persistent objects', () async {
+      test('should differentiate between temporary and persistent objects',
+          () async {
         final temporaryIds = <String>[];
         final persistentIds = <String>[];
 
@@ -282,7 +286,8 @@ void main() {
         }
 
         final leaks = memoryLeakDetector.detectMemoryLeaks();
-        final severityAnalysis = memoryLeakDetector.calculateLeakSeverity(leaks);
+        final severityAnalysis =
+            memoryLeakDetector.calculateLeakSeverity(leaks);
 
         expect(severityAnalysis.totalLeaks, equals(leaks.length));
         expect(severityAnalysis.highSeverityCount, greaterThan(0));
@@ -292,7 +297,8 @@ void main() {
     });
 
     group('Automatic Cleanup Tests', () {
-      test('should perform automatic cleanup when memory pressure is high', () async {
+      test('should perform automatic cleanup when memory pressure is high',
+          () async {
         // 创建大量对象
         final objectIds = <String>[];
         for (int i = 0; i < 50; i++) {
@@ -366,7 +372,8 @@ void main() {
         await memoryLeakDetector.performAutoCleanup();
 
         // 验证只清理了低优先级对象
-        expect(memoryLeakDetector.getTrackedObjectCount(), equals(10)); // 只剩下高优先级对象
+        expect(memoryLeakDetector.getTrackedObjectCount(),
+            equals(10)); // 只剩下高优先级对象
       });
     });
 
@@ -394,7 +401,8 @@ void main() {
         );
 
         // 性能开销应该在可接受范围内（不超过10%）
-        final performanceImpact = (overheadWithMonitoring - overhead) / overhead;
+        final performanceImpact =
+            (overheadWithMonitoring - overhead) / overhead;
         expect(performanceImpact, lessThan(0.1));
 
         await memoryLeakDetector.stopContinuousMonitoring();
@@ -407,7 +415,8 @@ void main() {
         // 高频对象创建和跟踪
         for (int i = 0; i < iterations; i++) {
           final obj = _TestObject();
-          final id = memoryLeakDetector.trackObject(obj, 'hf_object', 'High freq $i');
+          final id =
+              memoryLeakDetector.trackObject(obj, 'hf_object', 'High freq $i');
 
           // 立即清理以模拟高频操作
           memoryLeakDetector.untrackObject(id);
@@ -461,7 +470,8 @@ void main() {
       test('should track leak detection history', () async {
         // 创建泄漏，触发检测，然后清理
         final obj = _TestObject();
-        final id = memoryLeakDetector.trackObject(obj, 'history_test', 'History test');
+        final id =
+            memoryLeakDetector.trackObject(obj, 'history_test', 'History test');
 
         // 多次检测应该记录历史
         for (int i = 0; i < 3; i++) {
@@ -485,11 +495,14 @@ void main() {
         final obj = _TestObject();
 
         // 正常跟踪
-        final id = memoryLeakDetector.trackObject(obj, 'error_test', 'Error test object');
+        final id = memoryLeakDetector.trackObject(
+            obj, 'error_test', 'Error test object');
         expect(id, isNotNull);
 
         // 尝试跟踪null对象应该失败
-        expect(() => memoryLeakDetector.trackObject(null, 'null_object', 'Null object'),
+        expect(
+            () => memoryLeakDetector.trackObject(
+                null, 'null_object', 'Null object'),
             throwsA(isA<TypeError>()));
 
         // 尝试使用空对象类型应该失败
@@ -507,8 +520,8 @@ void main() {
         );
 
         // 内存泄漏检测器应该优雅处理错误
-        expect(() => memoryLeakDetector.getCurrentMemoryInfo(),
-            returnsNormally);
+        expect(
+            () => memoryLeakDetector.getCurrentMemoryInfo(), returnsNormally);
       });
 
       test('should handle disposal errors gracefully', () async {
@@ -532,8 +545,9 @@ class _TestObject {
   final String id;
   final List<int> data;
 
-  _TestObject() : id = 'test_${DateTime.now().millisecondsSinceEpoch}',
-       data = List.generate(10, (index) => index);
+  _TestObject()
+      : id = 'test_${DateTime.now().millisecondsSinceEpoch}',
+        data = List.generate(10, (index) => index);
 
   @override
   String toString() => 'TestObject($id)';
@@ -544,9 +558,12 @@ class _LargeObject {
   final String id;
   final List<List<double>> largeData;
 
-  _LargeObject() : id = 'large_${DateTime.now().millisecondsSinceEpoch}',
-       largeData = List.generate(100, (i) => List.generate(100, (j) => j.toDouble()));
+  _LargeObject()
+      : id = 'large_${DateTime.now().millisecondsSinceEpoch}',
+        largeData =
+            List.generate(100, (i) => List.generate(100, (j) => j.toDouble()));
 
   @override
-  String toString() => 'LargeObject($id, size: ${largeData.length}x${largeData[0]?.length ?? 0})';
+  String toString() =>
+      'LargeObject($id, size: ${largeData.length}x${largeData[0]?.length ?? 0})';
 }

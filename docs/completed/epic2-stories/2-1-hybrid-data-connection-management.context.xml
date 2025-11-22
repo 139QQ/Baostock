@@ -1,0 +1,179 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/2-1-hybrid-data-connection-management" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>1</storyId>
+    <title>混合数据获取连接管理</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-08T12:00:00.000Z</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/2-1-hybrid-data-connection-management.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>专业投资者</asA>
+    <iWant>智能的数据获取连接管理</iWant>
+    <soThat>我能够获得关键市场参数的实时更新和基金数据的准实时更新,同时保持架构的可扩展性和未来实时性升级能力</soThat>
+    <tasks>10个主要任务，包含36个子任务：
+Task 1: 混合数据管理架构 - 实现HybridDataManager类、DataType枚举、数据获取路由算法、WebSocket扩展接口
+Task 2: HTTP轮询基础实现 - 创建PollingManager类、智能频率调整、轮询参数配置、活跃度调整
+Task 3: 状态监控和可视化 - HybridDataStatusCubit、状态指示器、数据质量监控、性能指标收集
+Task 4: 网络异常和降级处理 - 网络状态检测、数据源切换、断线缓存、数据同步一致性
+Task 5: 状态管理集成 - 扩展GlobalCubitManager、状态同步、UI响应机制
+Task 6: 网络层集成 - Dio网络层兼容、HTTP API降级保证、错误处理机制、WebSocket抽象
+Task 7: 缓存系统集成 - Hive缓存存储策略、数据一致性、类型化更新策略
+Task 8: WebSocket扩展准备 - RealtimeDataService抽象接口、WebSocketAdapter、实时数据类型定义、连接状态管理
+Task 9: 用户配置和智能设置 - RealtimeSettings配置模型、数据类型优先级配置、实时性级别选择、用户行为优化
+Task 10: 测试和质量保证 - 混合数据管理单元测试、数据路由逻辑集成测试、WebSocket扩展接口模拟测试、网络异常端到端测试</tasks>
+  </story>
+
+  <acceptanceCriteria>8个验收标准：
+AC1: 建立分层数据获取机制，支持HTTP轮询 + 未来WebSocket扩展
+AC2: 实现数据类型智能识别和路由系统
+AC3: 网络异常时自动降级到缓存优先模式
+AC4: 恢复后自动同步断线期间的不同类型数据
+AC5: 支持混合数据获取参数配置(轮询间隔、实时级别、数据类型优先级)
+AC6: 实现智能频率调整，基于数据类型和变化活跃度
+AC7: 提供分层数据质量监控和性能指标
+AC8: 预留WebSocket扩展接口，为未来实时数据做准备</acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <path>docs/epics/epic-2-quasi-realtime-market-data-system.md</path>
+      <title>Epic 2 准实时市场数据集成系统技术规范</title>
+      <section>混合数据获取架构</section>
+      <snippet>实现分层的混合数据获取策略 (HTTP轮询 + 预留WebSocket扩展)，基于数据类型和优先级选择最优获取方式，支持智能频率调整和网络异常降级。</snippet>
+    </docs>
+    <docs>
+      <path>docs/prd/epic-2-realtime-market-data.md</path>
+      <title>Epic 2 实时市场数据集成系统PRD</title>
+      <section>分层混合数据获取模式</section>
+      <snippet>设计目标: 实现智能的数据获取策略，根据数据类型、网络状况和用户需求动态选择最优获取方式，支持未来实时数据扩展。</snippet>
+    </docs>
+    <docs>
+      <path>docs/architecture.md</path>
+      <title>基速基金量化分析平台决策架构文档</title>
+      <section>分层混合数据获取模式</section>
+      <snippet>基于现有Dio 5.3.0实现HTTP轮询，设计可插拔的数据获取架构，支持未来WebSocket扩展。采用分层策略：实时数据层 + 准实时数据层 + 历史数据层。</snippet>
+    </docs>
+    <code>
+      <path>lib/src/core/network/fund_api_client.dart</path>
+      <kind>service</kind>
+      <symbol>FundApiClient</symbol>
+      <lines>1-519</lines>
+      <reason>现有HTTP网络层基础，包含完整的Dio配置、错误处理、重试机制和AKShare API端点，为混合数据获取提供网络基础。</reason>
+    </code>
+    <code>
+      <path>lib/src/core/network/realtime/websocket_manager.dart</path>
+      <kind>service</kind>
+      <symbol>WebSocketManager</symbol>
+      <lines>1-426</lines>
+      <reason>已实现的WebSocket连接管理器，支持自动重连、心跳机制、连接质量监控，为混合数据管理的WebSocket扩展提供基础。</reason>
+    </code>
+    <code>
+      <path>lib/src/core/network/realtime/fallback_http_service.dart</path>
+      <kind>service</kind>
+      <symbol>FallbackHttpService</symbol>
+      <lines>1-593</lines>
+      <reason>HTTP轮询降级服务已实现，包含智能轮询频率调整、断线缓存、错误处理机制，可直接用于混合数据获取的HTTP轮询部分。</reason>
+    </code>
+    <code>
+      <path>lib/src/core/state/global_cubit_manager.dart</path>
+      <kind>state_manager</kind>
+      <symbol>GlobalCubitManager</symbol>
+      <lines>1-254</lines>
+      <reason>全局状态管理器已包含实时连接服务初始化和管理，扩展支持混合数据状态管理，确保状态在页面切换时保持不变。</reason>
+    </code>
+    <code>
+      <path>lib/src/core/state/realtime_connection_cubit.dart</path>
+      <kind>state_manager</kind>
+      <symbol>RealtimeConnectionCubit</symbol>
+      <lines>1-526</lines>
+      <reason>实时连接状态管理Cubit，提供连接状态监控、质量指标评估、错误处理，为混合数据连接状态管理提供现成的基础。</reason>
+    </code>
+    <dependencies>
+      <ecosystem>flutter</ecosystem>
+      <packages>
+        <package name="dio" version="^5.3.0">HTTP客户端，支持gzip压缩、HTTP/2，用于轮询数据获取</package>
+        <package name="web_socket_channel" version="^2.4.0">WebSocket连接，为未来实时数据扩展预留</package>
+        <package name="flutter_bloc" version="^9.1.1">BLoC状态管理，用于混合数据状态Cubit</package>
+        <package name="hive" version="^2.2.3">本地NoSQL数据库，用于分层数据缓存</package>
+        <package name="connectivity_plus" version="^5.0.1">网络状态监控，用于智能降级策略</package>
+      </packages>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>必须与现有Dio网络层完全兼容，不能影响现有HTTP API功能</constraint>
+    <constraint>需要保持与三级缓存系统(Hive)的数据一致性</constraint>
+    <constraint>WebSocket扩展必须向后兼容，不影响现有功能</constraint>
+    <constraint>支持Windows桌面应用优先的跨平台架构</constraint>
+    <constraint>遵循Clean Architecture + BLoC模式</constraint>
+    <constraint>分层数据获取：高频数据30秒，中频数据5分钟，低频数据按需</constraint>
+    <constraint>内存使用控制：分层数据缓存总计不超过50MB</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>DataFetchStrategy</name>
+      <kind>abstract class</kind>
+      <signature>abstract class DataFetchStrategy {
+  Stream&lt;DataItem&gt; getDataStream(DataType type);
+  bool isAvailable();
+  int getPriority();
+  Duration getPollingInterval();
+}</signature>
+      <path>lib/src/core/network/hybrid/data_fetch_strategy.dart</path>
+    </interface>
+    <interface>
+      <name>HybridDataManager</name>
+      <kind>class</kind>
+      <signature>class HybridDataManager {
+  final Map&lt;DataType, DataFetchStrategy&gt; _strategies;
+  final NetworkMonitor _networkMonitor;
+  final CacheManager _cacheManager;
+
+  Stream&lt;DataItem&gt; getMixedDataStream(DataType type);
+  DataFetchStrategy _selectOptimalStrategy(List&lt;DataFetchStrategy&gt; strategies, DataType type);
+}</signature>
+      <path>lib/src/core/network/hybrid/hybrid_data_manager.dart</path>
+    </interface>
+    <interface>
+      <name>FundApiClient</name>
+      <kind>class</kind>
+      <signature>class FundApiClient {
+  static Future&lt;Map&lt;String, dynamic&gt;&gt; get(String endpoint);
+  static Future&lt;Map&lt;String, dynamic&gt;&gt; getEtfSpotData();
+  static Future&lt;Map&lt;String, dynamic&gt;&gt; getLofSpotData();
+}</signature>
+      <path>lib/src/core/network/fund_api_client.dart</path>
+    </interface>
+    <interface>
+      <name>WebSocketManager</name>
+      <kind>class</kind>
+      <signature>class WebSocketManager {
+  Future&lt;void&gt; connect();
+  Future&lt;void&gt; disconnect();
+  Stream&lt;WebSocketMessage&gt; get messageStream;
+  Stream&lt;WebSocketConnectionState&gt; get stateStream;
+}</signature>
+      <path>lib/src/core/network/realtime/websocket_manager.dart</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>测试框架使用flutter_test + bloc_test + mockito，覆盖率目标≥90%。测试策略包括单元测试(HybridDataManager、PollingManager)、集成测试(数据路由逻辑、缓存一致性)、UI测试(状态可视化)、性能测试(轮询频率调整、内存使用)。遵循AAA模式和Given-When-Then结构，所有测试使用Mock对象避免网络调用。</standards>
+    <locations>
+      <directory>test/unit/core/network/hybrid/</directory>
+      <directory>test/unit/core/network/polling/</directory>
+      <directory>test/integration/hybrid_data_integration_test.dart</directory>
+      <directory>test/performance/hybrid_data_benchmark_test.dart</directory>
+    </locations>
+    <ideas>
+      <test idea="AC1,AC8">HybridDataManager策略选择测试 - 验证不同数据类型选择最优获取策略</test idea>
+      <test idea="AC2">DataTypeRouter智能路由测试 - 测试数据类型识别和路由算法准确性</test idea>
+      <test idea="AC3,AC4">网络降级和恢复测试 - 模拟网络中断和恢复场景，验证缓存优先和数据同步</test idea>
+      <test idea="AC5,AC6">智能频率调整测试 - 验证基于数据变化活跃度的轮询频率自动调整</test idea>
+      <test idea="AC7">数据质量监控测试 - 验证延迟、成功率、完整性指标的准确收集和展示</test idea>
+    </ideas>
+  </tests>
+</story-context>

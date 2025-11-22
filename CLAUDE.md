@@ -6,11 +6,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **基速基金量化分析平台** (jisu_fund_analyzer) - 基于 Flutter 开发的专业桌面端基金分析工具，采用 Clean Architecture + BLoC 模式，支持 Windows 桌面应用。
 
-### 🆕 最新特性 (2025-11-04)
+**当前版本**: v0.5.5 (2025-11-21) - Epic R架构重构完成，生产就绪版本
+
+### 🆕 核心特性 (2025-11)
 
 #### 智能自适应基金卡片组件
 - **AdaptiveFundCard**: 基于设备性能自动调整动画效果的智能卡片
 - **MicrointeractiveFundCard**: 提供丰富微交互和手势操作的高级卡片
+- **FundCardFactory**: 智能卡片工厂，实现统一卡片管理
 
 #### 核心功能亮点
 - 🎯 **智能性能检测**: 0-100分综合设备性能评分系统
@@ -19,6 +22,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - ♿ **无障碍性**: 完整的屏幕阅读器和语义化支持
 - 📊 **性能监控**: 实时动画性能监控和警告系统
 - ⚙️ **用户偏好**: 可记忆的用户设置和偏好管理
+
+#### 最新性能优化成果
+- **缓存效率**: 87.5% (超出目标27.5%)
+- **渲染性能**: 平均2.24ms/帧 (远低于20ms目标)
+- **内存使用**: 50%+优化
+- **网络传输**: 75%+效率提升
 
 ## 开发环境要求
 
@@ -78,6 +87,25 @@ dart run build_runner build --delete-conflicting-outputs
 
 # 监听模式自动生成
 dart run build_runner watch
+```
+
+### BMAD工作流程命令
+
+```bash
+# 查看工作流程状态
+/docs/.claude/commands/bmad-status.md
+
+# Sprint规划
+/bmad:bmm:workflows:sprint-planning
+
+# 技术规范创建
+/bmad:bmm:workflows:tech-spec
+
+# 创建新的用户故事
+/bmad:bmm:workflows:create-story
+
+# 评审工作流程状态
+/bmad:bmm:workflows:workflow-status
 ```
 
 ### 项目清理命令
@@ -384,6 +412,33 @@ flutter test test/integration/
 - **集成验证**: 所有组件正常工作
 - **部署状态**: 生产就绪
 
+## 🏗️ 项目工作流程和状态
+
+### BMAD方法论集成
+项目采用 **BMAD (Brownfield Methodology for Agile Development)** 工作流程：
+
+- **工作流程状态**: `docs/bmm-workflow-status.yaml`
+- **Sprint跟踪**: `docs/sprint-status.yaml`
+- **当前阶段**: Quick Flow Brownfield 开发模式
+- **Epic R (架构重构)**: 已完成，生产就绪
+
+### 技术规范系统
+- **技术规范目录**: `docs/specs/`
+- **当前规范**: R.3 数据层清理技术规范
+- **实施状态**: 规范完成，待实施
+
+### 文档组织结构
+```
+docs/
+├── specs/           # 技术规范文档
+├── stories/         # 用户故事和实施任务
+├── epic/           # 史诗级功能规划
+├── architecture/    # 架构设计文档
+├── api/            # API接口文档
+├── performance/     # 性能测试报告
+└── sprint-status.yaml # Sprint进度跟踪
+```
+
 ## Git工作流
 
 ### 分支策略
@@ -452,6 +507,14 @@ flutter build windows --release
 - 使用内存缓存替代Hive
 - 确保核心功能仍然可用
 
+### 环境配置管理
+项目支持多环境配置：
+- **开发环境**: `.env.development`
+- **生产环境**: `.env.production`
+- **默认配置**: `.env`
+
+使用 `flutter_dotenv` 包管理环境变量，在运行时根据需要加载不同配置。
+
 ## 开发角色定位
 
 - **架构师**: 严谨设计项目架构，确保代码质量和可维护性
@@ -460,3 +523,31 @@ flutter build windows --release
 - **测试员**: 一丝不苟测试，确保功能正确性
 
 每个开发阶段都要严格按照相应的角色标准执行工作。
+
+## ⚠️ 重要注意事项
+
+### 代码生成和构建
+- **每次修改数据模型后**，必须运行 `dart run build_runner build` 重新生成代码
+- **新增Hive适配器**后，需要清理并重新生成：`dart run build_runner clean && dart run build_runner build`
+- **API接口变更**后，需要重新生成Retrofit客户端代码
+
+### 测试要求
+- **测试失败处理**：积极分析报错内容，不要创建简化版本，优先修复程序代码
+- **性能测试**：每次重大变更后运行性能测试套件确保无性能回归
+- **覆盖率要求**：新功能必须包含相应的单元测试和集成测试
+
+### Git工作流程
+- **分支管理**：功能开发使用 `feature/*` 分支，避免直接在 `master` 分支开发
+- **提交规范**：使用语义化提交信息，参考 `docs/Git 分支合并与远程同步操作手册.md`
+- **代码审查**：重要变更需要经过代码审查，确保符合项目架构标准
+
+### 生产部署
+- **版本检查**：部署前确认 `pubspec.yaml` 版本号已更新
+- **性能验证**：运行完整性能测试确保满足生产要求
+- **文档同步**：确保相关技术文档和API文档已更新
+
+### 故障排查
+- **Hive问题**：检查适配器注册和typeId冲突
+- **状态管理**：确认BLoC provider正确配置
+- **网络请求**：检查API端点配置和HTTP缓存策略
+- **性能问题**：使用性能监控工具分析瓶颈

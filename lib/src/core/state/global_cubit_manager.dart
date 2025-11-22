@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 
 // Core imports
-import '../../core/di/injection_container.dart';
+import '../../core/di/di_initializer.dart';
 import '../../core/network/hybrid/hybrid_data_manager.dart';
 import '../../core/network/polling/polling_manager.dart';
 import '../../core/network/realtime/connection_monitor.dart';

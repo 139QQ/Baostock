@@ -1,46 +1,62 @@
 import 'package:dio/dio.dart';
 
-import '../utils/logger.dart';
-import 'market_real_service.dart';
-import 'market_data_models.dart';
 import '../cache/unified_hive_cache_manager.dart';
 import '../di/injection_container.dart';
+import '../utils/logger.dart';
+import 'market_data_models.dart';
+import 'market_real_service.dart';
 
 /// 缓存键定义
 class _CacheKeys {
   static String marketIndices = 'market_indices';
-  static String marketOverview = 'market_overview';
-  static String fundRankings = 'fund_rankings';
-  static String sectorData = 'sector_data';
+  // 预留其他缓存键供未来扩展使用
+  // static String marketOverview = 'market_overview';
+  // static String fundRankings = 'fund_rankings';
+  // static String sectorData = 'sector_data';
 }
 
 /// 增强版市场数据服务
-/// 优化超时配置和重试机制
+///
+/// 提供优化的超时配置和重试机制的市场数据服务，支持：
+/// - 智能缓存策略
+/// - 自动重试机制
+/// - 降级处理
+/// - 详细的日志记录
 class MarketRealServiceEnhanced implements MarketRealService {
-  static String baseUrl = 'http://154.44.25.92:8080';
-  static int maxRetries = 3;
-
-  // 针对不同数据类型的超时配置
-  static Duration connectTimeout = const Duration(seconds: 10);
-  static Duration receiveTimeout = const Duration(seconds: 15);
-  static Duration sendTimeout = const Duration(seconds: 10);
-
-  // 实时数据快速超时
-  static Duration realtimeTimeout = const Duration(seconds: 8);
-
-  // 历史数据较长超时
-  static Duration historyTimeout = const Duration(seconds: 25);
-
-  // 分时数据中等超时
-  static Duration intradayTimeout = const Duration(seconds: 12);
+  /// 创建增强版市场数据服务实例
+  ///
+  /// 自动配置Dio客户端和依赖注入
+  MarketRealServiceEnhanced() : _dio = Dio() {
+    _initializeDio();
+    _cacheManager = sl.get<UnifiedHiveCacheManager>();
+  }
 
   final Dio _dio;
   late final UnifiedHiveCacheManager _cacheManager;
 
-  MarketRealServiceEnhanced() : _dio = Dio() {
-    _initializeDio();
-    _cacheManager = sl<UnifiedHiveCacheManager>();
-  }
+  /// API基础URL
+  static String baseUrl = 'http://154.44.25.92:8080';
+
+  /// 最大重试次数
+  static int maxRetries = 3;
+
+  /// 连接超时时间
+  static Duration connectTimeout = const Duration(seconds: 10);
+
+  /// 接收超时时间
+  static Duration receiveTimeout = const Duration(seconds: 15);
+
+  /// 发送超时时间
+  static Duration sendTimeout = const Duration(seconds: 10);
+
+  /// 实时数据快速超时
+  static Duration realtimeTimeout = const Duration(seconds: 8);
+
+  /// 历史数据较长超时
+  static Duration historyTimeout = const Duration(seconds: 25);
+
+  /// 分时数据中等超时
+  static Duration intradayTimeout = const Duration(seconds: 12);
 
   /// 带自定义超时的GET请求
   Future<Response> _getWithTimeout(

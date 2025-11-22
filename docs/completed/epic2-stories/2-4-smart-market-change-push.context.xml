@@ -1,0 +1,410 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/output" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>4</storyId>
+    <title>智能市场变化推送</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-11-10</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/2-4-smart-market-change-push.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>专业投资者</asA>
+    <iWant>系统能够智能识别市场关键变化并及时推送个性化通知</iWant>
+    <soThat>我能够第一时间获知重要的市场动态和投资机会，及时调整投资策略</soThat>
+    <tasks>Task 1: 实现智能市场变化检测系统 (AC: 1, 5)
+- Subtask 1.1: 创建MarketChangeDetector，基于现有数据处理管道扩展
+- Subtask 1.2: 实现变化分类算法（价格变化、趋势变化、异常事件）
+- Subtask 1.3: 集成相关基金关联分析引擎
+- Subtask 1.4: 实现变化重要性和影响范围评估
+
+Task 2: 实现推送优先级管理系统 (AC: 2, 7)
+- Subtask 2.1: 创建PushPriorityManager，实现智能优先级算法
+- Subtask 2.2: 实现推送过滤机制，支持用户自定义规则
+- Subtask 2.3: 创建防骚扰机制，智能控制推送频率
+- Subtask 2.4: 实现静默时段和用户免打扰设置
+
+Task 3: 实现变化影响分析和解读系统 (AC: 3, 5)
+- Subtask 3.1: 创建ChangeImpactAnalyzer，分析变化对基金的影响
+- Subtask 3.2: 实现智能解读生成器，提供变化解读和建议
+- Subtask 3.3: 集成现有市场指数数据，提供背景分析
+- Subtask 3.4: 创建影响评估模型，量化变化影响程度
+
+Task 4: 实现个性化推送定制系统 (AC: 4, 7)
+- Subtask 4.1: 创建PushPersonalizationEngine，管理用户偏好
+- Subtask 4.2: 实现推送时间定制，支持用户活跃时段优化
+- Subtask 4.3: 创建推送内容个性化，匹配用户关注点
+- Subtask 4.4: 实现推送频率自定义，平衡及时性和骚扰控制
+
+Task 5: 实现推送历史记录管理系统 (AC: 6)
+- Subtask 5.1: 扩展UnifiedHiveCacheManager支持推送历史数据
+- Subtask 5.2: 创建PushHistoryManager，管理推送记录
+- Subtask 5.3: 实现历史数据查询和分析功能
+- Subtask 5.4: 创建推送效果统计和用户反馈收集
+
+Task 6: 实现推送状态管理和UI集成 (IV3, IV4)
+- Subtask 6.1: 创建PushNotificationCubit，管理推送状态
+- Subtask 6.2: 集成GlobalCubitManager，统一状态管理
+- Subtask 6.3: 创建推送设置UI组件，支持用户偏好配置
+- Subtask 6.4: 实现推送历史查看界面和数据可视化
+
+Task 7: 实现Android推送权限配置 (AC: 4, 7)
+- Subtask 7.1: 添加Android通知权限配置 (POST_NOTIFICATIONS, FOREGROUND_SERVICE)
+- Subtask 7.2: 实现权限请求和状态检查逻辑
+- Subtask 7.3: 配置电池优化白名单请求 (REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+- Subtask 7.4: 实现后台服务和WorkManager集成
+- Subtask 7.5: 添加flutter_local_notifications集成和配置
+
+Task 8: 实现完整的测试覆盖
+- Subtask 8.1: 编写变化检测算法单元测试
+- Subtask 8.2: 创建推送优先级管理集成测试
+- Subtask 8.3: 实现个性化设置功能测试
+- Subtask 8.4: 添加历史数据管理和查询测试
+- Subtask 8.5: 创建端到端推送流程测试
+- Subtask 8.6: 添加Android权限请求和处理测试
+- Subtask 8.7: 实现跨平台推送功能兼容性测试</tasks>
+  </story>
+
+  <acceptanceCriteria>1. AC1: 关键数据变化的智能识别和分类
+   - 验证: 自动识别并分类数据变化（价格变化、趋势变化、异常事件）
+   - 测试方法: 变化识别准确性测试和分类算法验证
+
+2. AC2: 推送通知的优先级管理和过滤机制
+   - 验证: 按优先级过滤推送变化（高/中/低优先级）
+   - 测试方法: 优先级过滤测试和推送策略验证
+
+3. AC3: 数据变化影响的智能分析和解读
+   - 验证: 分析数据变化对基金的潜在影响并提供解读
+   - 测试方法: 影响分析准确性测试和解读质量评估
+
+4. AC4: 推送通知的个性化定制
+   - 验证: 用户可定制推送偏好设置（时间、类型、频率等）
+   - 测试方法: 个性化设置功能测试和用户偏好验证
+
+5. AC5: 数据变化与相关基金的智能关联
+   - 验证: 自动关联数据变化与相关基金，提供影响分析
+   - 测试方法: 关联算法准确性测试和影响范围验证
+
+6. AC6: 历史推送记录和回溯查询
+   - 验证: 支持历史推送记录查询和推送效果分析
+   - 测试方法: 历史记录查询测试和数据完整性验证
+
+7. AC7: 推送频率的智能控制和防骚扰
+   - 验证: 智能控制推送频率避免骚扰，支持静默时段
+   - 测试方法: 频率控制机制测试和防骚扰策略验证</acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics/epic-2-quasi-realtime-market-data-system.md</path>
+        <title>Epic 2: 准实时市场数据集成系统</title>
+        <section>Story 2.4: 市场数据变化推送</section>
+        <snippet>关键数据变化的智能识别和分类，推送通知的优先级管理和过滤机制，数据变化影响的智能分析和解读</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>系统架构文档</title>
+        <section>Clean Architecture和BLoC状态管理模式</section>
+        <snippet>遵循Clean Architecture原则，数据层与表现层分离，利用BLoC状态管理</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/2-3-quasi-realtime-market-index-integration.md</path>
+        <title>Story 2.3: 准实时市场指数集成</title>
+        <section>Dev Notes - Technical Architecture</section>
+        <snippet>基于现有PollingDataManager架构，复用轮询基础设施，集成三级缓存系统</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/2-2-quasi-realtime-fund-nav-processing.md</path>
+        <title>Story 2.2: 准实时基金净值数据处理</title>
+        <section>Dev Notes - Learnings from Previous Story</section>
+        <snippet>FundNavDataManager准实时数据管理器模式，NavChangeDetector变化检测算法，IntelligentCacheStrategy智能缓存策略</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-management/sprint-change-proposal-2025-11-09.md</path>
+        <title>Sprint变更提案</title>
+        <section>当前建议</section>
+        <snippet>Story 2.4: 智能市场事件推送 - 关键市场事件的智能识别和分类，事件推送的优先级管理和过滤机制</snippet>
+      </doc>
+      <doc>
+        <path>android/app/src/main/AndroidManifest.xml</path>
+        <title>Android权限配置</title>
+        <section>推送权限</section>
+        <snippet>Android推送通知权限配置：POST_NOTIFICATIONS, FOREGROUND_SERVICE, REQUEST_IGNORE_BATTERY_OPTIMIZATIONS</snippet>
+      </doc>
+      <doc>
+        <path>pubspec.yaml</path>
+        <title>Flutter依赖配置</title>
+        <section>推送相关依赖</section>
+        <snippet>flutter_local_notifications: ^17.0.0, permission_handler: ^11.0.1, workmanager: ^0.5.2, background_fetch: ^1.2.1</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/2-4-smart-market-change-push.md</path>
+        <title>Android推送权限配置详情</title>
+        <section>权限处理策略</section>
+        <snippet>渐进式权限请求，优雅降级，权限状态监控，Android版本兼容处理</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>lib/src/core/network/polling/polling_manager.dart</path>
+        <kind>service</kind>
+        <symbol>PollingManager</symbol>
+        <lines>1-50</lines>
+        <reason>提供轮询数据管理基础，Story 2.4需要扩展支持变化事件通知</reason>
+      </artifact>
+      <artifact>
+        <path>lib/src/core/cache/unified_hive_cache_manager.dart</path>
+        <kind>cache</kind>
+        <symbol>UnifiedHiveCacheManager</symbol>
+        <lines>1-100</lines>
+        <reason>提供三级缓存系统，用于存储推送历史数据和用户偏好</reason>
+      </artifact>
+      <artifact>
+        <path>lib/src/core/state/global_cubit_manager.dart</path>
+        <kind>state</kind>
+        <symbol>GlobalCubitManager</symbol>
+        <lines>1-50</lines>
+        <reason>管理全局状态，Story 2.4需要集成推送状态管理</reason>
+      </artifact>
+      <artifact>
+        <path>lib/src/features/fund/data/processors/nav_change_detector.dart</path>
+        <kind>processor</kind>
+        <symbol>NavChangeDetector</symbol>
+        <lines>1-80</lines>
+        <reason>现有变化检测算法，可扩展为市场变化分析引擎</reason>
+      </artifact>
+      <artifact>
+        <path>lib/src/features/market/data/processors/index_change_analyzer.dart</path>
+        <kind>processor</kind>
+        <symbol>IndexChangeAnalyzer</symbol>
+        <lines>1-100</lines>
+        <reason>指数变化分析器，扩展为市场变化检测和分类系统</reason>
+      </artifact>
+      <artifact>
+        <path>lib/src/features/market/data/cache/market_index_cache_manager.dart</path>
+        <kind>cache</kind>
+        <symbol>MarketIndexCacheManager</symbol>
+        <lines>1-80</lines>
+        <reason>指数数据缓存管理器，扩展支持推送历史数据管理</reason>
+      </artifact>
+      <artifact>
+        <path>lib/src/features/fund/data/processors/fund_nav_data_manager.dart</path>
+        <kind>processor</kind>
+        <symbol>FundNavDataManager</symbol>
+        <lines>1-100</lines>
+        <reason>准实时数据管理器模式，为推送系统提供数据基础</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <dependency ecosystem="flutter">
+        <package>flutter_bloc</package>
+        <version>^9.1.1</version>
+        <purpose>BLoC状态管理，用于推送通知状态管理</purpose>
+      </dependency>
+      <dependency ecosystem="flutter">
+        <package>equatable</package>
+        <version>^2.0.5</version>
+        <purpose>状态对象比较，确保推送状态管理性能</purpose>
+      </dependency>
+      <dependency ecosystem="flutter">
+        <package>hive</package>
+        <version>^2.2.3</version>
+        <purpose>本地数据库，存储推送历史记录和用户偏好</purpose>
+      </dependency>
+      <dependency ecosystem="flutter">
+        <package>hive_flutter</package>
+        <version>^1.1.0</version>
+        <purpose>Flutter Hive集成，推送数据持久化</purpose>
+      </dependency>
+      <dependency ecosystem="flutter">
+        <package>dio</package>
+        <version>^5.3.0</version>
+        <purpose>HTTP客户端，推送通知网络请求</purpose>
+      </dependency>
+      <dependency ecosystem="flutter">
+        <package>shared_preferences</package>
+        <version>^2.2.2</version>
+        <purpose>简单键值存储，用户推送偏好设置</purpose>
+      </dependency>
+      <dependency ecosystem="flutter">
+        <package>decimal</package>
+        <version>^2.3.3</version>
+        <purpose>高精度数值计算，金融数据变化分析</purpose>
+      </dependency>
+      <dependency ecosystem="flutter">
+        <package>flutter_local_notifications</package>
+        <version>^17.0.0</version>
+        <purpose>本地通知系统，支持Android和Windows平台推送</purpose>
+      </dependency>
+      <dependency ecosystem="flutter">
+        <package>permission_handler</package>
+        <version>^11.0.1</version>
+        <purpose>权限管理，处理Android推送权限请求</purpose>
+      </dependency>
+      <dependency ecosystem="flutter">
+        <package>workmanager</package>
+        <version>^0.5.2</version>
+        <purpose>后台任务管理，支持Android后台数据获取</purpose>
+      </dependency>
+      <dependency ecosystem="flutter">
+        <package>background_fetch</package>
+        <version>^1.2.1</version>
+        <purpose>后台数据获取，支持准实时市场数据更新</purpose>
+      </dependency>
+      <dependency ecosystem="flutter">
+        <package>connectivity_plus</package>
+        <version>^5.0.1</version>
+        <purpose>网络状态监控，优化推送时机和频率</purpose>
+      </dependency>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>
+      <type>architecture</type>
+      <description>必须基于现有PollingDataManager和数据处理管道扩展</description>
+      <source>docs/stories/2-4-smart-market-change-push.md#架构约束</source>
+    </constraint>
+    <constraint>
+      <type>architecture</type>
+      <description>遵循Clean Architecture和BLoC状态管理模式</description>
+      <source>docs/architecture.md#分层架构模式</source>
+    </constraint>
+    <constraint>
+      <type>performance</type>
+      <description>变化检测延迟：数据变化发生后5秒内完成识别</description>
+      <source>docs/stories/2-4-smart-market-change-push.md#技术要求</source>
+    </constraint>
+    <constraint>
+      <type>performance</type>
+      <description>推送通知延迟：识别后10秒内完成推送</description>
+      <source>docs/stories/2-4-smart-market-change-push.md#技术要求</source>
+    </constraint>
+    <constraint>
+      <type>performance</type>
+      <description>推送系统对整体性能影响小于3%</description>
+      <source>docs/stories/2-4-smart-market-change-push.md#性能考虑</source>
+    </constraint>
+    <constraint>
+      <type>integration</type>
+      <description>与现有通知系统集成，复用推送基础设施</description>
+      <source>docs/stories/2-4-smart-market-change-push.md#Integration-Verification</source>
+    </constraint>
+    <constraint>
+      <type>testing</type>
+      <description>实现完整的测试覆盖，包括单元测试、集成测试和端到端测试</description>
+      <source>docs/stories/2-4-smart-market-change-push.md#Tasks</source>
+    </constraint>
+    <constraint>
+      <type>android_permissions</type>
+      <description>必须配置Android推送权限：POST_NOTIFICATIONS (Android 13+), FOREGROUND_SERVICE, REQUEST_IGNORE_BATTERY_OPTIMIZATIONS</description>
+      <source>docs/stories/2-4-smart-market-change-push.md#Android推送权限配置详情</source>
+    </constraint>
+    <constraint>
+      <type>cross_platform</type>
+      <description>Windows平台优先使用local_notifier系统通知，Android平台使用flutter_local_notifications，实现优雅降级机制</description>
+      <source>docs/stories/2-4-smart-market-change-push.md#跨平台兼容性</source>
+    </constraint>
+    <constraint>
+      <type>permission_handling</type>
+      <description>实现渐进式权限请求策略，权限被拒绝时提供应用内通知替代方案，定期检查权限状态</description>
+      <source>docs/stories/2-4-smart-market-change-push.md#权限处理策略</source>
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>MarketChangeDetector</name>
+      <kind>class interface</kind>
+      <signature>
+abstract class MarketChangeDetector {
+  Future&lt;List&lt;MarketChangeEvent&gt;&gt; detectChanges(dynamic newData, dynamic oldData);
+  Future&lt;ChangeCategory&gt; categorizeChange(MarketChangeEvent event);
+  Future&lt;double&gt; calculateChangeImportance(MarketChangeEvent event);
+}
+      </signature>
+      <path>lib/src/features/alerts/data/processors/market_change_detector.dart</path>
+    </interface>
+    <interface>
+      <name>PushPriorityManager</name>
+      <kind>class interface</kind>
+      <signature>
+abstract class PushPriorityManager {
+  Future&lt;PushPriority&gt; calculatePriority(MarketChangeEvent event);
+  Future&lt;bool&gt; shouldPush(MarketChangeEvent event, UserPreferences preferences);
+  Future&lt;void&gt; updateFrequencyControl(String userId, PushFrequency frequency);
+}
+      </signature>
+      <path>lib/src/features/alerts/data/processors/push_priority_manager.dart</path>
+    </interface>
+    <interface>
+      <name>PushNotificationCubit</name>
+      <kind>BLoC interface</kind>
+      <signature>
+class PushNotificationCubit extends Cubit&lt;PushNotificationState&gt; {
+  PushNotificationCubit(this.pushNotificationRepository);
+
+  Future&lt;void&gt; sendNotification(PushNotification notification);
+  Future&lt;void&gt; updatePreferences(UserPreferences preferences);
+  Stream&lt;List&lt;PushNotification&gt;&gt; get notifications;
+}
+      </signature>
+      <path>lib/src/features/alerts/presentation/cubits/push_notification_cubit.dart</path>
+    </interface>
+    <interface>
+      <name>NotificationPermissionService</name>
+      <kind>service interface</kind>
+      <signature>
+abstract class NotificationPermissionService {
+  Future&lt;bool&gt; hasNotificationPermission();
+  Future&lt;bool&gt; requestNotificationPermission();
+  Future&lt;bool&gt; hasBatteryOptimizationPermission();
+  Future&lt;bool&gt; requestBatteryOptimizationPermission();
+  Future&lt;PermissionStatus&gt; checkPermissionStatus();
+}
+      </signature>
+      <path>lib/src/features/alerts/services/notification_permission_service.dart</path>
+    </interface>
+    <interface>
+      <name>CrossPlatformNotificationService</name>
+      <kind>service interface</kind>
+      <signature>
+abstract class CrossPlatformNotificationService {
+  Future&lt;void&gt; initialize();
+  Future&lt;bool&gt; sendNotification(PushNotification notification);
+  Future&lt;void&gt; createNotificationChannel(String channelId, String channelName, String description);
+  Future&lt;List&lt;PushNotification&gt;&gt; getActiveNotifications();
+  bool get isPlatformSupported;
+}
+      </signature>
+      <path>lib/src/features/alerts/services/cross_platform_notification_service.dart</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>使用flutter_test框架进行单元测试，bloc_test进行状态管理测试，mockito创建模拟对象。遵循AAA模式（Arrange-Act-Assert），每个测试应该有清晰的设置、执行和验证阶段。集成测试应覆盖完整的数据流和用户交互流程。推送通知测试采用70%单元测试、20%组件测试、10%集成测试的金字塔架构，使用模拟通知服务避免真实系统通知的复杂性。</standards>
+    <locations>
+      <location>test/unit/features/alerts/</location>
+      <location>test/integration/</location>
+      <location>test/widget/</location>
+      <location>test/android/</location>
+      <location>test/windows/</location>
+    </locations>
+    <ideas>
+      <test id="AC1">test_market_change_detector_accuracy - 测试变化检测算法的准确性</test>
+      <test id="AC2">test_push_priority_filtering - 测试推送优先级过滤机制</test>
+      <test id="AC3">test_change_impact_analysis - 测试变化影响分析算法</test>
+      <test id="AC4">test_personalization_settings - 测试个性化设置功能</test>
+      <test id="AC5">test_fund_correlation_accuracy - 测试基金关联分析准确性</test>
+      <test id="AC6">test_push_history_query - 测试推送历史记录查询</test>
+      <test id="AC7">test_frequency_control_mechanism - 测试频率控制机制</test>
+      <test id="Android">test_notification_permission_handling - 测试Android通知权限处理</test>
+      <test id="Android">test_battery_optimization_request - 测试电池优化白名单请求</test>
+      <test id="CrossPlatform">test_windows_notification_service - 测试Windows通知服务</test>
+      <test id="CrossPlatform">test_android_notification_service - 测试Android通知服务</test>
+      <test id="Integration">test_end_to_end_push_flow - 测试端到端推送流程</test>
+      <test id="Performance">test_push_system_performance - 测试推送系统性能影响</test>
+    </ideas>
+  </tests>
+</story-context>

@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
-import '../../../../core/di/injection_container.dart';
 import '../../../../core/navigation/navigation_manager.dart';
+import '../../../../core/di/di_initializer.dart';
 import '../../../alerts/presentation/pages/alerts_page.dart';
 import '../../../auth/domain/entities/user.dart';
 import '../../../fund/presentation/fund_exploration/presentation/pages/fund_exploration_page.dart';
